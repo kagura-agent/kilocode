@@ -1,5 +1,6 @@
 import * as vscode from "vscode"
 import { KiloProvider } from "./KiloProvider"
+import { resolvePanelProjectDirectory } from "./panel-workspace"
 import type { KiloConnectionService } from "./services/cli-backend"
 
 type PanelView = "settings" | "profile" | "marketplace"
@@ -32,11 +33,22 @@ export class SettingsEditorProvider implements vscode.Disposable {
     private readonly context: vscode.ExtensionContext,
   ) {}
 
+  private getProjectDirectory(): string | null {
+    const editor = vscode.window.activeTextEditor
+    const active =
+      editor?.document.uri.scheme === "file"
+        ? vscode.workspace.getWorkspaceFolder(editor.document.uri)?.uri.fsPath
+        : undefined
+    return resolvePanelProjectDirectory(active, vscode.workspace.workspaceFolders)
+  }
+
   openPanel(view: PanelView, tab?: string): void {
     if (tab) this.tabs.set(view, tab)
 
+    const projectDirectory = this.getProjectDirectory()
     const existing = this.panels.get(view)
     if (existing) {
+      this.providers.get(view)?.setProjectDirectory(projectDirectory)
       if (tab) {
         const provider = this.providers.get(view)
         provider?.postMessage({ type: "navigate", view, tab })
@@ -60,7 +72,9 @@ export class SettingsEditorProvider implements vscode.Disposable {
 
     // Create a dedicated KiloProvider for this panel so it has full
     // backend connectivity (config, providers, agents, profile, auth).
-    const provider = new KiloProvider(this.extensionUri, this.connectionService, this.context)
+    const provider = new KiloProvider(this.extensionUri, this.connectionService, this.context, {
+      projectDirectory,
+    })
     provider.resolveWebviewPanel(panel)
 
     // Listen for closePanel from the webview (back button in panel mode)

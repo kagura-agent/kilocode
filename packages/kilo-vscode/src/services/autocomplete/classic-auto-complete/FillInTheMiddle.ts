@@ -8,6 +8,7 @@ import {
 import { getProcessedSnippets } from "./getProcessedSnippets"
 import { getTemplateForModel } from "../continuedev/core/autocomplete/templating/AutocompleteTemplate"
 import { AutocompleteModel } from "../AutocompleteModel"
+import { log } from "../../../output-channel"
 
 export type { FimAutocompletePrompt, FimCompletionResult }
 
@@ -76,7 +77,7 @@ export class FimPromptBuilder {
 
     logtime("snippets")
 
-    console.log("[FIM] formattedPrefix:", formattedPrefix)
+    log("[FIM] formattedPrefix:", formattedPrefix)
 
     let response = ""
     const onChunk = (text: string) => {
@@ -85,15 +86,15 @@ export class FimPromptBuilder {
     logtime("prep fim")
     const usageInfo = await model.generateFimResponse(formattedPrefix, prunedSuffix, onChunk, signal)
     logtime("fim network")
-    console.log("[FIM] response:", response)
+    log("[FIM] response:", response)
 
     const fillInAtCursorSuggestion = processSuggestion(response)
 
     if (fillInAtCursorSuggestion.text) {
-      console.info("Final FIM suggestion:", fillInAtCursorSuggestion)
+      log("Final FIM suggestion:", fillInAtCursorSuggestion)
     }
     logtime("processSuggestion")
-    console.log(perflog + `lengths: ${formattedPrefix.length + prunedSuffix.length}\n`)
+    log(perflog + `lengths: ${formattedPrefix.length + prunedSuffix.length}\n`)
     return {
       suggestion: fillInAtCursorSuggestion,
       cost: usageInfo.cost,

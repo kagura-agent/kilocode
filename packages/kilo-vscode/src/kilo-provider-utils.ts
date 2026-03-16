@@ -1,5 +1,6 @@
 import type { Session, Agent, Event, ProviderListResponse } from "@kilocode/sdk/v2/client"
 import type { CloudSessionMessage } from "./services/cli-backend/types"
+import { log } from "./output-channel"
 
 /** A single provider entry as returned by the /provider list endpoint. */
 export type ProviderInfo = ProviderListResponse["all"][number]
@@ -97,7 +98,7 @@ export async function loadSessions(ctx: SessionRefreshContext): Promise<string |
   const extra = await Promise.all(
     [...worktreeDirs].map((dir) =>
       list(dir).catch((err: unknown) => {
-        console.error(`[Kilo] Failed to list sessions for ${dir}:`, err)
+        log(`[Kilo] Failed to list sessions for ${dir}:`, err)
         return [] as Session[]
       }),
     ),

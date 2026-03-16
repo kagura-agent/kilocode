@@ -4,6 +4,7 @@ import { createKiloClient, type KiloClient, type Event } from "@kilocode/sdk/v2/
 import { SdkSSEAdapter } from "./sdk-sse-adapter"
 import type { ServerConfig } from "./types"
 import { resolveEventSessionId as resolveEventSessionIdPure } from "./connection-utils"
+import { log } from "../../output-channel"
 
 export type ConnectionState = "connecting" | "connected" | "disconnected" | "error"
 type SSEEventListener = (event: Event) => void
@@ -216,7 +217,7 @@ export class KiloConnectionService {
       }
       const healthy = await this.checkHealth(baseUrl, password)
       if (!healthy && this.state === "connected") {
-        console.warn("[Kilo New] ConnectionService: ❤️‍🩹 Health check failed — forcing SSE reconnect")
+        log("[Kilo New] ConnectionService: Health check failed — forcing SSE reconnect")
         this.sseClient?.disconnect()
       }
     }, HEALTH_POLL_INTERVAL_MS)

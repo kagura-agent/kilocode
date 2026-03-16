@@ -2,6 +2,7 @@ import * as vscode from "vscode"
 import type { KiloClient } from "@kilocode/sdk/v2/client"
 import type { KiloConnectionService } from "../cli-backend/connection-service"
 import { getErrorMessage } from "../../kilo-provider-utils"
+import { log } from "../../output-channel"
 
 let lastGeneratedMessage: string | undefined
 let lastWorkspacePath: string | undefined
@@ -69,12 +70,12 @@ export function registerCommitMessageService(
           repository.inputBox.value = message
           lastGeneratedMessage = message
           lastWorkspacePath = path
-          console.log("[Kilo New] Commit message generated successfully")
+          log("[Kilo New] Commit message generated successfully")
         },
       )
       .then(undefined, (error: unknown) => {
         const msg = getErrorMessage(error)
-        console.error("[Kilo New] Failed to generate commit message:", msg)
+        log("[Kilo New] Failed to generate commit message:", msg)
         vscode.window.showErrorMessage(`Failed to generate commit message: ${msg}`)
       })
   })

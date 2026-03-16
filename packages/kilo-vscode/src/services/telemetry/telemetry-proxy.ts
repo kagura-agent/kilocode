@@ -1,6 +1,7 @@
 import * as vscode from "vscode"
 import { TelemetryEventName, type TelemetryPropertiesProvider } from "./types"
 import { buildTelemetryPayload, buildTelemetryAuthHeader } from "./telemetry-proxy-utils"
+import { log } from "../../output-channel"
 
 /**
  * Singleton proxy that captures telemetry events and forwards them to the CLI
@@ -57,7 +58,7 @@ export class TelemetryProxy {
         "Content-Type": "application/json",
       },
       body: payload,
-    }).catch((err) => console.error("[Kilo New] Telemetry capture failed:", err))
+    }).catch((err) => log("[Kilo New] Telemetry capture failed:", err))
   }
 
   /**

@@ -17,6 +17,7 @@ import { FileIgnoreController } from "./services/autocomplete/shims/FileIgnoreCo
 import { handleChatCompletionRequest } from "./services/autocomplete/chat-autocomplete/handleChatCompletionRequest"
 import { handleChatCompletionAccepted } from "./services/autocomplete/chat-autocomplete/handleChatCompletionAccepted"
 import { buildWebviewHtml } from "./utils"
+import { log } from "./output-channel"
 import { TelemetryProxy, type TelemetryPropertiesProvider } from "./services/telemetry"
 // legacy-migration start
 import * as MigrationService from "./legacy-migration/migration-service"
@@ -125,7 +126,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
    */
   private async syncWebviewState(reason: string): Promise<void> {
     const serverInfo = this.connectionService.getServerInfo()
-    console.log("[Kilo New] KiloProvider: 🔄 syncWebviewState()", {
+    log("[Kilo New] KiloProvider: 🔄 syncWebviewState()", {
       reason,
       isWebviewReady: this.isWebviewReady,
       connectionState: this.connectionState,
@@ -134,7 +135,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
     })
 
     if (!this.isWebviewReady) {
-      console.log("[Kilo New] KiloProvider: ⏭️ syncWebviewState skipped (webview not ready)")
+      log("[Kilo New] KiloProvider: ⏭️ syncWebviewState skipped (webview not ready)")
       return
     }
 
@@ -161,10 +162,10 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
     // Profile returns 401 when user isn't logged into Kilo Gateway — that's expected.
     // Use fire-and-forget (no throwOnError) to match old getProfile() which returned null on error.
     if (this.connectionState === "connected" && this.client) {
-      console.log("[Kilo New] KiloProvider: 👤 syncWebviewState fetching profile...")
+      log("[Kilo New] KiloProvider: 👤 syncWebviewState fetching profile...")
       const profileResult = await this.client.kilo.profile()
       const profileData = profileResult.data ?? null
-      console.log("[Kilo New] KiloProvider: 👤 syncWebviewState profile:", profileData ? "received" : "null")
+      log("[Kilo New] KiloProvider: 👤 syncWebviewState profile:", profileData ? "received" : "null")
       this.postMessage({
         type: "profileData",
         data: profileData,
@@ -311,14 +312,14 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
           if (result === null) return // consumed by interceptor
           message = result
         } catch (error) {
-          console.error("[Kilo New] KiloProvider: interceptor error:", error)
+          log("[Kilo New] KiloProvider: interceptor error:", error)
           return
         }
       }
 
       switch (message.type) {
         case "webviewReady":
-          console.log("[Kilo New] KiloProvider: ✅ webviewReady received")
+          log("[Kilo New] KiloProvider: ✅ webviewReady received")
           this.isWebviewReady = true
           await this.syncWebviewState("webviewReady")
           this.flushPendingReviewComments()
@@ -370,12 +371,10 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
           void this.handleLoadMessages(message.sessionID)
           break
         case "syncSession":
-          this.handleSyncSession(message.sessionID).catch((e) =>
-            console.error("[Kilo New] handleSyncSession failed:", e),
-          )
+          this.handleSyncSession(message.sessionID).catch((e) => log("[Kilo New] handleSyncSession failed:", e))
           break
         case "loadSessions":
-          this.handleLoadSessions().catch((e) => console.error("[Kilo New] handleLoadSessions failed:", e))
+          this.handleLoadSessions().catch((e) => log("[Kilo New] handleLoadSessions failed:", e))
           break
         case "login":
           await this.handleLogin()
@@ -404,10 +403,8 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
           vscode.commands.executeCommand("kilo-code.new.showChanges")
           break
         case "retryConnection":
-          console.log("[Kilo New] KiloProvider: 🔄 Retrying connection...")
-          this.initializeConnection().catch((e) =>
-            console.error("[Kilo New] KiloProvider: ❌ Retry connection failed:", e),
-          )
+          log("[Kilo New] KiloProvider: 🔄 Retrying connection...")
+          this.initializeConnection().catch((e) => log("[Kilo New] KiloProvider: ❌ Retry connection failed:", e))
           break
         case "openSubAgentViewer":
           vscode.commands.executeCommand("kilo-code.new.openSubAgentViewer", message.sessionID, message.title)
@@ -418,21 +415,19 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
           }
           break
         case "requestProviders":
-          this.fetchAndSendProviders().catch((e) => console.error("[Kilo New] fetchAndSendProviders failed:", e))
+          this.fetchAndSendProviders().catch((e) => log("[Kilo New] fetchAndSendProviders failed:", e))
           break
         case "compact":
           await this.handleCompact(message.sessionID, message.providerID, message.modelID)
           break
         case "requestAgents":
-          this.fetchAndSendAgents().catch((e) => console.error("[Kilo New] fetchAndSendAgents failed:", e))
+          this.fetchAndSendAgents().catch((e) => log("[Kilo New] fetchAndSendAgents failed:", e))
           break
         case "requestSkills":
-          this.fetchAndSendSkills().catch((e) => console.error("[Kilo New] fetchAndSendSkills failed:", e))
+          this.fetchAndSendSkills().catch((e) => log("[Kilo New] fetchAndSendSkills failed:", e))
           break
         case "removeSkill":
-          this.handleRemoveSkill(message.location).catch((e) =>
-            console.error("[Kilo New] handleRemoveSkill failed:", e),
-          )
+          this.handleRemoveSkill(message.location).catch((e) => log("[Kilo New] handleRemoveSkill failed:", e))
           break
         case "questionReply":
           await this.handleQuestionReply(message.requestID, message.answers)
@@ -441,7 +436,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
           await this.handleQuestionReject(message.requestID)
           break
         case "requestConfig":
-          this.fetchAndSendConfig().catch((e) => console.error("[Kilo New] fetchAndSendConfig failed:", e))
+          this.fetchAndSendConfig().catch((e) => log("[Kilo New] fetchAndSendConfig failed:", e))
           break
         case "updateConfig":
           await this.handleUpdateConfig(message.config)
@@ -494,7 +489,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
                 })
               })
               .catch((error: unknown) => {
-                console.error("[Kilo New] File search failed:", error)
+                log("[Kilo New] File search failed:", error)
                 this.postMessage({ type: "fileSearchResult", paths: [], dir, requestId: message.requestId })
               })
           } else {
@@ -521,9 +516,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
           this.sendNotificationSettings()
           break
         case "requestNotifications":
-          this.fetchAndSendNotifications().catch((e) =>
-            console.error("[Kilo New] fetchAndSendNotifications failed:", e),
-          )
+          this.fetchAndSendNotifications().catch((e) => log("[Kilo New] fetchAndSendNotifications failed:", e))
           break
         case "requestCloudSessions":
           await this.handleRequestCloudSessions(message)
@@ -610,7 +603,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
             })
             .catch((err: unknown) => {
               const msg = getErrorMessage(err) || "Failed to enhance prompt"
-              console.error("[Kilo New] KiloProvider: Failed to enhance prompt:", err)
+              log("[Kilo New] KiloProvider: Failed to enhance prompt:", err)
               vscode.window.showErrorMessage(`Enhance prompt failed: ${msg}`)
               this.postMessage({
                 type: "enhancePromptError",
@@ -639,7 +632,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
   }
 
   private async doInitializeConnection(): Promise<void> {
-    console.log("[Kilo New] KiloProvider: 🔧 Starting initializeConnection...")
+    log("[Kilo New] KiloProvider: 🔧 Starting initializeConnection...")
 
     this.connectionState = "connecting"
     this.postMessage({ type: "connectionState", state: "connecting" })
@@ -689,7 +682,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
             await this.flushPendingSessionRefresh("sse-connected")
             await this.fetchAndSendPendingPermissions()
           } catch (error) {
-            console.error("[Kilo New] KiloProvider: ❌ Failed during connected state handling:", error)
+            log("[Kilo New] KiloProvider: ❌ Failed during connected state handling:", error)
             this.postMessage({
               type: "error",
               message: getErrorMessage(error) || "Failed to sync after connecting",
@@ -733,9 +726,9 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
       ])
       this.sendNotificationSettings()
 
-      console.log("[Kilo New] KiloProvider: ✅ initializeConnection completed successfully")
+      log("[Kilo New] KiloProvider: ✅ initializeConnection completed successfully")
     } catch (error) {
-      console.error("[Kilo New] KiloProvider: ❌ Failed to initialize connection:", error)
+      log("[Kilo New] KiloProvider: ❌ Failed to initialize connection:", error)
       this.connectionState = "error"
       this.postMessage({
         type: "connectionState",
@@ -777,7 +770,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
         session: this.sessionToWebview(this.currentSession!),
       })
     } catch (error) {
-      console.error("[Kilo New] KiloProvider: Failed to create session:", error)
+      log("[Kilo New] KiloProvider: Failed to create session:", error)
       this.postMessage({
         type: "error",
         message: getErrorMessage(error) || "Failed to create session",
@@ -831,7 +824,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
             this.currentSession = result.data
           }
         })
-        .catch((err: unknown) => console.warn("[Kilo New] KiloProvider: getSession failed (non-critical):", err))
+        .catch((err: unknown) => log("[Kilo New] KiloProvider: getSession failed (non-critical):", err))
 
       this.postMessage({
         type: "workspaceDirectoryChanged",
@@ -854,7 +847,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
             })
           }
         })
-        .catch((err: unknown) => console.error("[Kilo New] KiloProvider: Failed to fetch session statuses:", err))
+        .catch((err: unknown) => log("[Kilo New] KiloProvider: Failed to fetch session statuses:", err))
 
       const messages = messagesData.map((m) => ({
         ...m.info,
@@ -878,7 +871,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
     } catch (error) {
       // Silently ignore aborted requests — the user switched to a different session
       if (abort.signal.aborted) return
-      console.error("[Kilo New] KiloProvider: Failed to load messages:", error)
+      log("[Kilo New] KiloProvider: Failed to load messages:", error)
       this.postMessage({
         type: "error",
         message: getErrorMessage(error) || "Failed to load messages",
@@ -921,7 +914,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
         messages,
       })
     } catch (err) {
-      console.error("[Kilo New] KiloProvider: Failed to sync child session:", err)
+      log("[Kilo New] KiloProvider: Failed to sync child session:", err)
     }
   }
 
@@ -948,13 +941,13 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
    */
   private async flushPendingSessionRefresh(reason: string): Promise<void> {
     if (!this.pendingSessionRefresh) return
-    console.log("[Kilo New] KiloProvider: 🔄 Flushing deferred sessions refresh", { reason })
+    log("[Kilo New] KiloProvider: 🔄 Flushing deferred sessions refresh", { reason })
     const ctx = this.sessionRefreshContext
     try {
       const resolved = await flushPendingSessionRefreshUtil(ctx)
       if (resolved) this.projectID = resolved
     } catch (error) {
-      console.error("[Kilo New] KiloProvider: Failed to flush session refresh:", error)
+      log("[Kilo New] KiloProvider: Failed to flush session refresh:", error)
     }
     this.pendingSessionRefresh = ctx.pendingSessionRefresh
   }
@@ -968,7 +961,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
       const resolved = await loadSessionsUtil(ctx)
       if (resolved) this.projectID = resolved
     } catch (error) {
-      console.error("[Kilo New] KiloProvider: Failed to load sessions:", error)
+      log("[Kilo New] KiloProvider: Failed to load sessions:", error)
       this.postMessage({
         type: "error",
         message: getErrorMessage(error) || "Failed to load sessions",
@@ -997,7 +990,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
       }
       this.postMessage({ type: "sessionDeleted", sessionID })
     } catch (error) {
-      console.error("[Kilo New] KiloProvider: Failed to delete session:", error)
+      log("[Kilo New] KiloProvider: Failed to delete session:", error)
       this.postMessage({
         type: "error",
         message: getErrorMessage(error) || "Failed to delete session",
@@ -1025,7 +1018,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
       }
       this.postMessage({ type: "sessionUpdated", session: this.sessionToWebview(updated) })
     } catch (error) {
-      console.error("[Kilo New] KiloProvider: Failed to rename session:", error)
+      log("[Kilo New] KiloProvider: Failed to rename session:", error)
       this.postMessage({
         type: "error",
         message: getErrorMessage(error) || "Failed to rename session",
@@ -1070,7 +1063,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
       this.cachedProvidersMessage = message
       this.postMessage(message)
     } catch (error) {
-      console.error("[Kilo New] KiloProvider: Failed to fetch providers:", error)
+      log("[Kilo New] KiloProvider: Failed to fetch providers:", error)
     }
   }
 
@@ -1105,7 +1098,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
       this.cachedAgentsMessage = message
       this.postMessage(message)
     } catch (error) {
-      console.error("[Kilo New] KiloProvider: Failed to fetch agents:", error)
+      log("[Kilo New] KiloProvider: Failed to fetch agents:", error)
     }
   }
 
@@ -1128,7 +1121,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
       this.cachedSkillsMessage = message
       this.postMessage(message)
     } catch (error) {
-      console.error("[Kilo New] KiloProvider: Failed to fetch skills:", error)
+      log("[Kilo New] KiloProvider: Failed to fetch skills:", error)
     }
   }
 
@@ -1143,13 +1136,13 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
       const dir = this.getWorkspaceDirectory()
       const result = await this.client.kilocode.removeSkill({ location, directory: dir })
       if (result.error) {
-        console.error("[Kilo New] KiloProvider: removeSkill returned error:", result.error)
+        log("[Kilo New] KiloProvider: removeSkill returned error:", result.error)
         this.cachedSkillsMessage = null
         await this.fetchAndSendSkills()
         return
       }
     } catch (error) {
-      console.error("[Kilo New] KiloProvider: Failed to remove skill:", error)
+      log("[Kilo New] KiloProvider: Failed to remove skill:", error)
       this.cachedSkillsMessage = null
       await this.fetchAndSendSkills()
       return
@@ -1180,7 +1173,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
       this.cachedConfigMessage = message
       this.postMessage(message)
     } catch (error) {
-      console.error("[Kilo New] KiloProvider: Failed to fetch config:", error)
+      log("[Kilo New] KiloProvider: Failed to fetch config:", error)
     }
   }
 
@@ -1209,7 +1202,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
       this.cachedNotificationsMessage = message
       this.postMessage(message)
     } catch (error) {
-      console.error("[Kilo New] KiloProvider: Failed to fetch notifications:", error)
+      log("[Kilo New] KiloProvider: Failed to fetch notifications:", error)
     }
   }
 
@@ -1243,7 +1236,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
         nextCursor: result.data?.nextCursor ?? null,
       })
     } catch (error) {
-      console.error("[Kilo New] KiloProvider: Failed to fetch cloud sessions:", error)
+      log("[Kilo New] KiloProvider: Failed to fetch cloud sessions:", error)
       this.postMessage({
         type: "error",
         message: error instanceof Error ? error.message : "Failed to fetch cloud sessions",
@@ -1286,7 +1279,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
         messages,
       })
     } catch (err) {
-      console.error("[Kilo New] Failed to load cloud session data:", err)
+      log("[Kilo New] Failed to load cloud session data:", err)
       this.postMessage({
         type: "cloudSessionImportFailed",
         cloudSessionId: sessionId,
@@ -1330,7 +1323,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
       })
       session = importResult.data as Session | undefined
     } catch (error) {
-      console.error("[Kilo New] KiloProvider: ❌ Cloud session import failed:", error)
+      log("[Kilo New] KiloProvider: ❌ Cloud session import failed:", error)
       this.postMessage({
         type: "cloudSessionImportFailed",
         cloudSessionId,
@@ -1390,7 +1383,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
         { throwOnError: true },
       )
     } catch (err) {
-      console.error("[Kilo New] Failed to send message after cloud import:", err)
+      log("[Kilo New] Failed to send message after cloud import:", err)
       this.postMessage({
         type: "sendMessageFailed",
         error: err instanceof Error ? err.message : "Failed to send message after import",
@@ -1455,7 +1448,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
       this.cachedConfigMessage = { type: "configLoaded", config: updated }
       this.postMessage(message)
     } catch (error) {
-      console.error("[Kilo New] KiloProvider: Failed to update config:", error)
+      log("[Kilo New] KiloProvider: Failed to update config:", error)
       this.postMessage({
         type: "error",
         message: getErrorMessage(error) || "Failed to update config",
@@ -1547,7 +1540,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
         { throwOnError: true },
       )
     } catch (error) {
-      console.error("[Kilo New] KiloProvider: Failed to send message:", error)
+      log("[Kilo New] KiloProvider: Failed to send message:", error)
       this.postMessage({
         type: "sendMessageFailed",
         error: getErrorMessage(error) || "Failed to send message",
@@ -1576,7 +1569,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
       const workspaceDir = this.getWorkspaceDirectory(targetSessionID)
       await this.client.session.abort({ sessionID: targetSessionID, directory: workspaceDir }, { throwOnError: true })
     } catch (error) {
-      console.error("[Kilo New] KiloProvider: Failed to abort session:", error)
+      log("[Kilo New] KiloProvider: Failed to abort session:", error)
     }
   }
 
@@ -1594,12 +1587,12 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
 
     const target = sessionID || this.currentSession?.id
     if (!target) {
-      console.error("[Kilo New] KiloProvider: No sessionID for compact")
+      log("[Kilo New] KiloProvider: No sessionID for compact")
       return
     }
 
     if (!providerID || !modelID) {
-      console.error("[Kilo New] KiloProvider: No model selected for compact")
+      log("[Kilo New] KiloProvider: No model selected for compact")
       this.postMessage({
         type: "error",
         message: "No model selected. Connect a provider to compact this session.",
@@ -1614,7 +1607,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
         { throwOnError: true },
       )
     } catch (error) {
-      console.error("[Kilo New] KiloProvider: Failed to compact session:", error)
+      log("[Kilo New] KiloProvider: Failed to compact session:", error)
       this.postMessage({
         type: "error",
         message: getErrorMessage(error) || "Failed to compact session",
@@ -1640,7 +1633,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
 
     const targetSessionID = sessionID || this.currentSession?.id
     if (!targetSessionID) {
-      console.error("[Kilo New] KiloProvider: No sessionID for permission response")
+      log("[Kilo New] KiloProvider: No sessionID for permission response")
       this.postMessage({ type: "permissionError", permissionID: permissionId })
       return
     }
@@ -1666,7 +1659,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
         { throwOnError: true },
       )
     } catch (error) {
-      console.error("[Kilo New] KiloProvider: Failed to respond to permission:", error)
+      log("[Kilo New] KiloProvider: Failed to respond to permission:", error)
       this.postMessage({ type: "permissionError", permissionID: permissionId })
     }
   }
@@ -1699,7 +1692,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
         })
       }
     } catch (error) {
-      console.error("[Kilo New] KiloProvider: Failed to fetch pending permissions:", error)
+      log("[Kilo New] KiloProvider: Failed to fetch pending permissions:", error)
     }
   }
 
@@ -1718,7 +1711,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
         { throwOnError: true },
       )
     } catch (error) {
-      console.error("[Kilo New] KiloProvider: Failed to reply to question:", error)
+      log("[Kilo New] KiloProvider: Failed to reply to question:", error)
       this.postMessage({ type: "questionError", requestID })
     }
   }
@@ -1738,7 +1731,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
         { throwOnError: true },
       )
     } catch (error) {
-      console.error("[Kilo New] KiloProvider: Failed to reject question:", error)
+      log("[Kilo New] KiloProvider: Failed to reject question:", error)
       this.postMessage({ type: "questionError", requestID })
     }
   }
@@ -1755,7 +1748,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
 
     const attempt = ++this.loginAttempt
 
-    console.log("[Kilo New] KiloProvider: 🔐 Starting login flow...")
+    log("[Kilo New] KiloProvider: 🔐 Starting login flow...")
 
     try {
       const workspaceDir = this.getWorkspaceDirectory()
@@ -1765,7 +1758,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
         { providerID: "kilo", method: 0, directory: workspaceDir },
         { throwOnError: true },
       )
-      console.log("[Kilo New] KiloProvider: 🔐 Got auth URL:", auth.url)
+      log("[Kilo New] KiloProvider: 🔐 Got auth URL:", auth.url)
 
       // Parse code from instructions (format: "Open URL and enter code: ABCD-1234")
       const codeMatch = auth.instructions?.match(/code:\s*(\S+)/i)
@@ -1796,11 +1789,11 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
         return
       }
 
-      console.log("[Kilo New] KiloProvider: 🔐 Login successful")
+      log("[Kilo New] KiloProvider: 🔐 Login successful")
 
       await this.client.global
         .dispose()
-        .catch((e: unknown) => console.warn("[Kilo New] KiloProvider: global.dispose() after login failed:", e))
+        .catch((e: unknown) => log("[Kilo New] KiloProvider: global.dispose() after login failed:", e))
 
       // Step 4: Fetch profile and push to webview
       const { data: profileData } = await this.client.kilo.profile(undefined, { throwOnError: true })
@@ -1832,36 +1825,36 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
       return
     }
 
-    console.log("[Kilo New] KiloProvider: Switching organization:", organizationId ?? "personal")
+    log("[Kilo New] KiloProvider: Switching organization:", organizationId ?? "personal")
     try {
       await sdkClient.kilo.organization.set({ organizationId }, { throwOnError: true })
     } catch (error) {
-      console.error("[Kilo New] KiloProvider: Failed to switch organization:", error)
+      log("[Kilo New] KiloProvider: Failed to switch organization:", error)
       // Re-fetch current profile to reset webview state (clears switching indicator) — best-effort
       try {
         const profileResult = await sdkClient.kilo.profile()
         this.postMessage({ type: "profileData", data: profileResult.data ?? null })
       } catch (profileError) {
-        console.error("[Kilo New] KiloProvider: Failed to refresh profile after org switch error:", profileError)
+        log("[Kilo New] KiloProvider: Failed to refresh profile after org switch error:", profileError)
       }
       return
     }
 
     await this.client.global
       .dispose()
-      .catch((e: unknown) => console.warn("[Kilo New] KiloProvider: global.dispose() after org switch failed:", e))
+      .catch((e: unknown) => log("[Kilo New] KiloProvider: global.dispose() after org switch failed:", e))
 
     // Org switch succeeded — refresh profile and providers independently (best-effort)
     try {
       const profileResult = await sdkClient.kilo.profile()
       this.postMessage({ type: "profileData", data: profileResult.data ?? null })
     } catch (error) {
-      console.error("[Kilo New] KiloProvider: Failed to refresh profile after org switch:", error)
+      log("[Kilo New] KiloProvider: Failed to refresh profile after org switch:", error)
     }
     try {
       await this.fetchAndSendProviders()
     } catch (error) {
-      console.error("[Kilo New] KiloProvider: Failed to refresh providers after org switch:", error)
+      log("[Kilo New] KiloProvider: Failed to refresh providers after org switch:", error)
     }
   }
 
@@ -1885,7 +1878,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
         }
         vscode.window.showTextDocument(doc, options)
       },
-      (err) => console.error("[Kilo New] KiloProvider: Failed to open file:", uri.fsPath, err),
+      (err) => log("[Kilo New] KiloProvider: Failed to open file:", uri.fsPath, err),
     )
   }
 
@@ -1898,9 +1891,9 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
     }
 
     try {
-      console.log("[Kilo New] KiloProvider: 🚪 Logging out...")
+      log("[Kilo New] KiloProvider: 🚪 Logging out...")
       await this.client.auth.remove({ providerID: "kilo" }, { throwOnError: true })
-      console.log("[Kilo New] KiloProvider: 🚪 Logged out successfully")
+      log("[Kilo New] KiloProvider: 🚪 Logged out successfully")
       this.postMessage({
         type: "profileData",
         data: null,
@@ -1908,9 +1901,9 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
 
       await this.client.global
         .dispose()
-        .catch((e: unknown) => console.warn("[Kilo New] KiloProvider: global.dispose() after logout failed:", e))
+        .catch((e: unknown) => log("[Kilo New] KiloProvider: global.dispose() after logout failed:", e))
     } catch (error) {
-      console.error("[Kilo New] KiloProvider: ❌ Logout failed:", error)
+      log("[Kilo New] KiloProvider: ❌ Logout failed:", error)
       this.postMessage({
         type: "error",
         message: getErrorMessage(error) || "Failed to logout",
@@ -1926,7 +1919,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
       return
     }
 
-    console.log("[Kilo New] KiloProvider: 🔄 Refreshing profile...")
+    log("[Kilo New] KiloProvider: 🔄 Refreshing profile...")
     const profileResult = await this.client.kilo.profile().catch(() => ({ data: null }))
     this.postMessage({
       type: "profileData",
@@ -2091,12 +2084,12 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
         typeof (message as { type?: unknown }).type === "string"
           ? (message as { type: string }).type
           : "<unknown>"
-      console.warn("[Kilo New] KiloProvider: ⚠️ postMessage dropped (no webview)", { type })
+      log("[Kilo New] KiloProvider: ⚠️ postMessage dropped (no webview)", { type })
       return
     }
 
     void this.webview.postMessage(message).then(undefined, (error) => {
-      console.error("[Kilo New] KiloProvider: ❌ postMessage failed", error)
+      log("[Kilo New] KiloProvider: ❌ postMessage failed", error)
     })
   }
 
@@ -2136,7 +2129,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
       const remote = repo.state?.remotes?.find((r: { name: string }) => r.name === "origin")
       return remote?.fetchUrl ?? remote?.pushUrl
     } catch (error) {
-      console.warn("[Kilo New] KiloProvider: Failed to get git remote URL:", error)
+      log("[Kilo New] KiloProvider: Failed to get git remote URL:", error)
       return undefined
     }
   }
@@ -2277,7 +2270,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
     // Cache so migrate() doesn't re-read from SecretStorage/disk
     this.cachedLegacyData = data
 
-    console.log("[Kilo New] KiloProvider: 🔄 Legacy data detected, showing migration wizard")
+    log("[Kilo New] KiloProvider: 🔄 Legacy data detected, showing migration wizard")
     this.postMessage({ type: "navigate", view: "migration" })
     this.postMessage({
       type: "legacyMigrationData",
@@ -2329,7 +2322,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
       // Reloading the data will be handled once the server replies with a global.disposed event
       await this.client.global
         .dispose()
-        .catch((e: unknown) => console.warn("[Kilo New] KiloProvider: global.dispose() after migration failed:", e))
+        .catch((e: unknown) => log("[Kilo New] KiloProvider: global.dispose() after migration failed:", e))
 
       // Only mark as completed if at least one item succeeded — if everything failed
       // the user can still re-run migration via Settings → About.
@@ -2341,7 +2334,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
 
       this.postMessage({ type: "legacyMigrationComplete", results })
     } catch (error) {
-      console.error("[Kilo New] KiloProvider: ❌ Migration failed", error)
+      log("[Kilo New] KiloProvider: ❌ Migration failed", error)
       this.postMessage({
         type: "legacyMigrationComplete",
         results: [

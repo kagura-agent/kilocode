@@ -3,6 +3,7 @@ import * as vscode from "vscode"
 import { inspect } from "util"
 import type { FileDiff } from "@kilocode/sdk/v2/client"
 import { GitOps } from "./agent-manager/GitOps"
+import { log } from "./output-channel"
 
 export function appendOutput(channel: vscode.OutputChannel, prefix: string, ...args: unknown[]): void {
   const msg = args
@@ -85,7 +86,7 @@ export function openFileInEditor(
 
   vscode.workspace.openTextDocument(uri).then(
     (doc) => vscode.window.showTextDocument(doc, { viewColumn, preview: true, selection }),
-    (err) => console.error(`[Kilo New] ${prefix}: Failed to open file:`, uri.fsPath, err),
+    (err) => log(`[Kilo New] ${prefix}: Failed to open file:`, uri.fsPath, err),
   )
 }
 

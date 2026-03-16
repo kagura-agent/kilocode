@@ -12,6 +12,7 @@ import * as vscode from "vscode"
 
 import { isSecurityConcern } from "../continuedev/core/indexing/ignore"
 import type { FileIgnoreController } from "../shims/FileIgnoreController"
+import { log } from "../../../output-channel"
 
 function toRelativePath(absolutePath: string, workspacePath: string): string {
   return vscode.workspace.asRelativePath(absolutePath, false) || absolutePath.replace(workspacePath + "/", "")
@@ -57,11 +58,11 @@ export class VisibleCodeTracker {
       const relativePath = toRelativePath(filePath, this.workspacePath)
 
       if (isSecurityConcern(filePath)) {
-        console.log(`[VisibleCodeTracker] Filtered (security): ${relativePath}`)
+        log(`[VisibleCodeTracker] Filtered (security): ${relativePath}`)
         continue
       }
       if (this.ignoreController && !this.ignoreController.validateAccess(relativePath)) {
-        console.log(`[VisibleCodeTracker] Filtered (.kilocodeignore): ${relativePath}`)
+        log(`[VisibleCodeTracker] Filtered (.kilocodeignore): ${relativePath}`)
         continue
       }
 

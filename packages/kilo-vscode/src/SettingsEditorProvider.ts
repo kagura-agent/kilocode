@@ -1,6 +1,7 @@
 import * as vscode from "vscode"
 import { KiloProvider } from "./KiloProvider"
 import type { KiloConnectionService } from "./services/cli-backend"
+import { log } from "./output-channel"
 
 type PanelView = "settings" | "profile"
 
@@ -86,7 +87,7 @@ export class SettingsEditorProvider implements vscode.Disposable {
     this.providers.set(view, provider)
 
     panel.onDidDispose(() => {
-      console.log(`[Kilo New] ${title} panel disposed`)
+      log(`[Kilo New] ${title} panel disposed`)
       closePanelDisposable.dispose()
       readyDisposable.dispose()
       tabDisposable.dispose()

@@ -14,6 +14,7 @@
 import { type ExecFileOptionsWithStringEncoding, execFile } from "child_process"
 import * as os from "os"
 import { promisify } from "util"
+import { log } from "../output-channel"
 
 const run = promisify(execFile)
 
@@ -81,7 +82,7 @@ export async function getShellEnvironment(): Promise<Record<string, string>> {
     wasFallback = false
     return { ...env }
   } catch (error) {
-    console.warn(`[shell-env] Failed to get shell environment: ${error}. Falling back to process.env`)
+    log(`[shell-env] Failed to get shell environment: ${error}. Falling back to process.env`)
     const env: Record<string, string> = {}
     for (const [key, value] of Object.entries(process.env)) {
       if (typeof value === "string") env[key] = value
@@ -103,7 +104,7 @@ async function resolvePath(): Promise<boolean> {
 
   if (env.PATH && env.PATH !== original) {
     process.env.PATH = env.PATH
-    console.log("[shell-env] Patched process.env.PATH for GUI app")
+    log("[shell-env] Patched process.env.PATH for GUI app")
     return true
   }
   // Shell env was a fallback or PATH didn't change — resolution didn't help
@@ -150,7 +151,7 @@ export async function execWithShellEnv(
       return await run(cmd, args, { ...options, encoding: "utf8" })
     }
 
-    console.log(`[shell-env] "${cmd}" not found, resolving shell environment`)
+    log(`[shell-env] "${cmd}" not found, resolving shell environment`)
 
     fixing = resolvePath()
     try {

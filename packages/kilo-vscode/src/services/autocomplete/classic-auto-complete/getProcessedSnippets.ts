@@ -1,4 +1,5 @@
 import * as vscode from "vscode"
+import { log } from "../../../output-channel"
 import { ContextRetrievalService } from "../continuedev/core/autocomplete/context/ContextRetrievalService"
 import { VsCodeIde } from "../continuedev/core/vscode-test-harness/src/VSCodeIde"
 import { AutocompleteInput } from "../types"
@@ -56,7 +57,7 @@ async function filterSnippetsByAccess(
       return true
     })
   } catch (error) {
-    console.error("[AutocompleteContextProvider] Error filtering snippets by access:", error)
+    log("[AutocompleteContextProvider] Error filtering snippets by access:", error)
     // On error, be conservative and filter out file-based snippets
     return snippets.filter((snippet) => {
       return !hasFilepath(snippet) || !snippet.filepath

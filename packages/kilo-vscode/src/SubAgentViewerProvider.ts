@@ -1,6 +1,7 @@
 import * as vscode from "vscode"
 import { KiloProvider } from "./KiloProvider"
 import type { KiloConnectionService } from "./services/cli-backend"
+import { log } from "./output-channel"
 
 /**
  * Opens a read-only editor panel to view a sub-agent session.
@@ -77,7 +78,7 @@ export class SubAgentViewerProvider implements vscode.Disposable {
         // Navigate to the sub-agent viewer
         provider.postMessage({ type: "viewSubAgentSession", sessionID })
       } catch (err) {
-        console.error("[Kilo New] SubAgentViewerProvider: Failed to load session:", err)
+        log("[Kilo New] SubAgentViewerProvider: Failed to load session:", err)
       }
     })
 
@@ -92,7 +93,7 @@ export class SubAgentViewerProvider implements vscode.Disposable {
     this.providers.set(sessionID, provider)
 
     panel.onDidDispose(() => {
-      console.log("[Kilo New] Sub-agent viewer panel disposed:", sessionID)
+      log("[Kilo New] Sub-agent viewer panel disposed:", sessionID)
       closeDisposable.dispose()
       provider.dispose()
       this.panels.delete(sessionID)

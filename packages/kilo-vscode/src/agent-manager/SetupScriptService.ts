@@ -8,6 +8,7 @@
 import * as fs from "node:fs"
 import * as path from "node:path"
 import { SETUP_SCRIPT_TEMPLATE, SETUP_SCRIPT_TEMPLATE_POWERSHELL } from "./setup-script-template"
+import { log as extensionLog } from "../output-channel"
 import { KILO_DIR } from "./constants"
 
 const SETUP_SCRIPT_FILENAME = "setup-script"
@@ -116,7 +117,6 @@ export class SetupScriptService {
   }
 
   private log(message: string): void {
-    // Log to console since we don't have an OutputChannel here
-    console.log(`[SetupScriptService] ${message}`)
+    extensionLog(`[SetupScriptService] ${message}`)
   }
 }

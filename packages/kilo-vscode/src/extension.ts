@@ -5,6 +5,7 @@ import { DiffViewerProvider } from "./DiffViewerProvider"
 import { SettingsEditorProvider } from "./SettingsEditorProvider"
 import { SubAgentViewerProvider } from "./SubAgentViewerProvider"
 import { EXTENSION_DISPLAY_NAME } from "./constants"
+import { log } from "./output-channel"
 import { KiloConnectionService } from "./services/cli-backend"
 import { registerAutocompleteProvider } from "./services/autocomplete"
 import { BrowserAutomationService } from "./services/browser-automation"
@@ -13,7 +14,7 @@ import { registerCommitMessageService } from "./services/commit-message"
 import { registerCodeActions, registerTerminalActions, KiloCodeActionProvider } from "./services/code-actions"
 
 export function activate(context: vscode.ExtensionContext) {
-  console.log("Kilo Code extension is now active")
+  log("Kilo Code extension is now active")
 
   const telemetry = TelemetryProxy.getInstance()
 
@@ -168,7 +169,7 @@ export function activate(context: vscode.ExtensionContext) {
         const match = uri.path.match(/^\/kilocode\/s\/([a-zA-Z0-9_-]+)$/)
         if (!match) return
         const sessionId = match[1]
-        console.log("[Kilo New] URI handler: opening cloud session:", sessionId)
+        log("[Kilo New] URI handler: opening cloud session:", sessionId)
         await vscode.commands.executeCommand(`${KiloProvider.viewType}.focus`)
         provider.openCloudSession(sessionId)
       },
@@ -240,7 +241,7 @@ async function openKiloInNewTab(context: vscode.ExtensionContext, connectionServ
 
   panel.onDidDispose(
     () => {
-      console.log("[Kilo New] Tab panel disposed")
+      log("[Kilo New] Tab panel disposed")
       tabProvider.dispose()
     },
     null,

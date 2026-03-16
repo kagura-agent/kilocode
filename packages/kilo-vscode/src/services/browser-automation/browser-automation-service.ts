@@ -1,6 +1,7 @@
 import * as vscode from "vscode"
 import type { KiloClient, McpStatus } from "@kilocode/sdk/v2/client"
 import type { KiloConnectionService } from "../cli-backend"
+import { log } from "../../output-channel"
 
 export type BrowserAutomationState = "disabled" | "registering" | "connected" | "failed" | "disconnected"
 
@@ -74,7 +75,7 @@ export class BrowserAutomationService implements vscode.Disposable {
 
     const client = this.getClient()
     if (!client) {
-      console.error("[Kilo New] BrowserAutomationService: No SDK client available")
+      log("[Kilo New] BrowserAutomationService: No SDK client available")
       this.setState("failed")
       return
     }
@@ -112,16 +113,13 @@ export class BrowserAutomationService implements vscode.Disposable {
       if (serverStatus?.status === "connected") {
         this.setState("connected")
       } else if (serverStatus?.status === "failed") {
-        console.error(
-          "[Kilo New] BrowserAutomationService: MCP server failed:",
-          (serverStatus as { error?: string }).error,
-        )
+        log("[Kilo New] BrowserAutomationService: MCP server failed:", (serverStatus as { error?: string }).error)
         this.setState("failed")
       } else {
         this.setState("disconnected")
       }
     } catch (error) {
-      console.error("[Kilo New] BrowserAutomationService: Failed to register MCP server:", error)
+      log("[Kilo New] BrowserAutomationService: Failed to register MCP server:", error)
       this.setState("failed")
     }
   }
@@ -143,7 +141,7 @@ export class BrowserAutomationService implements vscode.Disposable {
           { throwOnError: true },
         )
       } catch (error) {
-        console.error("[Kilo New] BrowserAutomationService: Failed to disconnect MCP server:", error)
+        log("[Kilo New] BrowserAutomationService: Failed to disconnect MCP server:", error)
       }
     }
 
@@ -188,7 +186,7 @@ export class BrowserAutomationService implements vscode.Disposable {
     if (this.state === state) {
       return
     }
-    console.log(`[Kilo New] BrowserAutomationService: State ${this.state} → ${state}`)
+    log(`[Kilo New] BrowserAutomationService: State ${this.state} → ${state}`)
     this.state = state
     for (const listener of this.stateListeners) {
       listener(state)

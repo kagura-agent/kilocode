@@ -713,6 +713,30 @@ export namespace Provider {
     })
   export type Info = z.infer<typeof Info>
 
+  // kilocode_change start
+  // Anthropic's 1M context window is GA for Claude 3.5+ models.
+  // models.dev still reports 200K, but we send the context-1m beta header
+  // so the API accepts up to 1M tokens. Override the context limit to
+  // match, preventing premature compaction at 200K.
+  const ANTHROPIC_1M_CONTEXT = 1_000_000
+  function anthropic1mContext(provider: ModelsDev.Provider, model: ModelsDev.Model): number {
+    if (provider.id !== "anthropic") return model.limit.context
+    if (model.limit.context !== 200_000) return model.limit.context
+    // Claude 3.5+ models support 1M context via the beta header we already send.
+    // Older models (claude-3-opus, claude-3-sonnet, claude-3-haiku without "3-5"/"3-7"/4+) stay at 200K.
+    const id = model.id
+    if (
+      id.includes("claude-3-5-") ||
+      id.includes("claude-3-7-") ||
+      id.includes("claude-sonnet-4") ||
+      id.includes("claude-opus-4") ||
+      id.includes("claude-haiku-4")
+    )
+      return ANTHROPIC_1M_CONTEXT
+    return model.limit.context
+  }
+  // kilocode_change end
+
   function fromModelsDevModel(provider: ModelsDev.Provider, model: ModelsDev.Model): Model {
     const m: Model = {
       id: model.id,
@@ -746,7 +770,7 @@ export namespace Provider {
           : undefined,
       },
       limit: {
-        context: model.limit.context,
+        context: anthropic1mContext(provider, model), // kilocode_change - use 1M for supported Anthropic models
         input: model.limit.input,
         output: model.limit.output,
       },

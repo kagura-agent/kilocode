@@ -26,6 +26,6 @@ Anthropic is an AI safety and research company that builds reliable, interpretab
 ## Tips and Notes
 
 - **Prompt Caching:** Claude 3 models support [prompt caching](https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching), which can significantly reduce costs and latency for repeated prompts.
-- **Context Window:** Claude models have large context windows (200,000 tokens), allowing you to include a significant amount of code and context in your prompts.
+- **Context Window:** Claude 3.5+ models support a 1,000,000 token context window (1M). Kilo Code automatically enables this extended context for supported models (Claude 3.5 Sonnet, Claude 3.7 Sonnet, Claude Sonnet 4+, Claude Opus 4+, and Claude Haiku 4.5+). Older Claude 3 models have a 200,000 token context window.
 - **Pricing:** Refer to the [Anthropic Pricing](https://www.anthropic.com/pricing) page for the latest pricing information.
 - **Rate Limits:** Anthropic has strict rate limits based on [usage tiers](https://docs.anthropic.com/en/api/rate-limits#requirements-to-advance-tier). If you're repeatedly hitting rate limits, consider contacting Anthropic sales or accessing Claude through a different provider like [OpenRouter](/docs/ai-providers/openrouter) or [Requesty](/docs/ai-providers/requesty).

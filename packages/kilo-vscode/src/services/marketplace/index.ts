@@ -1,7 +1,7 @@
 import * as vscode from "vscode"
 import { MarketplaceApiClient } from "./api"
 import { MarketplacePaths } from "./paths"
-import { InstallationDetector } from "./detection"
+import { InstallationDetector, type CliSkill } from "./detection"
 import { MarketplaceInstaller } from "./installer"
 import type {
   MarketplaceItem,
@@ -24,8 +24,8 @@ export class MarketplaceService {
     this.installer = new MarketplaceInstaller(this.paths)
   }
 
-  async fetchData(workspace?: string): Promise<MarketplaceDataResponse> {
-    const [fetched, metadata] = await Promise.all([this.api.fetchAll(), this.detector.detect(workspace)])
+  async fetchData(workspace?: string, skills?: CliSkill[]): Promise<MarketplaceDataResponse> {
+    const [fetched, metadata] = await Promise.all([this.api.fetchAll(), this.detector.detect(workspace, skills)])
 
     return {
       marketplaceItems: fetched.items,

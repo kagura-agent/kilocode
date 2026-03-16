@@ -643,7 +643,10 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
         case "fetchMarketplaceData": {
           const workspace = this.getProjectDirectory(this.currentSession?.id)
           const mp = this.getMarketplace()
-          const data = await mp.fetchData(workspace)
+          // Fetch skills from CLI backend (authoritative source) so the
+          // marketplace doesn't need to duplicate the CLI's skill scanning.
+          const skills = await this.fetchCliSkills()
+          const data = await mp.fetchData(workspace, skills)
           this.postMessage({ type: "marketplaceData", ...data })
           break
         }
@@ -1165,6 +1168,20 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
       console.error("[Kilo New] KiloProvider: Failed to fetch agents:", error)
     }
   }
+
+  // kilocode_change start — fetch CLI skills for marketplace detection
+  private async fetchCliSkills(): Promise<Array<{ name: string; location: string }> | undefined> {
+    if (!this.client) return undefined
+    try {
+      const dir = this.getWorkspaceDirectory()
+      const { data } = await this.client.app.skills({ directory: dir }, { throwOnError: true })
+      return data
+    } catch (error) {
+      console.error("[Kilo New] KiloProvider: Failed to fetch CLI skills for marketplace:", error)
+      return undefined
+    }
+  }
+  // kilocode_change end
 
   private async fetchAndSendSkills(): Promise<void> {
     if (!this.client) {

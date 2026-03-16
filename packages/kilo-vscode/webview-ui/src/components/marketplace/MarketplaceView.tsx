@@ -113,6 +113,11 @@ export const MarketplaceView: Component = () => {
         }
         setPendingRemove(null)
       }
+      // Re-fetch marketplace data when agents or skills change externally
+      // (e.g. mode removed via Settings, or CLI instance disposed)
+      if (msg.type === "agentsLoaded" || msg.type === "skillsLoaded") {
+        vscode.postMessage({ type: "fetchMarketplaceData" })
+      }
     })
 
     onCleanup(unsubscribe)

@@ -451,10 +451,9 @@ export namespace Agent {
   )
 
   /**
-   * Remove a custom agent by deleting its markdown source file and/or
-   * removing it from legacy .kilocodemodes YAML files.
-   * Scans all config directories for agent/mode .md files matching the name,
-   * then also checks the .kilocodemodes files the ModesMigrator reads.
+   * Remove a custom agent by deleting its markdown source file, removing it
+   * from JSON config files, and/or removing it from legacy .kilocodemodes
+   * YAML files. Scans all config directories for every possible source.
    */
   export async function remove(name: string) {
     const agents = await state()
@@ -507,6 +506,23 @@ export namespace Agent {
         .replace(/\n---\n?$/, "")
       await writeFile(file, yaml)
       found = true
+    }
+
+    // 3. Remove agent key from JSON config files (e.g. marketplace-installed modes)
+    const files = ["kilo.jsonc", "kilo.json", "opencode.jsonc", "opencode.json"]
+    const configDirs = [...dirs, Global.Path.config, Instance.directory]
+    for (const dir of configDirs) {
+      for (const file of files) {
+        const filepath = path.join(dir, file)
+        const raw = await readFile(filepath, "utf-8").catch(() => null)
+        if (!raw) continue
+        const parsed = JSON.parse(raw) as Record<string, unknown>
+        const agents = parsed.agent as Record<string, unknown> | undefined
+        if (!agents?.[name]) continue
+        delete agents[name]
+        await writeFile(filepath, JSON.stringify(parsed, null, 2))
+        found = true
+      }
     }
 
     if (!found) throw new RemoveError({ name, message: "no agent file found on disk" })

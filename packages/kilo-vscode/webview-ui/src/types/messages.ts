@@ -2,6 +2,8 @@
  * Types for extension <-> webview message communication
  */
 
+import type { ProviderAuthAuthorization, ProviderAuthMethod } from "@kilocode/sdk/v2/client"
+
 // Connection states
 export type ConnectionState = "connecting" | "connected" | "disconnected" | "error"
 
@@ -254,6 +256,8 @@ export interface ProviderModel {
 export interface Provider {
   id: string
   name: string
+  source?: "env" | "config" | "custom" | "api"
+  env?: string[]
   models: Record<string, ProviderModel>
 }
 
@@ -261,6 +265,8 @@ export interface ModelSelection {
   providerID: string
   modelID: string
 }
+
+export type ProviderAuthState = "api" | "oauth" | "wellknown"
 
 // ============================================
 // Backend Config Types (mirrored for webview)
@@ -282,7 +288,10 @@ export interface AgentConfig {
 }
 
 export interface ProviderConfig {
+  npm?: string
   name?: string
+  env?: string[]
+  options?: Record<string, unknown>
   api_key?: string
   base_url?: string
   models?: Record<string, unknown>
@@ -569,6 +578,35 @@ export interface ProvidersLoadedMessage {
   connected: string[]
   defaults: Record<string, string>
   defaultSelection: ModelSelection
+  authMethods: Record<string, ProviderAuthMethod[]>
+  authStates: Record<string, ProviderAuthState>
+}
+
+export interface ProviderOAuthReadyMessage {
+  type: "providerOAuthReady"
+  requestId: string
+  providerID: string
+  authorization: ProviderAuthAuthorization
+}
+
+export interface ProviderConnectedMessage {
+  type: "providerConnected"
+  requestId: string
+  providerID: string
+}
+
+export interface ProviderDisconnectedMessage {
+  type: "providerDisconnected"
+  requestId: string
+  providerID: string
+}
+
+export interface ProviderActionErrorMessage {
+  type: "providerActionError"
+  requestId: string
+  providerID: string
+  action: "authorize" | "connect" | "disconnect"
+  message: string
 }
 
 export interface AgentsLoadedMessage {
@@ -753,10 +791,16 @@ export interface AgentManagerMultiVersionProgressMessage {
   groupId?: string
 }
 
-// Stored variant selections loaded from extension globalState (extension → webview)
+// Stored variant selections loaded from extension globalState (extension -> webview)
 export interface VariantsLoadedMessage {
   type: "variantsLoaded"
   variants: Record<string, string>
+}
+
+// Stored recent models loaded from extension globalState (extension -> webview)
+export interface RecentsLoadedMessage {
+  type: "recentsLoaded"
+  recents: ModelSelection[]
 }
 
 export interface BranchInfo {
@@ -1135,6 +1179,10 @@ export type ExtensionMessage =
   | AgentManagerStateMessage
   | AgentManagerKeybindingsMessage
   | AgentManagerMultiVersionProgressMessage
+  | ProviderOAuthReadyMessage
+  | ProviderConnectedMessage
+  | ProviderDisconnectedMessage
+  | ProviderActionErrorMessage
   | AgentManagerSetSessionModelMessage
   | AgentManagerSendInitialMessage
   | SetChatBoxMessage
@@ -1142,6 +1190,7 @@ export type ExtensionMessage =
   | AppendReviewCommentsMessage
   | TriggerTaskMessage
   | VariantsLoadedMessage
+  | RecentsLoadedMessage
   | CloudSessionDataLoadedMessage
   | CloudSessionImportedMessage
   | CloudSessionImportFailedMessage
@@ -1290,6 +1339,42 @@ export interface WebviewReadyRequest {
 
 export interface RequestProvidersMessage {
   type: "requestProviders"
+}
+
+export interface ConnectProviderMessage {
+  type: "connectProvider"
+  requestId: string
+  providerID: string
+  apiKey: string
+}
+
+export interface AuthorizeProviderOAuthMessage {
+  type: "authorizeProviderOAuth"
+  requestId: string
+  providerID: string
+  method: number
+}
+
+export interface CompleteProviderOAuthMessage {
+  type: "completeProviderOAuth"
+  requestId: string
+  providerID: string
+  method: number
+  code?: string
+}
+
+export interface DisconnectProviderMessage {
+  type: "disconnectProvider"
+  requestId: string
+  providerID: string
+}
+
+export interface SaveCustomProviderMessage {
+  type: "saveCustomProvider"
+  requestId: string
+  providerID: string
+  config: ProviderConfig
+  apiKey?: string
 }
 
 export interface CompactRequest {
@@ -1641,9 +1726,20 @@ export interface PersistVariantRequest {
   value: string
 }
 
-// Request stored variants from extension (webview → extension)
+// Request stored variants from extension (webview -> extension)
 export interface RequestVariantsMessage {
   type: "requestVariants"
+}
+
+// Persist recent models (webview -> extension)
+export interface PersistRecentsRequest {
+  type: "persistRecents"
+  recents: ModelSelection[]
+}
+
+// Request stored recent models from extension (webview -> extension)
+export interface RequestRecentsMessage {
+  type: "requestRecents"
 }
 
 // Enhance prompt request (webview → extension)
@@ -1694,6 +1790,11 @@ export type WebviewMessage =
   | SetOrganizationRequest
   | WebviewReadyRequest
   | RequestProvidersMessage
+  | ConnectProviderMessage
+  | AuthorizeProviderOAuthMessage
+  | CompleteProviderOAuthMessage
+  | DisconnectProviderMessage
+  | SaveCustomProviderMessage
   | CompactRequest
   | RequestAgentsMessage
   | RequestSkillsMessage
@@ -1743,6 +1844,8 @@ export type WebviewMessage =
   | SetReviewDiffStyleRequest
   | PersistVariantRequest
   | RequestVariantsMessage
+  | PersistRecentsRequest
+  | RequestRecentsMessage
   | RequestCloudSessionDataMessage
   | ImportAndSendMessage
   | RequestBranchesMessage

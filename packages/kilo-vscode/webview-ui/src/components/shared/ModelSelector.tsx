@@ -58,6 +58,7 @@ export const ModelSelectorBase: Component<ModelSelectorBaseProps> = (props) => {
   })
 
   const hasProviders = () => visibleModels().length > 0
+  const canOpen = () => hasProviders() || ((props.allowClear ?? false) && !!props.value)
 
   // Debounce search input to avoid re-filtering on every keystroke
   createEffect(() => {
@@ -189,6 +190,7 @@ export const ModelSelectorBase: Component<ModelSelectorBaseProps> = (props) => {
     buildTriggerLabel(
       activeModel()?.name,
       activeModel()?.providerID,
+      activeModel()?.providerName,
       props.value,
       props.allowClear ?? false,
       props.clearLabel ?? "",
@@ -209,7 +211,7 @@ export const ModelSelectorBase: Component<ModelSelectorBaseProps> = (props) => {
       triggerProps={{
         variant: "secondary",
         size: "normal",
-        disabled: !hasProviders(),
+        disabled: !canOpen(),
         title: activeModel()?.id,
       }}
       trigger={

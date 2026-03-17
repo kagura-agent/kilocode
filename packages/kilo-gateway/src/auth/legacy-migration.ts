@@ -27,6 +27,11 @@ interface LegacyKiloAuth {
   organizationId?: string
 }
 
+interface LegacyConfigFile {
+  providers?: LegacyProvider[]
+  [key: string]: unknown
+}
+
 // Auth info types matching opencode's Auth module
 type ApiAuth = { type: "api"; key: string }
 type OAuthAuth = { type: "oauth"; access: string; refresh: string; expires: number; accountId?: string }
@@ -47,6 +52,38 @@ function extractKiloAuth(config: LegacyConfig): LegacyKiloAuth | undefined {
   }
 }
 
+async function readLegacyConfig(file: string): Promise<LegacyConfigFile | null> {
+  const content = await fs.readFile(file, "utf-8").catch(() => null)
+  if (!content) return null
+
+  try {
+    return JSON.parse(content) as LegacyConfigFile
+  } catch {
+    return null
+  }
+}
+
+export async function clearLegacyKiloAuth(file = LEGACY_CONFIG_PATH): Promise<boolean> {
+  const config = await readLegacyConfig(file)
+  if (!config?.providers) return false
+
+  const providers = config.providers.map((provider) => {
+    if (provider.provider !== "kilocode") return provider
+    if (!provider.kilocodeToken && !provider.kilocodeOrganizationId) return provider
+    return {
+      ...provider,
+      kilocodeToken: undefined,
+      kilocodeOrganizationId: undefined,
+    }
+  })
+
+  const changed = providers.some((provider, index) => provider !== config.providers?.[index])
+  if (!changed) return false
+
+  await fs.writeFile(file, JSON.stringify({ ...config, providers }, null, 2) + "\n")
+  return true
+}
+
 /**
  * Migrate Kilo authentication from legacy CLI config path.
  *
@@ -65,15 +102,8 @@ export async function migrateLegacyKiloAuth(
   if (await hasKiloAuth()) return false
 
   // Check if legacy config exists and parse it
-  const content = await fs.readFile(LEGACY_CONFIG_PATH, "utf-8").catch(() => null)
-  if (!content) return false
-
-  let config: LegacyConfig | null = null
-  try {
-    config = JSON.parse(content) as LegacyConfig
-  } catch {
-    return false
-  }
+  const config = await readLegacyConfig(LEGACY_CONFIG_PATH)
+  if (!config) return false
 
   // Extract kilo auth from legacy config
   const legacy = extractKiloAuth(config)

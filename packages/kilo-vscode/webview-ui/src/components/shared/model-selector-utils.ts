@@ -1,13 +1,15 @@
 import type { ModelSelection } from "../../types/messages"
 import type { EnrichedModel } from "../../context/provider"
+import {
+  KILO_PROVIDER_ID as KILO_GATEWAY_ID,
+  PROVIDER_PRIORITY as PROVIDER_ORDER,
+  providerOrderIndex,
+} from "../../../../src/shared/provider-model"
 
-export const KILO_GATEWAY_ID = "kilo"
-
-export const PROVIDER_ORDER = [KILO_GATEWAY_ID, "anthropic", "openai", "google"]
+export { KILO_GATEWAY_ID, PROVIDER_ORDER }
 
 export function providerSortKey(providerID: string, order = PROVIDER_ORDER): number {
-  const idx = order.indexOf(providerID.toLowerCase())
-  return idx >= 0 ? idx : order.length
+  return providerOrderIndex(providerID, order)
 }
 
 export function isFree(model: Pick<EnrichedModel, "inputPrice">): boolean {
@@ -25,13 +27,18 @@ export function stripSubProviderPrefix(name: string): string {
 export function buildTriggerLabel(
   resolvedName: string | undefined,
   providerID: string | undefined,
+  providerName: string | undefined,
   raw: ModelSelection | null,
   allowClear: boolean,
   clearLabel: string,
   hasProviders: boolean,
   labels: { select: string; noProviders: string; notSet: string },
 ): string {
-  if (resolvedName) return providerID === KILO_GATEWAY_ID ? stripSubProviderPrefix(resolvedName) : resolvedName
+  if (resolvedName) {
+    if (providerID === KILO_GATEWAY_ID) return stripSubProviderPrefix(resolvedName)
+    if (providerName) return `${providerName} / ${resolvedName}`
+    return resolvedName
+  }
   if (raw?.providerID && raw?.modelID) {
     return raw.providerID === KILO_GATEWAY_ID ? raw.modelID : `${raw.providerID} / ${raw.modelID}`
   }

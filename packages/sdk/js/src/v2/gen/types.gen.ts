@@ -591,6 +591,21 @@ export type EventPermissionReplied = {
   }
 }
 
+export type IndexingStatus = {
+  state: "Disabled" | "In Progress" | "Complete" | "Error"
+  message: string
+  processedFiles: number
+  totalFiles: number
+  percent: number
+}
+
+export type EventIndexingStatus = {
+  type: "indexing.status"
+  properties: {
+    status: IndexingStatus
+  }
+}
+
 export type SessionStatus =
   | {
       type: "idle"
@@ -1007,6 +1022,7 @@ export type Event =
   | EventMessagePartRemoved
   | EventPermissionAsked
   | EventPermissionReplied
+  | EventIndexingStatus
   | EventSessionStatus
   | EventSessionIdle
   | EventQuestionAsked
@@ -1344,6 +1360,127 @@ export type McpRemoteConfig = {
  */
 export type LayoutConfig = "auto" | "stretch"
 
+/**
+ * Codebase indexing configuration
+ */
+export type IndexingConfig = {
+  /**
+   * Enable codebase indexing
+   */
+  enabled?: boolean
+  /**
+   * Embedding provider to use for codebase indexing
+   */
+  provider?:
+    | "openai"
+    | "ollama"
+    | "openai-compatible"
+    | "gemini"
+    | "mistral"
+    | "vercel-ai-gateway"
+    | "bedrock"
+    | "openrouter"
+    | "voyage"
+  /**
+   * Embedding model ID (uses provider default if omitted)
+   */
+  model?: string
+  /**
+   * Override embedding vector dimension (auto-detected from model if omitted)
+   */
+  dimension?: number
+  /**
+   * Vector store backend (default: lancedb)
+   */
+  vectorStore?: "lancedb" | "qdrant"
+  /**
+   * OpenAI embedding provider options
+   */
+  openai?: {
+    apiKey?: string
+  }
+  /**
+   * Ollama embedding provider options
+   */
+  ollama?: {
+    baseUrl?: string
+  }
+  /**
+   * OpenAI-compatible embedding provider options
+   */
+  "openai-compatible"?: {
+    baseUrl?: string
+    apiKey?: string
+  }
+  /**
+   * Gemini embedding provider options
+   */
+  gemini?: {
+    apiKey?: string
+  }
+  /**
+   * Mistral embedding provider options
+   */
+  mistral?: {
+    apiKey?: string
+  }
+  /**
+   * Vercel AI Gateway embedding provider options
+   */
+  "vercel-ai-gateway"?: {
+    apiKey?: string
+  }
+  /**
+   * AWS Bedrock embedding provider options
+   */
+  bedrock?: {
+    region?: string
+    profile?: string
+  }
+  /**
+   * OpenRouter embedding provider options
+   */
+  openrouter?: {
+    apiKey?: string
+    specificProvider?: string
+  }
+  /**
+   * Voyage embedding provider options
+   */
+  voyage?: {
+    apiKey?: string
+  }
+  /**
+   * Qdrant vector store connection options
+   */
+  qdrant?: {
+    url?: string
+    apiKey?: string
+  }
+  /**
+   * LanceDB vector store options
+   */
+  lancedb?: {
+    directory?: string
+  }
+  /**
+   * Minimum similarity score for search results (default: 0.4)
+   */
+  searchMinScore?: number
+  /**
+   * Maximum number of search results (default: 50)
+   */
+  searchMaxResults?: number
+  /**
+   * Number of code segments per embedding batch (default: 60)
+   */
+  embeddingBatchSize?: number
+  /**
+   * Maximum retry attempts for failed embedding batches (default: 3)
+   */
+  scannerMaxBatchRetries?: number
+}
+
 export type Config = {
   /**
    * JSON schema reference for configuration validation
@@ -1545,6 +1682,7 @@ export type Config = {
      */
     mcp_timeout?: number
   }
+  indexing?: IndexingConfig
 }
 
 export type BadRequestError = {
@@ -4149,6 +4287,25 @@ export type QuestionRejectResponses = {
 }
 
 export type QuestionRejectResponse = QuestionRejectResponses[keyof QuestionRejectResponses]
+
+export type IndexingStatusData = {
+  body?: never
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/indexing/status"
+}
+
+export type IndexingStatusResponses = {
+  /**
+   * Indexing status
+   */
+  200: IndexingStatus
+}
+
+export type IndexingStatusResponse = IndexingStatusResponses[keyof IndexingStatusResponses]
 
 export type ProviderListData = {
   body?: never

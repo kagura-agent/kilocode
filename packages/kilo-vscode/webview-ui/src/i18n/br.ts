@@ -246,6 +246,7 @@ export const dict = {
   "prompt.action.resetModel": "Redefinir modelo para o padrão",
   "prompt.action.enhanceDescription":
     "O botão 'Aprimorar prompt' ajuda a melhorar seu pedido fornecendo contexto adicional, esclarecimentos ou reformulações. Tente digitar um pedido aqui e clique no botão novamente para ver como funciona.",
+  "prompt.action.indexing": "Configurações de indexação",
 
   "prompt.toast.pasteUnsupported.title": "Colagem não suportada",
   "prompt.toast.pasteUnsupported.description": "Somente imagens ou PDFs podem ser colados aqui.",
@@ -929,6 +930,31 @@ export const dict = {
 
   "settings.experimental.title": "Experimental",
   "settings.language.title": "Idioma",
+  "settings.indexing.title": "Indexação",
+  "settings.indexing.enable.title": "Ativar indexação",
+  "settings.indexing.enable.description":
+    "Ativar ou desativar a indexação semântica da base de código para este espaço de trabalho.",
+  "settings.indexing.provider.title": "Provedor de embedding",
+  "settings.indexing.provider.description": "Escolha o provedor usado para gerar embeddings para busca semântica.",
+  "settings.indexing.model.title": "Modelo de embedding",
+  "settings.indexing.model.description": "Substituir o modelo de embedding padrão para o provedor selecionado.",
+  "settings.indexing.vectorStore.title": "Armazenamento de vetores",
+  "settings.indexing.vectorStore.description": "Escolha onde os embeddings indexados são armazenados.",
+  "settings.indexing.lancedbDirectory.title": "Diretório do LanceDB",
+  "settings.indexing.lancedbDirectory.description": "Diretório opcional para o armazenamento local do LanceDB.",
+  "settings.indexing.lancedbDirectory.placeholder": "Deixe vazio para o padrão",
+  "settings.indexing.qdrantUrl.title": "URL do Qdrant",
+  "settings.indexing.qdrantUrl.description": "URL do servidor para a instância do Qdrant.",
+  "settings.indexing.qdrantApiKey.title": "Chave de API do Qdrant",
+  "settings.indexing.qdrantApiKey.description": "Chave de API opcional para a instância do Qdrant.",
+  "settings.indexing.qdrantApiKey.placeholder": "Chave de API opcional",
+  "settings.indexing.dimension.title": "Dimensão do vetor",
+  "settings.indexing.dimension.description":
+    "Deixe vazio para detectar automaticamente a dimensão de embedding do modelo.",
+  "settings.indexing.dimension.placeholder": "Auto",
+  "settings.indexing.status.title": "Status",
+  "settings.indexing.tuning.description": "Parâmetro avançado de busca e lote.",
+  "settings.indexing.providerField.description": "Configuração de conexão específica do provedor.",
   "settings.aboutKiloCode.title": "Sobre o Kilo Code",
 
   "session.messages.empty": "Inicie uma conversa digitando uma mensagem abaixo.",

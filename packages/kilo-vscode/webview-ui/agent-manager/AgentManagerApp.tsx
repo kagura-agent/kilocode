@@ -38,6 +38,7 @@ import type {
   SessionInfo,
   BranchInfo,
 } from "../src/types/messages"
+import { IndexingProvider } from "../src/context/indexing"
 import {
   DragDropProvider,
   DragDropSensors,
@@ -2887,11 +2888,13 @@ export const AgentManagerApp: Component = () => {
                         <ConfigProvider>
                           <NotificationsProvider>
                             <SessionProvider>
-                              <WorktreeModeProvider>
-                                <DataBridge>
-                                  <AgentManagerContent />
-                                </DataBridge>
-                              </WorktreeModeProvider>
+                              <IndexingProvider>
+                                <WorktreeModeProvider>
+                                  <DataBridge>
+                                    <AgentManagerContent />
+                                  </DataBridge>
+                                </WorktreeModeProvider>
+                              </IndexingProvider>
                             </SessionProvider>
                           </NotificationsProvider>
                         </ConfigProvider>

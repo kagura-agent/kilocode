@@ -1,4 +1,5 @@
-import { Component, createSignal, createEffect, on, Show } from "solid-js"
+import { createSignal, createEffect, on, Show } from "solid-js"
+import type { Component } from "solid-js"
 import { Icon } from "@kilocode/kilo-ui/icon"
 import { Tabs } from "@kilocode/kilo-ui/tabs"
 import { Button } from "@kilocode/kilo-ui/button"
@@ -21,6 +22,7 @@ import ContextTab from "./ContextTab"
 import ExperimentalTab from "./ExperimentalTab"
 import LanguageTab from "./LanguageTab"
 import AboutKiloCodeTab from "./AboutKiloCodeTab"
+import IndexingTab from "./IndexingTab"
 import { useServer } from "../../context/server"
 
 export interface SettingsProps {
@@ -33,7 +35,7 @@ const Settings: Component<SettingsProps> = (props) => {
   const server = useServer()
   const language = useLanguage()
   const vscode = useVSCode()
-  const { isDirty, saveConfig, discardConfig } = useConfig()
+  const { isDirty, saveConfig, discardConfig, features } = useConfig()
   const session = useSession()
   const [active, setActive] = createSignal(props.tab ?? "models")
 
@@ -66,6 +68,11 @@ const Settings: Component<SettingsProps> = (props) => {
       },
     ),
   )
+
+  createEffect(() => {
+    if (features().indexing || active() !== "indexing") return
+    onTabChange("providers")
+  })
 
   const onTabChange = (tab: string) => {
     setActive(tab)
@@ -137,7 +144,12 @@ const Settings: Component<SettingsProps> = (props) => {
             <Icon name="server" />
             <span class="label">{language.t("settings.context.title")}</span>
           </Tabs.Trigger>
-
+          <Show when={features().indexing}>
+            <Tabs.Trigger value="indexing">
+              <Icon name="server" />
+              <span class="label">{language.t("settings.indexing.title")}</span>
+            </Tabs.Trigger>
+          </Show>
           <Tabs.Trigger value="experimental">
             <Icon name="settings-gear" />
             <span class="label">{language.t("settings.experimental.title")}</span>
@@ -192,7 +204,12 @@ const Settings: Component<SettingsProps> = (props) => {
           <h3>{language.t("settings.context.title")}</h3>
           <ContextTab />
         </Tabs.Content>
-
+        <Show when={features().indexing}>
+          <Tabs.Content value="indexing">
+            <h3>{language.t("settings.indexing.title")}</h3>
+            <IndexingTab />
+          </Tabs.Content>
+        </Show>
         <Tabs.Content value="experimental">
           <h3>{language.t("settings.experimental.title")}</h3>
           <ExperimentalTab />

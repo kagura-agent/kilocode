@@ -383,6 +383,48 @@ export interface ExperimentalConfig {
   mcp_timeout?: number
 }
 
+export type IndexingProvider =
+  | "openai"
+  | "ollama"
+  | "openai-compatible"
+  | "gemini"
+  | "mistral"
+  | "vercel-ai-gateway"
+  | "bedrock"
+  | "openrouter"
+  | "voyage"
+
+export interface IndexingConfig {
+  enabled?: boolean
+  provider?: IndexingProvider
+  model?: string
+  dimension?: number
+  vectorStore?: "lancedb" | "qdrant"
+  openai?: { apiKey?: string }
+  ollama?: { baseUrl?: string }
+  "openai-compatible"?: { baseUrl?: string; apiKey?: string }
+  gemini?: { apiKey?: string }
+  mistral?: { apiKey?: string }
+  "vercel-ai-gateway"?: { apiKey?: string }
+  bedrock?: { region?: string; profile?: string }
+  openrouter?: { apiKey?: string; specificProvider?: string }
+  voyage?: { apiKey?: string }
+  qdrant?: { url?: string; apiKey?: string }
+  lancedb?: { directory?: string }
+  searchMinScore?: number
+  searchMaxResults?: number
+  embeddingBatchSize?: number
+  scannerMaxBatchRetries?: number
+}
+
+export interface IndexingStatus {
+  state: "Disabled" | "In Progress" | "Complete" | "Error"
+  message: string
+  processedFiles: number
+  totalFiles: number
+  percent: number
+}
+
 export interface Config {
   permission?: PermissionConfig
   model?: string | null
@@ -406,6 +448,11 @@ export interface Config {
   tools?: Record<string, boolean>
   layout?: "auto" | "stretch"
   experimental?: ExperimentalConfig
+  indexing?: IndexingConfig
+}
+
+export interface FeatureFlags {
+  indexing: boolean
 }
 
 // ============================================
@@ -638,6 +685,11 @@ export interface NavigateMessage {
   tab?: string
 }
 
+export interface IndexingStatusLoadedMessage {
+  type: "indexingStatusLoaded"
+  status: IndexingStatus
+}
+
 export interface ProvidersLoadedMessage {
   type: "providersLoaded"
   providers: Record<string, Provider>
@@ -715,11 +767,13 @@ export interface BrowserSettingsLoadedMessage {
 export interface ConfigLoadedMessage {
   type: "configLoaded"
   config: Config
+  features: FeatureFlags
 }
 
 export interface ConfigUpdatedMessage {
   type: "configUpdated"
   config: Config
+  features: FeatureFlags
 }
 
 export interface GlobalConfigLoadedMessage {
@@ -1264,6 +1318,7 @@ export type ExtensionMessage =
   | DeviceAuthFailedMessage
   | DeviceAuthCancelledMessage
   | NavigateMessage
+  | IndexingStatusLoadedMessage
   | ProvidersLoadedMessage
   | AgentsLoadedMessage
   | SkillsLoadedMessage
@@ -1618,6 +1673,15 @@ export interface RequestConfigMessage {
 
 export interface RequestGlobalConfigMessage {
   type: "requestGlobalConfig"
+}
+
+export interface RequestIndexingStatusMessage {
+  type: "requestIndexingStatus"
+}
+
+export interface OpenSettingsTabRequest {
+  type: "openSettingsTab"
+  tab: string
 }
 
 export interface UpdateConfigMessage {
@@ -2055,7 +2119,9 @@ export type WebviewMessage =
   | RequestBrowserSettingsMessage
   | RequestConfigMessage
   | RequestGlobalConfigMessage
+  | RequestIndexingStatusMessage
   | UpdateConfigMessage
+  | OpenSettingsTabRequest
   | RequestNotificationSettingsMessage
   | ResetAllSettingsRequest
   | SettingsTabChangedMessage

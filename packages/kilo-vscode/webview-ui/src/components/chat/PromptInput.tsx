@@ -3,7 +3,8 @@
  * Text input with send/abort buttons, ghost-text autocomplete, and @ file mention support
  */
 
-import { Component, createSignal, createEffect, on, For, Index, onCleanup, Show, untrack } from "solid-js"
+import { createSignal, createEffect, on, For, Index, onCleanup, Show, untrack } from "solid-js"
+import type { Component } from "solid-js"
 import { Button } from "@kilocode/kilo-ui/button"
 import { Dialog } from "@kilocode/kilo-ui/dialog"
 import { IconButton } from "@kilocode/kilo-ui/icon-button"
@@ -12,9 +13,11 @@ import { FileIcon } from "@kilocode/kilo-ui/file-icon"
 import { useDialog } from "@kilocode/kilo-ui/context/dialog"
 import { useSession } from "../../context/session"
 import { useServer } from "../../context/server"
+import { useIndexing } from "../../context/indexing"
 import { useLanguage } from "../../context/language"
 import { useVSCode } from "../../context/vscode"
 import { useWorktreeMode } from "../../context/worktree-mode"
+import { useConfig } from "../../context/config"
 import { ModelSelector } from "../shared/ModelSelector"
 import { ModeSwitcher } from "../shared/ModeSwitcher"
 import { ThinkingSelector } from "../shared/ThinkingSelector"
@@ -49,6 +52,8 @@ interface PromptInputProps {
 export const PromptInput: Component<PromptInputProps> = (props) => {
   const session = useSession()
   const server = useServer()
+  const indexing = useIndexing()
+  const { features } = useConfig()
   const language = useLanguage()
   const vscode = useVSCode()
   const worktree = useWorktreeMode()
@@ -492,6 +497,10 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
 
   const canEnhance = () => !isBusy() && !isDisabled() && !enhancing()
 
+  const handleOpenIndexingSettings = () => {
+    vscode.postMessage({ type: "openSettingsTab", tab: "indexing" })
+  }
+
   const handleEnhance = () => {
     if (isDisabled() || enhancing() || isBusy()) return
     const draft = text().trim()
@@ -796,6 +805,34 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
           </Show>
         </div>
         <div class="prompt-input-hint-actions">
+          <Show when={features().indexing}>
+            <Tooltip value={indexing.status().message || indexing.label()} placement="top">
+              <Button
+                variant="ghost"
+                size="small"
+                onClick={handleOpenIndexingSettings}
+                aria-label={language.t("prompt.action.indexing")}
+                class={`prompt-indexing-button prompt-indexing-button--${indexing.tone()}`}
+              >
+                <span class="prompt-indexing-icon" aria-hidden="true">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <ellipse cx="8" cy="3.5" rx="4.5" ry="2" stroke="currentColor" stroke-width="1.2" />
+                    <path
+                      d="M3.5 3.5V12.5C3.5 13.6046 5.51472 14.5 8 14.5C10.4853 14.5 12.5 13.6046 12.5 12.5V3.5"
+                      stroke="currentColor"
+                      stroke-width="1.2"
+                    />
+                    <path
+                      d="M3.5 8C3.5 9.10457 5.51472 10 8 10C10.4853 10 12.5 9.10457 12.5 8"
+                      stroke="currentColor"
+                      stroke-width="1.2"
+                    />
+                  </svg>
+                  <span class="prompt-indexing-dot" />
+                </span>
+              </Button>
+            </Tooltip>
+          </Show>
           <Tooltip value={language.t("prompt.action.enhance")} placement="top">
             <Button
               variant="ghost"

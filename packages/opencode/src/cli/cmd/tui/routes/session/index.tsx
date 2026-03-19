@@ -46,6 +46,7 @@ import type { WebFetchTool } from "@/tool/webfetch"
 import type { TaskTool } from "@/tool/task"
 import type { QuestionTool } from "@/tool/question"
 import type { SkillTool } from "@/tool/skill"
+import type { SemanticSearchTool } from "@/tool/semantic_search.ts" // kilocode_change
 import { useKeyboard, useRenderer, useTerminalDimensions, type JSX } from "@opentui/solid"
 import { useSDK } from "@tui/context/sdk"
 import { useCommandDialog } from "@tui/component/dialog-command"
@@ -1578,6 +1579,11 @@ function ToolPart(props: { last: boolean; part: ToolPart; message: AssistantMess
         <Match when={props.part.tool === "grep"}>
           <Grep {...toolprops} />
         </Match>
+        {/* kilocode_change start */}
+        <Match when={props.part.tool === "semantic_search"}>
+          <SemanticSearch {...toolprops} />
+        </Match>
+        {/* kilocode_change end */}
         <Match when={props.part.tool === "list"}>
           <List {...toolprops} />
         </Match>
@@ -1968,6 +1974,21 @@ function Grep(props: ToolProps<typeof GrepTool>) {
     </InlineTool>
   )
 }
+
+// kilocode_change start
+function SemanticSearch(props: ToolProps<typeof SemanticSearchTool>) {
+  const count = createMemo(() => props.metadata.results?.length ?? 0)
+
+  return (
+    <InlineTool icon="✱" pending="Searching codebase..." complete={props.input.query} part={props.part}>
+      Codebase Search "{props.input.query}" <Show when={props.input.path}>in {normalizePath(props.input.path)} </Show>
+      <Show when={count() > 0}>
+        ({count()} {count() === 1 ? "result" : "results"})
+      </Show>
+    </InlineTool>
+  )
+}
+// kilocode_change end
 
 function List(props: ToolProps<typeof ListTool>) {
   const dir = createMemo(() => {

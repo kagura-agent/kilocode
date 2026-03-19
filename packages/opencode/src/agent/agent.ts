@@ -24,6 +24,7 @@ import { mergeDeep, pipe, sortBy, values } from "remeda"
 import { Global } from "@/global"
 import path from "path"
 import { Plugin } from "@/plugin"
+import { KiloIndexing } from "@/kilocode/indexing" // kilocode_change
 import { Skill } from "../skill"
 
 import { Telemetry } from "@kilocode/kilo-telemetry" // kilocode_change
@@ -182,6 +183,7 @@ export namespace Agent {
     }
     // kilocode_change end
 
+    const search = await KiloIndexing.available().catch(() => false) // kilocode_change
     const defaults = PermissionNext.fromConfig({
       "*": "allow",
       bash, // kilocode_change
@@ -283,6 +285,7 @@ export namespace Agent {
             webfetch: "allow",
             websearch: "allow",
             codesearch: "allow",
+            semantic_search: "allow", // kilocode_change
             codebase_search: "allow", // kilocode_change
             external_directory: {
               [Truncate.GLOB]: "allow",
@@ -322,6 +325,7 @@ export namespace Agent {
             webfetch: "allow",
             websearch: "allow",
             codesearch: "allow",
+            semantic_search: "allow", // kilocode_change
             codebase_search: "allow", // kilocode_change
             external_directory: {
               [Truncate.GLOB]: "allow",
@@ -362,6 +366,7 @@ export namespace Agent {
             webfetch: "allow",
             websearch: "allow",
             codesearch: "allow",
+            semantic_search: "allow", // kilocode_change
             codebase_search: "allow", // kilocode_change
             read: "allow",
             external_directory: {

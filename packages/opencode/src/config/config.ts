@@ -39,6 +39,7 @@ import { iife } from "@/util/iife"
 import { Control } from "@/control"
 import { ConfigPaths } from "./paths"
 import { Filesystem } from "@/util/filesystem"
+import { IndexingConfig as KiloIndexingConfig } from "@kilocode/kilo-indexing/config" // kilocode_change
 
 import { ModesMigrator } from "../kilocode/modes-migrator" // kilocode_change
 import { fetchOrganizationModes } from "@kilocode/kilo-gateway" // kilocode_change
@@ -46,11 +47,14 @@ import { RulesMigrator } from "../kilocode/rules-migrator" // kilocode_change
 import { WorkflowsMigrator } from "../kilocode/workflows-migrator" // kilocode_change
 import { McpMigrator } from "../kilocode/mcp-migrator" // kilocode_change
 import { IgnoreMigrator } from "../kilocode/ignore-migrator" // kilocode_change
+import { ensureIndexingPlugin, resolveIndexingPlugin } from "@/kilocode/indexing-feature"
 
 export namespace Config {
   const ModelId = z.string().meta({ $ref: "https://models.dev/model-schema.json#/$defs/Model" })
 
   const log = Log.create({ service: "config" })
+  const req = createRequire(import.meta.url)
+  const indexing = resolveIndexingPlugin(req, log)
 
   // Managed settings directory for enterprise deployments (highest priority, admin-controlled)
   // These settings override all user and project settings
@@ -355,8 +359,7 @@ export namespace Config {
       result.compaction = { ...result.compaction, prune: false }
     }
 
-    result.plugin = deduplicatePlugins(result.plugin ?? [])
-
+    result.plugin = ensureIndexingPlugin(deduplicatePlugins(result.plugin ?? []), indexing)
     return {
       config: result,
       directories,
@@ -1132,6 +1135,11 @@ export namespace Config {
     })
   export type Provider = z.infer<typeof Provider>
 
+  // kilocode_change start - indexing configuration
+  export const Indexing = KiloIndexingConfig
+  export type Indexing = z.infer<typeof Indexing>
+  // kilocode_change end
+
   export const Info = z
     .object({
       $schema: z.string().optional().describe("JSON schema reference for configuration validation"),
@@ -1327,6 +1335,9 @@ export namespace Config {
             .describe("Timeout in milliseconds for model context protocol (MCP) requests"),
         })
         .optional(),
+      // kilocode_change start
+      indexing: Indexing.optional().describe("Codebase indexing configuration"),
+      // kilocode_change end
     })
     .strict()
     .meta({

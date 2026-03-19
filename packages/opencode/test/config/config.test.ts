@@ -8,6 +8,7 @@ import fs from "fs/promises"
 import { pathToFileURL } from "url"
 import { Global } from "../../src/global"
 import { Filesystem } from "../../src/util/filesystem"
+import { hasIndexingPlugin } from "@kilocode/kilo-indexing/detect"
 
 // Get managed config directory from environment (set in preload.ts)
 const managedConfigDir = process.env.KILO_TEST_MANAGED_CONFIG_DIR!
@@ -871,6 +872,28 @@ test("merges plugin arrays from global and local configs", async () => {
       // Should have all 3 plugins (not replaced, but merged)
       const pluginNames = plugins.filter((p) => p.includes("global-plugin") || p.includes("local-plugin"))
       expect(pluginNames.length).toBeGreaterThanOrEqual(3)
+    },
+  })
+})
+
+test("hard-enables indexing plugin when package is available", async () => {
+  await using tmp = await tmpdir({
+    init: async (dir) => {
+      await Filesystem.write(
+        path.join(dir, "opencode.json"),
+        JSON.stringify({
+          $schema: "https://app.kilo.ai/config.json",
+          plugin: ["global-plugin-1"],
+        }),
+      )
+    },
+  })
+
+  await Instance.provide({
+    directory: tmp.path,
+    fn: async () => {
+      const config = await Config.get()
+      expect(hasIndexingPlugin(config.plugin)).toBe(true)
     },
   })
 })

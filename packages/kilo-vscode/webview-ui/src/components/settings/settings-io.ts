@@ -30,6 +30,7 @@ export const KNOWN_KEYS: ReadonlyArray<string> = [
   "compaction",
   "tools",
   "layout",
+  "indexing",
   "experimental",
 ]
 

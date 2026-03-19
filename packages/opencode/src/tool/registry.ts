@@ -4,6 +4,7 @@ import { BashTool } from "./bash"
 import { EditTool } from "./edit"
 import { GlobTool } from "./glob"
 import { GrepTool } from "./grep"
+import { SemanticSearchTool } from "./semantic_search"
 import { BatchTool } from "./batch"
 import { ReadTool } from "./read"
 import { TaskTool } from "./task"
@@ -25,6 +26,7 @@ import { CodeSearchTool } from "./codesearch"
 import { CodebaseSearchTool } from "./warpgrep" // kilocode_change
 import { Flag } from "@/flag/flag"
 import { Log } from "@/util/log"
+import { KiloIndexing } from "@/kilocode/indexing" // kilocode_change
 import { LspTool } from "./lsp"
 import { Truncate } from "./truncation"
 
@@ -100,6 +102,12 @@ export namespace ToolRegistry {
     const custom = await state().then((x) => x.custom)
     const config = await Config.get()
     const question = ["app", "cli", "desktop"].includes(Flag.KILO_CLIENT) || Flag.KILO_ENABLE_QUESTION_TOOL
+    const indexing_enabled = await KiloIndexing.available().catch((err: unknown) => {
+      // kilocode_change start
+      log.error("failed to get indexing state, possible configuration error", { err })
+      return false
+      // kilocode_change end
+    }) // kilocode_change
 
     return [
       InvalidTool,
@@ -108,6 +116,7 @@ export namespace ToolRegistry {
       ReadTool,
       GlobTool,
       GrepTool,
+      ...(indexing_enabled ? [SemanticSearchTool] : []), // kilocode_change
       EditTool,
       WriteTool,
       TaskTool,

@@ -18,21 +18,6 @@ interface ProviderAuthAuthorization {
   instructions: string
 }
 
-// Kilo notification from kilo-gateway
-export interface KilocodeNotificationAction {
-  actionText: string
-  actionURL: string
-}
-
-export interface KilocodeNotification {
-  id: string
-  title: string
-  message: string
-  action?: KilocodeNotificationAction
-  showIn?: string[]
-  suggestModelId?: string
-}
-
 // Profile types from kilo-gateway
 export interface KilocodeOrganization {
   id: string
@@ -93,6 +78,14 @@ export interface CloudSessionData {
     [key: string]: unknown
   }
   messages: CloudSessionMessage[]
+}
+
+export interface IndexingStatus {
+  state: "Disabled" | "In Progress" | "Complete" | "Error"
+  message: string
+  processedFiles: number
+  totalFiles: number
+  percent: number
 }
 
 /** VS Code editor context sent alongside messages to the CLI backend */

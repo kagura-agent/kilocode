@@ -247,6 +247,7 @@ export const dict = {
   "prompt.action.resetModel": "Réinitialiser le modèle par défaut",
   "prompt.action.enhanceDescription":
     "Le bouton 'Améliorer la requête' aide à améliorer votre demande en fournissant un contexte supplémentaire, des clarifications ou des reformulations. Essayez de taper une demande ici et cliquez à nouveau sur le bouton pour voir comment cela fonctionne.",
+  "prompt.action.indexing": "Paramètres d'indexation",
 
   "prompt.toast.pasteUnsupported.title": "Collage non supporté",
   "prompt.toast.pasteUnsupported.description": "Seules les images ou les PDF peuvent être collés ici.",
@@ -619,6 +620,33 @@ export const dict = {
 
   "settings.general.row.releaseNotes.title": "Notes de version",
   "settings.general.row.releaseNotes.description": 'Afficher des pop-ups "Quoi de neuf" après les mises à jour',
+
+  "settings.indexing.dimension.description":
+    "Laissez vide pour détecter automatiquement la dimension d'embedding à partir du modèle.",
+  "settings.indexing.dimension.placeholder": "Auto",
+  "settings.indexing.dimension.title": "Dimension vectorielle",
+  "settings.indexing.enable.description":
+    "Activer ou désactiver l'indexation sémantique de la base de code pour cet espace de travail.",
+  "settings.indexing.enable.title": "Activer l'indexation",
+  "settings.indexing.lancedbDirectory.description": "Répertoire optionnel pour le stockage local LanceDB.",
+  "settings.indexing.lancedbDirectory.placeholder": "Laissez vide pour la valeur par défaut",
+  "settings.indexing.lancedbDirectory.title": "Répertoire LanceDB",
+  "settings.indexing.model.description": "Remplacer le modèle d'embedding par défaut pour le fournisseur sélectionné.",
+  "settings.indexing.model.title": "Modèle d'embedding",
+  "settings.indexing.provider.description":
+    "Choisissez le fournisseur utilisé pour générer les embeddings pour la recherche sémantique.",
+  "settings.indexing.provider.title": "Fournisseur d'embedding",
+  "settings.indexing.providerField.description": "Paramètre de connexion spécifique au fournisseur.",
+  "settings.indexing.qdrantApiKey.description": "Clé API optionnelle pour l'instance Qdrant.",
+  "settings.indexing.qdrantApiKey.placeholder": "Clé API optionnelle",
+  "settings.indexing.qdrantApiKey.title": "Clé API Qdrant",
+  "settings.indexing.qdrantUrl.description": "URL du serveur pour l'instance Qdrant.",
+  "settings.indexing.qdrantUrl.title": "URL Qdrant",
+  "settings.indexing.status.title": "Statut",
+  "settings.indexing.title": "Indexation",
+  "settings.indexing.tuning.description": "Paramètre avancé de recherche et de traitement par lots.",
+  "settings.indexing.vectorStore.description": "Choisissez où les embeddings indexés sont stockés.",
+  "settings.indexing.vectorStore.title": "Stockage vectoriel",
 
   "settings.updates.row.startup.title": "Vérifier les mises à jour au démarrage",
   "settings.updates.row.startup.description": "Vérifier automatiquement les mises à jour au lancement d'Kilo",

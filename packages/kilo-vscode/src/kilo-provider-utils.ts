@@ -228,6 +228,16 @@ export type WebviewMessage =
   | { type: "sessionUpdated"; session: ReturnType<typeof sessionToWebview> }
   | { type: "messageRemoved"; sessionID: string; messageID: string }
   | { type: "sessionError"; sessionID?: string; error?: unknown }
+  | {
+      type: "indexingStatusLoaded"
+      status: {
+        state: "Disabled" | "In Progress" | "Complete" | "Error"
+        message: string
+        processedFiles: number
+        totalFiles: number
+        percent: number
+      }
+    }
   | null
 
 export function mapSSEEventToWebviewMessage(event: Event, sessionID: string | undefined): WebviewMessage {
@@ -337,6 +347,11 @@ export function mapSSEEventToWebviewMessage(event: Event, sessionID: string | un
       return {
         type: "sessionUpdated",
         session: sessionToWebview(event.properties.info),
+      }
+    case "indexing.status":
+      return {
+        type: "indexingStatusLoaded",
+        status: event.properties.status,
       }
     default:
       return null

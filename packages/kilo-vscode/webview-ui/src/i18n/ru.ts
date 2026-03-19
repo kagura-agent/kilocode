@@ -244,6 +244,7 @@ export const dict = {
   "prompt.action.stop": "Остановить",
   "prompt.action.enhance": "Улучшить промпт",
   "prompt.action.resetModel": "Сбросить модель на значение по умолчанию",
+  "prompt.action.indexing": "Настройки индексации",
   "prompt.action.enhanceDescription":
     "Кнопка 'Улучшить запрос' помогает сделать ваш запрос лучше, предоставляя дополнительный контекст, уточнения или переформулировку. Попробуйте ввести запрос и снова нажать кнопку, чтобы увидеть, как это работает.",
 
@@ -697,6 +698,32 @@ export const dict = {
   "settings.general.sounds.permissions.description": "Воспроизводить звук когда требуется разрешение",
   "settings.general.sounds.errors.title": "Ошибки",
   "settings.general.sounds.errors.description": "Воспроизводить звук когда происходит ошибка",
+
+  "settings.indexing.title": "Индексация",
+  "settings.indexing.enable.title": "Включить индексацию",
+  "settings.indexing.enable.description":
+    "Включить или отключить семантическую индексацию кодовой базы для этого рабочего пространства.",
+  "settings.indexing.status.title": "Статус",
+  "settings.indexing.provider.title": "Провайдер эмбеддингов",
+  "settings.indexing.provider.description": "Выберите провайдера для генерации эмбеддингов при семантическом поиске.",
+  "settings.indexing.model.title": "Модель эмбеддингов",
+  "settings.indexing.model.description": "Переопределить модель эмбеддингов по умолчанию для выбранного провайдера.",
+  "settings.indexing.dimension.title": "Размерность вектора",
+  "settings.indexing.dimension.description":
+    "Оставьте пустым для автоматического определения размерности эмбеддингов из модели.",
+  "settings.indexing.dimension.placeholder": "Авто",
+  "settings.indexing.vectorStore.title": "Векторное хранилище",
+  "settings.indexing.vectorStore.description": "Выберите, где хранить проиндексированные эмбеддинги.",
+  "settings.indexing.lancedbDirectory.title": "Директория LanceDB",
+  "settings.indexing.lancedbDirectory.description": "Необязательная директория для локального хранилища LanceDB.",
+  "settings.indexing.lancedbDirectory.placeholder": "Оставьте пустым для значения по умолчанию",
+  "settings.indexing.qdrantUrl.title": "URL Qdrant",
+  "settings.indexing.qdrantUrl.description": "URL сервера для экземпляра Qdrant.",
+  "settings.indexing.qdrantApiKey.title": "API-ключ Qdrant",
+  "settings.indexing.qdrantApiKey.description": "Необязательный API-ключ для экземпляра Qdrant.",
+  "settings.indexing.qdrantApiKey.placeholder": "Необязательный API-ключ",
+  "settings.indexing.providerField.description": "Настройка подключения, специфичная для провайдера.",
+  "settings.indexing.tuning.description": "Параметры расширенного поиска и пакетной обработки.",
 
   "settings.shortcuts.title": "Горячие клавиши",
   "settings.shortcuts.reset.button": "Сбросить к умолчаниям",

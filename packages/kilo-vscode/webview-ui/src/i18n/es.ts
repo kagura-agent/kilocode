@@ -246,6 +246,7 @@ export const dict = {
   "prompt.action.resetModel": "Restablecer modelo al predeterminado",
   "prompt.action.enhanceDescription":
     "El botón 'Mejorar el mensaje' ayuda a mejorar tu petición proporcionando contexto adicional, aclaraciones o reformulaciones. Intenta escribir una petición aquí y haz clic en el botón nuevamente para ver cómo funciona.",
+  "prompt.action.indexing": "Configuración de indexación",
 
   "prompt.toast.pasteUnsupported.title": "Pegado no soportado",
   "prompt.toast.pasteUnsupported.description": "Solo se pueden pegar imágenes o PDFs aquí.",
@@ -696,6 +697,34 @@ export const dict = {
   "settings.general.sounds.permissions.description": "Reproducir sonido cuando se requiera un permiso",
   "settings.general.sounds.errors.title": "Errores",
   "settings.general.sounds.errors.description": "Reproducir sonido cuando ocurra un error",
+
+  "settings.indexing.title": "Indexación",
+  "settings.indexing.enable.title": "Habilitar indexación",
+  "settings.indexing.enable.description":
+    "Activar o desactivar la indexación semántica de la base de código para este espacio de trabajo.",
+  "settings.indexing.provider.title": "Proveedor de embeddings",
+  "settings.indexing.provider.description":
+    "Elige el proveedor utilizado para generar embeddings para búsqueda semántica.",
+  "settings.indexing.model.title": "Modelo de embeddings",
+  "settings.indexing.model.description":
+    "Anular el modelo de embeddings predeterminado para el proveedor seleccionado.",
+  "settings.indexing.dimension.title": "Dimensión vectorial",
+  "settings.indexing.dimension.description":
+    "Dejar vacío para detectar automáticamente la dimensión de embeddings del modelo.",
+  "settings.indexing.dimension.placeholder": "Auto",
+  "settings.indexing.vectorStore.title": "Almacén de vectores",
+  "settings.indexing.vectorStore.description": "Elige dónde se almacenan los embeddings indexados.",
+  "settings.indexing.lancedbDirectory.title": "Directorio de LanceDB",
+  "settings.indexing.lancedbDirectory.description": "Directorio opcional para el almacenamiento local de LanceDB.",
+  "settings.indexing.lancedbDirectory.placeholder": "Dejar vacío para el valor predeterminado",
+  "settings.indexing.qdrantUrl.title": "URL de Qdrant",
+  "settings.indexing.qdrantUrl.description": "URL del servidor para la instancia de Qdrant.",
+  "settings.indexing.qdrantApiKey.title": "Clave API de Qdrant",
+  "settings.indexing.qdrantApiKey.description": "Clave API opcional para la instancia de Qdrant.",
+  "settings.indexing.qdrantApiKey.placeholder": "Clave API opcional",
+  "settings.indexing.providerField.description": "Configuración de conexión específica del proveedor.",
+  "settings.indexing.status.title": "Estado",
+  "settings.indexing.tuning.description": "Parámetro avanzado de búsqueda y procesamiento por lotes.",
 
   "settings.shortcuts.title": "Atajos de teclado",
   "settings.shortcuts.reset.button": "Restablecer a valores predeterminados",

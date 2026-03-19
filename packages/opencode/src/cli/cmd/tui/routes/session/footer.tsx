@@ -7,6 +7,23 @@ import { useSDK } from "../../context/sdk" // kilocode_change
 import { createStore } from "solid-js/store"
 import { useRoute } from "../../context/route"
 import { RemoteIndicator } from "@/kilocode/remote-tui" // kilocode_change
+import { formatIndexingLabel } from "@/kilocode/indexing-label" // kilocode_change
+
+function indexingTone(
+  state: "Disabled" | "In Progress" | "Complete" | "Error",
+  theme: ReturnType<typeof useTheme>["theme"],
+) {
+  if (state === "Complete") return theme.success
+  if (state === "Error") return theme.error
+  if (state === "In Progress") return theme.warning
+  return theme.textMuted
+}
+
+function indexingText(indexing: ReturnType<typeof useSync>["data"]["indexing"]) {
+  // kilocode_change start
+  return formatIndexingLabel(indexing)
+  // kilocode_change end
+}
 
 export function Footer() {
   const { theme } = useTheme()
@@ -22,6 +39,7 @@ export function Footer() {
   const directory = useDirectory()
   const connected = useConnected()
   const sdk = useSDK() // kilocode_change
+  const indexing = createMemo(() => sync.data.indexing)
 
   const [store, setStore] = createStore({
     welcome: false,
@@ -86,6 +104,7 @@ export function Footer() {
                 {mcp()} MCP
               </text>
             </Show>
+            <text fg={indexingTone(indexing().state, theme)}>{indexingText(indexing()).slice(0, 48)}</text>
             <text fg={theme.textMuted}>/status</text>
           </Match>
         </Switch>

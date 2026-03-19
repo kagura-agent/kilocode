@@ -18,6 +18,8 @@ import { KiloNews } from "@/kilocode/components/kilo-news" // kilocode_change
 import { useConnected } from "../component/dialog-model" // kilocode_change
 import { RemoteIndicator } from "@/kilocode/remote-tui" // kilocode_change
 import { useSDK } from "../context/sdk" // kilocode_change
+import { indexingEnabled } from "@/kilocode/indexing-feature"
+import { formatIndexingLabel } from "@/kilocode/indexing-label" // kilocode_change
 
 // TODO: what is the best way to do this?
 let once = false
@@ -37,6 +39,19 @@ export function Home() {
 
   const connectedMcpCount = createMemo(() => {
     return Object.values(sync.data.mcp).filter((x) => x.status === "connected").length
+  })
+  const indexingOn = createMemo(() => indexingEnabled(sync.data.config))
+  const indexing = createMemo(() => sync.data.indexing)
+
+  // kilocode_change start
+  const indexingLabel = createMemo(() => formatIndexingLabel(indexing()))
+  // kilocode_change end
+
+  const indexingColor = createMemo(() => {
+    if (indexing().state === "Complete") return theme.success
+    if (indexing().state === "Error") return theme.error
+    if (indexing().state === "In Progress") return theme.warning
+    return theme.textMuted
   })
 
   const isFirstTimeUser = createMemo(() => sync.data.session.length === 0)
@@ -166,6 +181,9 @@ export function Home() {
               {connectedMcpCount()} MCP
             </text>
             <text fg={theme.textMuted}>/status</text>
+          </Show>
+          <Show when={indexingOn()}>
+            <text fg={indexingColor()}>{indexingLabel().slice(0, 48)}</text>
           </Show>
         </box>
         <box flexGrow={1} />

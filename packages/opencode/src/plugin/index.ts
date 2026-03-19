@@ -12,6 +12,7 @@ import { Session } from "../session"
 import { NamedError } from "@opencode-ai/util/error"
 import { CopilotAuthPlugin } from "./copilot"
 import { gitlabAuthPlugin as GitlabAuthPlugin } from "@gitlab/opencode-gitlab-auth"
+import { isIndexingPlugin } from "@kilocode/kilo-indexing/detect"
 
 import { KiloAuthPlugin } from "@kilocode/kilo-gateway" // kilocode_change
 
@@ -62,6 +63,7 @@ export namespace Plugin {
     }
 
     for (let plugin of plugins) {
+      if (isIndexingPlugin(plugin)) continue
       // ignore old codex plugin since it is supported first party now
       if (plugin.includes("opencode-openai-codex-auth") || plugin.includes("opencode-copilot-auth")) continue
       log.info("loading plugin", { path: plugin })

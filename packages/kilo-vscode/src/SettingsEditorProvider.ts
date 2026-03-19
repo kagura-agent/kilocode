@@ -3,12 +3,13 @@ import { KiloProvider } from "./KiloProvider"
 import { resolvePanelProjectDirectory } from "./project-directory"
 import type { KiloConnectionService } from "./services/cli-backend"
 
-type PanelView = "settings" | "profile" | "marketplace"
+type PanelView = "settings" | "profile" | "marketplace" | "indexing"
 
 const PANEL_TITLES: Record<PanelView, string> = {
   settings: "Kilo Settings",
   profile: "Kilo Profile",
   marketplace: "Kilo Marketplace",
+  indexing: "Codebase Indexing",
 }
 
 /**
@@ -63,6 +64,7 @@ export class SettingsEditorProvider implements vscode.Disposable {
         provider?.postMessage({ type: "navigate", view, tab })
       }
       existing.reveal(vscode.ViewColumn.One)
+      this.providers.get(view)?.postMessage({ type: "navigate", view, ...(tab ? { tab } : {}) })
       return
     }
 
@@ -150,5 +152,6 @@ export class SettingsEditorProvider implements vscode.Disposable {
     }
     this.panels.clear()
     this.providers.clear()
+    this.tabs.clear()
   }
 }

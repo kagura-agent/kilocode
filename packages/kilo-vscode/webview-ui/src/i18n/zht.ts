@@ -1186,6 +1186,33 @@ export const dict = {
   "dialog.model.notSet": "未設定",
   "profile.personalAccount": "個人帳戶",
   "profile.switchingAccount": "正在切換帳戶…",
+
+  "prompt.action.indexing": "索引設定",
+
+  "settings.indexing.dimension.description": "留空以自動從模型偵測嵌入維度。",
+  "settings.indexing.dimension.placeholder": "自動",
+  "settings.indexing.dimension.title": "向量維度",
+  "settings.indexing.enable.description": "為此工作區開啟或關閉語意程式碼庫索引。",
+  "settings.indexing.enable.title": "啟用索引",
+  "settings.indexing.lancedbDirectory.description": "本機 LanceDB 儲存的可選目錄。",
+  "settings.indexing.lancedbDirectory.placeholder": "留空使用預設值",
+  "settings.indexing.lancedbDirectory.title": "LanceDB 目錄",
+  "settings.indexing.model.description": "覆寫所選供應商的預設嵌入模型。",
+  "settings.indexing.model.title": "嵌入模型",
+  "settings.indexing.provider.description": "選擇用於生成語意搜尋嵌入的供應商。",
+  "settings.indexing.provider.title": "嵌入供應商",
+  "settings.indexing.providerField.description": "供應商特定的連線設定。",
+  "settings.indexing.qdrantApiKey.description": "Qdrant 執行個體的可選 API 金鑰。",
+  "settings.indexing.qdrantApiKey.placeholder": "可選 API 金鑰",
+  "settings.indexing.qdrantApiKey.title": "Qdrant API 金鑰",
+  "settings.indexing.qdrantUrl.description": "Qdrant 執行個體的伺服器 URL。",
+  "settings.indexing.qdrantUrl.title": "Qdrant URL",
+  "settings.indexing.status.title": "狀態",
+  "settings.indexing.title": "索引",
+  "settings.indexing.tuning.description": "進階搜尋和批次處理參數。",
+  "settings.indexing.vectorStore.description": "選擇索引嵌入的儲存位置。",
+  "settings.indexing.vectorStore.title": "向量儲存",
+
   // Agent Manager strings live in webview-ui/agent-manager/i18n/zht.ts
 
   "question.summary": "第 {{n}} / {{total}} 個問題",

@@ -5636,6 +5636,30 @@ export type FormatterStatusResponses = {
 
 export type FormatterStatusResponse = FormatterStatusResponses[keyof FormatterStatusResponses]
 
+export type MemoryStatusData = {
+  body?: never
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/memory"
+}
+
+export type MemoryStatusResponses = {
+  /**
+   * Memory usage
+   */
+  200: {
+    /**
+     * Resident set size in bytes
+     */
+    rss: number
+  }
+}
+
+export type MemoryStatusResponse = MemoryStatusResponses[keyof MemoryStatusResponses]
+
 export type EventSubscribeData = {
   body?: never
   path?: never

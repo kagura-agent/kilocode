@@ -548,6 +548,33 @@ export namespace Server {
             return c.json(await Format.status())
           },
         )
+        // kilocode_change start
+        .get(
+          "/memory",
+          describeRoute({
+            summary: "Get memory usage",
+            description: "Get process memory usage statistics.",
+            operationId: "memory.status",
+            responses: {
+              200: {
+                description: "Memory usage",
+                content: {
+                  "application/json": {
+                    schema: resolver(
+                      z.object({
+                        rss: z.number().describe("Resident set size in bytes"),
+                      }),
+                    ),
+                  },
+                },
+              },
+            },
+          }),
+          async (c) => {
+            return c.json({ rss: process.memoryUsage.rss() })
+          },
+        )
+        // kilocode_change end
         .get(
           "/event",
           describeRoute({

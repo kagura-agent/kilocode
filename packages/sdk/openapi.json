@@ -376,7 +376,7 @@
         "x-codeSamples": [
           {
             "lang": "js",
-            "source": "import { createOpencodeClient } from \"@opencode-ai/sdk\n\nconst client = createOpencodeClient()\nawait client.project.initGit({\n  ...\n})"
+            "source": "import { createKiloClient } from \"@kilocode/sdk\n\nconst client = createKiloClient()\nawait client.project.initGit({\n  ...\n})"
           }
         ]
       }
@@ -8195,6 +8195,54 @@
         ]
       }
     },
+    "/memory": {
+      "get": {
+        "operationId": "memory.status",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "directory",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workspace",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "summary": "Get memory usage",
+        "description": "Get process memory usage statistics.",
+        "responses": {
+          "200": {
+            "description": "Memory usage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "rss": {
+                      "description": "Resident set size in bytes",
+                      "type": "number"
+                    }
+                  },
+                  "required": ["rss"]
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createKiloClient } from \"@kilocode/sdk\n\nconst client = createKiloClient()\nawait client.memory.status({\n  ...\n})"
+          }
+        ]
+      }
+    },
     "/event": {
       "get": {
         "operationId": "event.subscribe",
@@ -8392,6 +8440,20 @@
           "type": {
             "type": "string",
             "const": "global.disposed"
+          },
+          "properties": {
+            "type": "object",
+            "properties": {}
+          }
+        },
+        "required": ["type", "properties"]
+      },
+      "Event.global.config.updated": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "global.config.updated"
           },
           "properties": {
             "type": "object",
@@ -10931,6 +10993,9 @@
             "$ref": "#/components/schemas/Event.global.disposed"
           },
           {
+            "$ref": "#/components/schemas/Event.global.config.updated"
+          },
+          {
             "$ref": "#/components/schemas/Event.lsp.client.diagnostics"
           },
           {
@@ -11105,8 +11170,15 @@
         "additionalProperties": false
       },
       "PermissionActionConfig": {
-        "type": "string",
-        "enum": ["ask", "allow", "deny"]
+        "anyOf": [
+          {
+            "type": "string",
+            "enum": ["ask", "allow", "deny"]
+          },
+          {
+            "type": "null"
+          }
+        ]
       },
       "PermissionObjectConfig": {
         "type": "object",

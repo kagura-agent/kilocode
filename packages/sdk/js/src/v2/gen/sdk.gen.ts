@@ -85,6 +85,7 @@ import type {
   McpLocalConfig,
   McpRemoteConfig,
   McpStatusResponses,
+  MemoryStatusResponses,
   OutputFormat,
   Part as Part2,
   PartDeleteErrors,
@@ -4538,6 +4539,38 @@ export class Formatter extends HeyApiClient {
   }
 }
 
+export class Memory extends HeyApiClient {
+  /**
+   * Get memory usage
+   *
+   * Get process memory usage statistics.
+   */
+  public status<ThrowOnError extends boolean = false>(
+    parameters?: {
+      directory?: string
+      workspace?: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "query", key: "directory" },
+            { in: "query", key: "workspace" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).get<MemoryStatusResponses, unknown, ThrowOnError>({
+      url: "/memory",
+      ...options,
+      ...params,
+    })
+  }
+}
+
 export class Event extends HeyApiClient {
   /**
    * Subscribe to events
@@ -4721,6 +4754,11 @@ export class KiloClient extends HeyApiClient {
   private _formatter?: Formatter
   get formatter(): Formatter {
     return (this._formatter ??= new Formatter({ client: this.client }))
+  }
+
+  private _memory?: Memory
+  get memory(): Memory {
+    return (this._memory ??= new Memory({ client: this.client }))
   }
 
   private _event?: Event

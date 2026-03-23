@@ -132,7 +132,27 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
     return merged
   }
 
-  const ghost = useGhostText(vscode, text, () => server.isConnected(), getHistory)
+  // Extract the text content of the last assistant message in the current session,
+  // truncated to keep the autocomplete prefix concise.
+  const getLastResponse = (): string | undefined => {
+    const msgs = session.messages()
+    for (let i = msgs.length - 1; i >= 0; i--) {
+      if (msgs[i].role !== "assistant") continue
+      const parts = session.getParts(msgs[i].id)
+      const raw = parts
+        .filter((p): p is TextPart => p.type === "text")
+        .map((p) => p.text)
+        .join("")
+        .trim()
+      if (raw) return raw.length > 500 ? raw.slice(0, 500) + "..." : raw
+    }
+    return undefined
+  }
+
+  const ghost = useGhostText(vscode, text, () => server.isConnected(), {
+    history: getHistory,
+    lastResponse: getLastResponse,
+  })
 
   const replaceReviewComments = (next: ReviewComment[]) => {
     setReviewComments(next)

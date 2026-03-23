@@ -44,7 +44,7 @@ export class ChatTextAreaAutocomplete {
    * completion, and posts the result back to the webview.
    */
   async handle(message: ChatCompletionRequestMessage, sender: ChatCompletionResponseSender): Promise<void> {
-    const { text, requestId, history } = message
+    const { text, requestId, history, lastResponse } = message
     if (!text || !requestId) return
 
     const workspace = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? ""
@@ -60,7 +60,7 @@ export class ChatTextAreaAutocomplete {
     const tracker = new VisibleCodeTracker(workspace, this.ignore)
     const context = await tracker.captureVisibleCode()
 
-    const { suggestion } = await this.getCompletion(text, context, history)
+    const { suggestion } = await this.getCompletion(text, context, history, lastResponse)
 
     sender.postMessage({ type: "chatCompletionResult", text: suggestion, requestId })
   }
@@ -69,6 +69,7 @@ export class ChatTextAreaAutocomplete {
     userText: string,
     visibleCodeContext?: VisibleCodeContext,
     history?: string[],
+    lastResponse?: string,
   ): Promise<{ suggestion: string }> {
     const startTime = Date.now()
 
@@ -87,7 +88,7 @@ export class ChatTextAreaAutocomplete {
     // Capture suggestion requested
     this.telemetry.captureSuggestionRequested(context)
 
-    const prefix = await this.buildPrefix(userText, visibleCodeContext, history)
+    const prefix = await this.buildPrefix(userText, visibleCodeContext, history, lastResponse)
     const suffix = ""
 
     let response = ""
@@ -181,8 +182,9 @@ TASK: Complete the user's message naturally.
     userText: string,
     visibleCodeContext?: VisibleCodeContext,
     history?: string[],
+    lastResponse?: string,
   ): Promise<string> {
-    return buildChatPrefix(userText, visibleCodeContext?.editors, history)
+    return buildChatPrefix(userText, visibleCodeContext?.editors, history, lastResponse)
   }
 
   public cleanSuggestion(suggestion: string, userText: string): string {

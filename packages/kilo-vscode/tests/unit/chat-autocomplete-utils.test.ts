@@ -131,4 +131,34 @@ describe("buildChatPrefix", () => {
     expect(result).not.toContain("Recent prompts")
     expect(result).toContain("hello")
   })
+
+  it("includes last assistant response when provided", () => {
+    const result = buildChatPrefix("follow up", undefined, undefined, "I fixed the bug in auth.ts")
+    expect(result).toContain("Last assistant response")
+    expect(result).toContain("I fixed the bug in auth.ts")
+    expect(result).toContain("follow up")
+  })
+
+  it("includes all context: editors, history, and last response", () => {
+    const editors = [
+      { filePath: "/src/index.ts", languageId: "typescript", visibleRanges: [{ content: "const y = 2" }] },
+    ]
+    const history = ["fix the tests"]
+    const result = buildChatPrefix("now can you", editors, history, "Done, all tests pass now")
+    expect(result).toContain("Code visible in editor")
+    expect(result).toContain("Recent prompts by the user")
+    expect(result).toContain("Last assistant response")
+    expect(result).toContain("Done, all tests pass now")
+    expect(result).toContain("now can you")
+  })
+
+  it("does not include last response header when lastResponse is empty", () => {
+    const result = buildChatPrefix("hello", undefined, undefined, "")
+    expect(result).not.toContain("Last assistant response")
+  })
+
+  it("does not include last response header when lastResponse is undefined", () => {
+    const result = buildChatPrefix("hello", undefined, undefined, undefined)
+    expect(result).not.toContain("Last assistant response")
+  })
 })

@@ -29,6 +29,7 @@ export function buildChatPrefix(
     visibleRanges: Array<{ content: string }>
   }>,
   history?: string[],
+  lastResponse?: string,
 ): string {
   const parts: string[] = []
   if (editors && editors.length > 0) {
@@ -46,6 +47,10 @@ export function buildChatPrefix(
     for (const prompt of history) {
       parts.push(`// - ${prompt}`)
     }
+  }
+  if (lastResponse) {
+    parts.push("\n// Last assistant response:")
+    parts.push(`// ${lastResponse}`)
   }
   parts.push("\n// User's message:")
   parts.push(userText)

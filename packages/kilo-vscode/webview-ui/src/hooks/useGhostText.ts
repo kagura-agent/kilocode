@@ -34,11 +34,16 @@ export interface GhostText {
  *
  * Follows the legacy "syncAutocompleteTextVisibility" pattern.
  */
+export interface GhostTextContext {
+  history?: () => string[]
+  lastResponse?: () => string | undefined
+}
+
 export function useGhostText(
   vscode: VSCodeContext,
   getText: () => string,
   connected: () => boolean,
-  getHistory?: () => string[],
+  context?: GhostTextContext,
 ): GhostText {
   const [ghost, setGhost] = createSignal("")
   const [enabled, setEnabled] = createSignal(false)
@@ -181,8 +186,15 @@ export function useGhostText(
       counter++
       prefix = val
       savedPrefix = val
-      const history = getHistory?.()
-      vscode.postMessage({ type: "requestChatCompletion", text: val, requestId: `chat-ac-${counter}`, history })
+      const history = context?.history?.()
+      const lastResponse = context?.lastResponse?.()
+      vscode.postMessage({
+        type: "requestChatCompletion",
+        text: val,
+        requestId: `chat-ac-${counter}`,
+        history,
+        lastResponse,
+      })
     }, DEBOUNCE_MS)
   }
 

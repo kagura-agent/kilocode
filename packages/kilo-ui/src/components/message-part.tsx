@@ -1068,6 +1068,9 @@ PART_MAPPING["tool"] = function ToolPartDisplay(props) {
           <Match when={part.state.status === "error" && part.state.error}>
             {(error) => {
               const cleaned = error().replace("Error: ", "")
+              if (cleaned.includes("before overwriting it. Use the Read tool first")) {
+                return null
+              }
               if (part.tool === "question" && cleaned.includes("dismissed this question")) {
                 return (
                   <div style="width: 100%; display: flex; justify-content: flex-end;">

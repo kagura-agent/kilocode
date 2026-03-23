@@ -18,7 +18,8 @@ export function finalizeChatSuggestion(cleaned: string): string {
 }
 
 /**
- * Build the prefix string for a chat completion request from user text and visible code context.
+ * Build the prefix string for a chat completion request from user text, visible code context,
+ * and prompt history.
  */
 export function buildChatPrefix(
   userText: string,
@@ -27,6 +28,7 @@ export function buildChatPrefix(
     languageId: string
     visibleRanges: Array<{ content: string }>
   }>,
+  history?: string[],
 ): string {
   const parts: string[] = []
   if (editors && editors.length > 0) {
@@ -37,6 +39,12 @@ export function buildChatPrefix(
       for (const range of editor.visibleRanges) {
         parts.push(range.content)
       }
+    }
+  }
+  if (history && history.length > 0) {
+    parts.push("\n// Recent prompts by the user:")
+    for (const prompt of history) {
+      parts.push(`// - ${prompt}`)
     }
   }
   parts.push("\n// User's message:")

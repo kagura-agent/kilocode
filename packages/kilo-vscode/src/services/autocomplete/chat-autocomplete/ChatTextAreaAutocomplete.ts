@@ -44,7 +44,7 @@ export class ChatTextAreaAutocomplete {
    * completion, and posts the result back to the webview.
    */
   async handle(message: ChatCompletionRequestMessage, sender: ChatCompletionResponseSender): Promise<void> {
-    const { text, requestId } = message
+    const { text, requestId, history } = message
     if (!text || !requestId) return
 
     const workspace = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? ""
@@ -60,12 +60,16 @@ export class ChatTextAreaAutocomplete {
     const tracker = new VisibleCodeTracker(workspace, this.ignore)
     const context = await tracker.captureVisibleCode()
 
-    const { suggestion } = await this.getCompletion(text, context)
+    const { suggestion } = await this.getCompletion(text, context, history)
 
     sender.postMessage({ type: "chatCompletionResult", text: suggestion, requestId })
   }
 
-  async getCompletion(userText: string, visibleCodeContext?: VisibleCodeContext): Promise<{ suggestion: string }> {
+  async getCompletion(
+    userText: string,
+    visibleCodeContext?: VisibleCodeContext,
+    history?: string[],
+  ): Promise<{ suggestion: string }> {
     const startTime = Date.now()
 
     // Build context for telemetry
@@ -83,7 +87,7 @@ export class ChatTextAreaAutocomplete {
     // Capture suggestion requested
     this.telemetry.captureSuggestionRequested(context)
 
-    const prefix = await this.buildPrefix(userText, visibleCodeContext)
+    const prefix = await this.buildPrefix(userText, visibleCodeContext, history)
     const suffix = ""
 
     let response = ""
@@ -154,7 +158,7 @@ export class ChatTextAreaAutocomplete {
 - Provide a natural, conversational completion
 - Be concise - typically 1-15 words
 - Match the user's tone and style
-- Use context from visible code if relevant
+- Use context from visible code and recent prompt history if relevant
 - NEVER repeat what the user already typed
 - NEVER start with comments (//, /*, #)
 - If the user is in the middle of typing a word (e.g., "hel"), include the COMPLETE word in your response (e.g., "hello world" not just "lo world")
@@ -173,8 +177,12 @@ TASK: Complete the user's message naturally.
 - Return ONLY the completion text (what comes next), no explanations.`
   }
 
-  private async buildPrefix(userText: string, visibleCodeContext?: VisibleCodeContext): Promise<string> {
-    return buildChatPrefix(userText, visibleCodeContext?.editors)
+  private async buildPrefix(
+    userText: string,
+    visibleCodeContext?: VisibleCodeContext,
+    history?: string[],
+  ): Promise<string> {
+    return buildChatPrefix(userText, visibleCodeContext?.editors, history)
   }
 
   public cleanSuggestion(suggestion: string, userText: string): string {

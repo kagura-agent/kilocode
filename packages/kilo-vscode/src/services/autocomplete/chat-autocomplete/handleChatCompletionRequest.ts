@@ -8,6 +8,7 @@ export interface ChatCompletionRequestMessage {
   type: "requestChatCompletion"
   text?: string
   requestId?: string
+  history?: string[]
 }
 
 export interface ChatCompletionResponseSender {
@@ -35,7 +36,7 @@ export async function handleChatCompletionRequest(
   const visibleContext = await tracker.captureVisibleCode()
 
   const autocomplete = new ChatTextAreaAutocomplete(connectionService)
-  const { suggestion } = await autocomplete.getCompletion(userText, visibleContext)
+  const { suggestion } = await autocomplete.getCompletion(userText, visibleContext, message.history)
 
   responseSender.postMessage({ type: "chatCompletionResult", text: suggestion, requestId })
 

@@ -96,6 +96,8 @@ export interface PromptHistory {
   reset: () => void
   /** Current history index (-1 = not browsing). */
   index: Accessor<number>
+  /** Get the recent history entries (newest first). */
+  recent: (limit: number) => string[]
 }
 
 export function usePromptHistory(): PromptHistory {
@@ -147,5 +149,9 @@ export function usePromptHistory(): PromptHistory {
     saved = null
   }
 
-  return { navigate, append, seed, reset, index }
+  function recent(limit: number): string[] {
+    return entries.slice(0, limit)
+  }
+
+  return { navigate, append, seed, reset, index, recent }
 }

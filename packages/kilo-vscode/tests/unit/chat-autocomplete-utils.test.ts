@@ -97,4 +97,38 @@ describe("buildChatPrefix", () => {
     expect(result).not.toContain("Code visible in editor")
     expect(result).toContain("hi")
   })
+
+  it("includes prompt history when provided", () => {
+    const history = ["fix the login bug", "refactor the auth module"]
+    const result = buildChatPrefix("now let's", undefined, history)
+    expect(result).toContain("Recent prompts by the user")
+    expect(result).toContain("fix the login bug")
+    expect(result).toContain("refactor the auth module")
+    expect(result).toContain("now let's")
+  })
+
+  it("includes both editors and prompt history", () => {
+    const editors = [
+      { filePath: "/workspace/src/app.ts", languageId: "typescript", visibleRanges: [{ content: "const x = 1" }] },
+    ]
+    const history = ["add error handling"]
+    const result = buildChatPrefix("update the", editors, history)
+    expect(result).toContain("Code visible in editor")
+    expect(result).toContain("app.ts")
+    expect(result).toContain("Recent prompts by the user")
+    expect(result).toContain("add error handling")
+    expect(result).toContain("update the")
+  })
+
+  it("does not include history header when history is empty", () => {
+    const result = buildChatPrefix("hello", undefined, [])
+    expect(result).not.toContain("Recent prompts")
+    expect(result).toContain("hello")
+  })
+
+  it("does not include history header when history is undefined", () => {
+    const result = buildChatPrefix("hello", undefined, undefined)
+    expect(result).not.toContain("Recent prompts")
+    expect(result).toContain("hello")
+  })
 })

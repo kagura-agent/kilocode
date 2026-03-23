@@ -741,7 +741,12 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
             this.chatAutocomplete = new ChatTextAreaAutocomplete(this.connectionService)
           }
           void this.chatAutocomplete.handle(
-            { type: "requestChatCompletion", text: message.text, requestId: message.requestId },
+            {
+              type: "requestChatCompletion",
+              text: message.text,
+              requestId: message.requestId,
+              history: message.history,
+            },
             {
               postMessage: (msg: { type: "chatCompletionResult"; text: string; requestId: string }) =>
                 this.postMessage(msg),

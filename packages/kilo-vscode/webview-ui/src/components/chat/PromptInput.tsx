@@ -44,6 +44,8 @@ function mergeReviewComments(current: ReviewComment[], incoming: ReviewComment[]
   return [...map.values()]
 }
 
+const REVIEW_REGEX = /^## Review Comments\n[\s\S]*?\n\n/
+
 interface PromptInputProps {
   blocked?: () => boolean
   boxId?: string
@@ -103,7 +105,34 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
   let enhanceCounter = 0
   let preEnhanceText: string | null = null
 
-  const ghost = useGhostText(vscode, text, () => server.isConnected())
+  // Collect prompt history for autocomplete context: merge the last 10 entries
+  // from localStorage history with all earlier user messages in the current session.
+  const getHistory = (): string[] => {
+    const stored = history.recent(10)
+    const msgs = session.userMessages()
+    const texts: string[] = []
+    for (const m of msgs) {
+      const parts = session.getParts(m.id)
+      const raw = parts
+        .filter((p): p is TextPart => p.type === "text")
+        .map((p) => p.text)
+        .join("")
+      const cleaned = raw.replace(REVIEW_REGEX, "").trim()
+      if (cleaned) texts.push(cleaned)
+    }
+    // Deduplicate: stored history first, then session messages not already present
+    const seen = new Set(stored)
+    const merged = [...stored]
+    for (const t of texts) {
+      if (!seen.has(t)) {
+        seen.add(t)
+        merged.push(t)
+      }
+    }
+    return merged
+  }
+
+  const ghost = useGhostText(vscode, text, () => server.isConnected(), getHistory)
 
   const replaceReviewComments = (next: ReviewComment[]) => {
     setReviewComments(next)
@@ -201,7 +230,6 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
   // session is loaded that has existing conversation). Tracks userMessages()
   // reactively so newly loaded sessions automatically contribute to history.
   // Strip review-comment markdown prefix so only the user's draft is stored.
-  const REVIEW_PREFIX = /^## Review Comments\n[\s\S]*?\n\n/
   createEffect(() => {
     const msgs = session.userMessages()
     if (msgs.length === 0) return
@@ -211,7 +239,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
         .filter((p): p is TextPart => p.type === "text")
         .map((p) => p.text)
         .join("")
-      return raw.replace(REVIEW_PREFIX, "")
+      return raw.replace(REVIEW_REGEX, "")
     })
     history.seed(texts)
   })

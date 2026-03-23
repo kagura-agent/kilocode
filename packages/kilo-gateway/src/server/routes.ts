@@ -7,6 +7,7 @@
 
 import { fetchProfile, fetchBalance } from "../api/profile.js"
 import { fetchKilocodeNotifications, KilocodeNotificationSchema } from "../api/notifications.js"
+import { fetchOrganizationModes } from "../api/organization-modes.js"
 import { KILO_API_BASE, HEADER_FEATURE } from "../api/constants.js"
 import { buildKiloHeaders } from "../headers.js"
 import type { ImportDeps, DrizzleDb } from "../cloud-sessions.js"
@@ -206,6 +207,53 @@ export function createKiloRoutes(deps: KiloRoutesDeps) {
         ModelCache.clear("kilo")
 
         return c.json(true)
+      },
+    )
+    .get(
+      "/organization/modes",
+      describeRoute({
+        summary: "Get organization custom modes",
+        description: "Fetch custom modes defined by the current organization",
+        operationId: "kilo.organization.modes",
+        responses: {
+          200: {
+            description: "Organization modes list",
+            content: {
+              "application/json": {
+                schema: resolver(
+                  z.array(
+                    z.object({
+                      slug: z.string(),
+                      name: z.string(),
+                      description: z.string().optional(),
+                      roleDefinition: z.string().optional(),
+                      groups: z.array(z.any()).default([]),
+                      customInstructions: z.string().optional(),
+                    }),
+                  ),
+                ),
+              },
+            },
+          },
+          ...errors(401),
+        },
+      }),
+      async (c: any) => {
+        const auth = await Auth.get("kilo")
+
+        if (!auth || auth.type !== "oauth") {
+          return c.json([], 200)
+        }
+
+        const token = auth.access
+        const organizationId = auth.accountId
+
+        if (!organizationId) {
+          return c.json([])
+        }
+
+        const modes = await fetchOrganizationModes(token, organizationId)
+        return c.json(modes)
       },
     )
     .post(

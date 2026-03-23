@@ -1611,6 +1611,7 @@ export type Agent = {
     [key: string]: unknown
   }
   maxSteps?: number
+  source?: "local" | "organization"
 }
 
 export type McpStatusConnected = {

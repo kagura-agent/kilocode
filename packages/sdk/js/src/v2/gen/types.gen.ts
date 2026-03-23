@@ -1951,6 +1951,7 @@ export type Agent = {
     [key: string]: unknown
   }
   steps?: number
+  source?: "local" | "organization"
 }
 
 export type LspStatus = {
@@ -4564,6 +4565,32 @@ export type KiloOrganizationSetResponses = {
 }
 
 export type KiloOrganizationSetResponse = KiloOrganizationSetResponses[keyof KiloOrganizationSetResponses]
+
+export type KiloOrganizationModesData = {
+  body?: never
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/kilo/organization/modes"
+}
+
+export type KiloOrganizationModesResponses = {
+  /**
+   * Organization modes list
+   */
+  200: Array<{
+    slug: string
+    name: string
+    description?: string
+    roleDefinition?: string
+    groups?: Array<unknown>
+    customInstructions?: string
+  }>
+}
+
+export type KiloOrganizationModesResponse = KiloOrganizationModesResponses[keyof KiloOrganizationModesResponses]
 
 export type KiloFimData = {
   body?: {

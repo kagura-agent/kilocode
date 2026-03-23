@@ -33,7 +33,9 @@ import { ConfigRoutes } from "./routes/config"
 import { ExperimentalRoutes } from "./routes/experimental"
 import { TelemetryRoutes } from "./routes/telemetry" // kilocode_change
 import { ProviderRoutes } from "./routes/provider"
-import { createKiloRoutes } from "@kilocode/kilo-gateway" // kilocode_change
+import { createKiloRoutes, fetchOrganizationModes } from "@kilocode/kilo-gateway" // kilocode_change
+import { ModesMigrator } from "../kilocode/modes-migrator" // kilocode_change
+import { PermissionNext } from "../permission/next" // kilocode_change
 import { Database } from "../storage/db" // kilocode_change
 import { Session } from "../session" // kilocode_change
 import { Identifier } from "../id/id" // kilocode_change
@@ -479,8 +481,37 @@ export namespace Server {
             },
           }),
           async (c) => {
-            const modes = await Agent.list()
-            return c.json(modes)
+            const local = await Agent.list()
+
+            // kilocode_change start - merge organization modes with highest precedence
+            const auth = await Auth.get("kilo")
+            if (!auth || auth.type !== "oauth" || !auth.accountId) {
+              return c.json(local)
+            }
+
+            const orgModes = await fetchOrganizationModes(auth.access, auth.accountId)
+            if (!orgModes.length) {
+              return c.json(local)
+            }
+
+            const orgNames = new Set(orgModes.map((m) => m.slug))
+
+            // Convert org modes to Agent.Info and prepend (highest precedence)
+            const orgAgents: Agent.Info[] = orgModes.map((m) => ({
+              name: m.slug,
+              description: m.description ?? m.name,
+              mode: "primary" as const,
+              source: "organization" as const,
+              prompt: [m.roleDefinition, m.customInstructions].filter(Boolean).join("\n\n") || undefined,
+              permission: PermissionNext.fromConfig(ModesMigrator.convertPermissions(m.groups)),
+              options: {},
+            }))
+
+            // Filter out local agents that share a name with an org agent
+            const filtered = local.filter((a) => !orgNames.has(a.name))
+
+            return c.json([...orgAgents, ...filtered])
+            // kilocode_change end
           },
         )
         .get(

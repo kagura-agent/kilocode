@@ -7,7 +7,7 @@
  * ModeSwitcher     — thin wrapper wired to session context for chat usage.
  */
 
-import { Component, createSignal, onCleanup, For, Show } from "solid-js"
+import { Component, createSignal, createMemo, onCleanup, For, Show } from "solid-js"
 import { PopupSelector } from "./PopupSelector"
 import { Button } from "@kilocode/kilo-ui/button"
 import { useSession } from "../../context/session"
@@ -30,6 +30,9 @@ export const ModeSwitcherBase: Component<ModeSwitcherBaseProps> = (props) => {
   const [open, setOpen] = createSignal(false)
   const [focused, setFocused] = createSignal(-1)
   let listRef: HTMLDivElement | undefined
+
+  const orgAgents = createMemo(() => props.agents.filter((a) => a.source === "organization"))
+  const otherAgents = createMemo(() => props.agents.filter((a) => a.source !== "organization"))
 
   // Listen for slash command trigger
   const onTrigger = () => setOpen(true)
@@ -114,24 +117,55 @@ export const ModeSwitcherBase: Component<ModeSwitcherBaseProps> = (props) => {
             onKeyDown={onKeyDown}
             style={bodyH() !== undefined ? { "max-height": `${bodyH()}px` } : {}}
           >
-            <For each={props.agents}>
-              {(agent, i) => (
-                <div
-                  class={`mode-switcher-item${agent.name === props.value ? " selected" : ""}`}
-                  role="option"
-                  aria-selected={agent.name === props.value}
-                  tabindex={focused() === i() ? 0 : -1}
-                  onClick={() => pick(agent.name)}
-                  onFocus={() => setFocused(i())}
-                >
-                  <span class="mode-switcher-item-name">
-                    {agent.name.charAt(0).toUpperCase() + agent.name.slice(1)}
-                  </span>
-                  <Show when={agent.description}>
-                    <span class="mode-switcher-item-desc">{agent.description}</span>
-                  </Show>
-                </div>
-              )}
+            <Show when={orgAgents().length > 0}>
+              <div class="mode-switcher-group-label">Organization</div>
+              <For each={orgAgents()}>
+                {(agent) => {
+                  const idx = () => props.agents.indexOf(agent)
+                  return (
+                    <div
+                      class={`mode-switcher-item${agent.name === props.value ? " selected" : ""}`}
+                      role="option"
+                      aria-selected={agent.name === props.value}
+                      tabindex={focused() === idx() ? 0 : -1}
+                      onClick={() => pick(agent.name)}
+                      onFocus={() => setFocused(idx())}
+                    >
+                      <span class="mode-switcher-item-name">
+                        {agent.name.charAt(0).toUpperCase() + agent.name.slice(1)}
+                      </span>
+                      <Show when={agent.description}>
+                        <span class="mode-switcher-item-desc">{agent.description}</span>
+                      </Show>
+                    </div>
+                  )
+                }}
+              </For>
+              <Show when={otherAgents().length > 0}>
+                <div class="mode-switcher-separator" />
+              </Show>
+            </Show>
+            <For each={otherAgents()}>
+              {(agent) => {
+                const idx = () => props.agents.indexOf(agent)
+                return (
+                  <div
+                    class={`mode-switcher-item${agent.name === props.value ? " selected" : ""}`}
+                    role="option"
+                    aria-selected={agent.name === props.value}
+                    tabindex={focused() === idx() ? 0 : -1}
+                    onClick={() => pick(agent.name)}
+                    onFocus={() => setFocused(idx())}
+                  >
+                    <span class="mode-switcher-item-name">
+                      {agent.name.charAt(0).toUpperCase() + agent.name.slice(1)}
+                    </span>
+                    <Show when={agent.description}>
+                      <span class="mode-switcher-item-desc">{agent.description}</span>
+                    </Show>
+                  </div>
+                )
+              }}
             </For>
           </div>
         )}

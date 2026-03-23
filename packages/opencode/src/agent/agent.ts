@@ -50,6 +50,7 @@ export namespace Agent {
       prompt: z.string().optional(),
       options: z.record(z.string(), z.any()),
       steps: z.number().int().positive().optional(),
+      source: z.enum(["local", "organization"]).optional(), // kilocode_change
     })
     .meta({
       ref: "Agent",

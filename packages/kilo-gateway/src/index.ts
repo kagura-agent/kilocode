@@ -35,6 +35,7 @@ export {
 } from "./api/profile.js"
 export { fetchKiloModels } from "./api/models.js"
 export { fetchKilocodeNotifications, type KilocodeNotification } from "./api/notifications.js"
+export { fetchOrganizationModes, type OrganizationMode } from "./api/organization-modes.js"
 
 // ============================================================================
 // Server Routes (optional - requires hono and OpenCode dependencies)

@@ -14,6 +14,7 @@ export interface AuthContext {
   getWorkspaceDirectory(): string
   disposeGlobal(): Promise<void>
   fetchAndSendProviders(): Promise<void>
+  fetchAndSendAgents(): Promise<void>
 }
 
 /**
@@ -119,7 +120,7 @@ export async function handleSetOrganization(ctx: AuthContext, organizationId: st
 
   await ctx.disposeGlobal()
 
-  // Org switch succeeded — refresh profile and providers independently (best-effort)
+  // Org switch succeeded — refresh profile, providers, and agents independently (best-effort)
   try {
     const result = await ctx.client.kilo.profile()
     ctx.postMessage({ type: "profileData", data: result.data ?? null })
@@ -130,6 +131,12 @@ export async function handleSetOrganization(ctx: AuthContext, organizationId: st
     await ctx.fetchAndSendProviders()
   } catch (error) {
     console.error("[Kilo New] KiloProvider: Failed to refresh providers after org switch:", error)
+  }
+  // Refresh agents since organization modes change with org context
+  try {
+    await ctx.fetchAndSendAgents()
+  } catch (error) {
+    console.error("[Kilo New] KiloProvider: Failed to refresh agents after org switch:", error)
   }
 }
 

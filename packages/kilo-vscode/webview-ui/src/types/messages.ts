@@ -219,6 +219,7 @@ export interface AgentInfo {
   native?: boolean
   hidden?: boolean
   color?: string
+  source?: "local" | "organization"
 }
 
 // Server info

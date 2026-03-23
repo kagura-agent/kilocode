@@ -1572,6 +1572,21 @@
   color: inherit;
 }
 
+.mode-switcher-group-label {
+  padding: 6px 12px 4px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-weak, var(--vscode-descriptionForeground));
+}
+
+.mode-switcher-separator {
+  height: 1px;
+  margin: 4px 8px;
+  background: var(--border-base, var(--vscode-panel-border, rgba(128, 128, 128, 0.2)));
+}
+
 /* ============================================
    Account Switcher (welcome screen header)
    ============================================ */

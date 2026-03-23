@@ -195,7 +195,7 @@ const AgentBehaviourTab: Component = () => {
     ))
   }
 
-  const removableModes = createMemo(() => session.agents().filter((a) => !a.native))
+  const removableModes = createMemo(() => session.agents().filter((a) => !a.native && a.source !== "organization"))
 
   const confirmRemoveMode = (agent: AgentInfo) => {
     dialog.show(() => (

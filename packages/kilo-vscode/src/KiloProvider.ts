@@ -1399,6 +1399,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
           mode: a.mode,
           native: a.native,
           color: a.color,
+          source: a.source,
         })),
         defaultAgent,
       }
@@ -2123,6 +2124,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
       getWorkspaceDirectory: () => this.getWorkspaceDirectory(),
       disposeGlobal: () => this.disposeGlobal(),
       fetchAndSendProviders: () => this.fetchAndSendProviders(),
+      fetchAndSendAgents: () => this.fetchAndSendAgents(),
     }
   }
 

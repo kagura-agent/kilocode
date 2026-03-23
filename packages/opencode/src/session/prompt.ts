@@ -609,6 +609,20 @@ export namespace SessionPrompt {
 
       // normal processing
       const agent = await Agent.get(lastUser.agent)
+      // kilocode_change start — guard against deleted/renamed custom agent
+      if (!agent) {
+        const available = await Agent.list().then((agents) => agents.filter((a) => !a.hidden).map((a) => a.name))
+        const hint = available.length ? ` Available agents: ${available.join(", ")}` : ""
+        const error = new NamedError.Unknown({
+          message: `Agent not found: "${lastUser.agent}".${hint}`,
+        })
+        Bus.publish(Session.Event.Error, {
+          sessionID,
+          error: error.toObject(),
+        })
+        break
+      }
+      // kilocode_change end
       const maxSteps = agent.steps ?? Infinity
       const isLastStep = step >= maxSteps
       msgs = await insertReminders({
@@ -1045,7 +1059,17 @@ export namespace SessionPrompt {
   }
 
   async function createUserMessage(input: PromptInput) {
-    const agent = await Agent.get(input.agent ?? (await Agent.defaultAgent()))
+    const name = input.agent ?? (await Agent.defaultAgent())
+    const agent = await Agent.get(name)
+    // kilocode_change start — guard against missing custom agent
+    if (!agent) {
+      const available = await Agent.list().then((agents) => agents.filter((a) => !a.hidden).map((a) => a.name))
+      const hint = available.length ? ` Available agents: ${available.join(", ")}` : ""
+      throw new NamedError.Unknown({
+        message: `Agent not found: "${name}".${hint}`,
+      })
+    }
+    // kilocode_change end
 
     const model = input.model ?? agent.model ?? (await lastModel(input.sessionID))
     const full =

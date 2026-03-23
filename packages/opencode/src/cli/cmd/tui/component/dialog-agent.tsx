@@ -7,15 +7,17 @@ export function DialogAgent() {
   const local = useLocal()
   const dialog = useDialog()
 
+  // kilocode_change start — show actual description for all agents (native and custom)
   const options = createMemo(() =>
     local.agent.list().map((item) => {
       return {
         value: item.name,
         title: item.name,
-        description: item.native ? "native" : item.description,
+        description: item.description ?? (item.native ? "native" : undefined),
       }
     }),
   )
+  // kilocode_change end
 
   return (
     <DialogSelect

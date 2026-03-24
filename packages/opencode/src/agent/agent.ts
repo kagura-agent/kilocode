@@ -147,7 +147,10 @@ export namespace Agent {
               [path.relative(Instance.worktree, path.join(Global.Path.data, path.join("plans", "*.md")))]: "allow",
             },
             bash: "ask",
-            task: "deny",
+            task: {
+              "*": "deny",
+              explore: "allow",
+            },
           }),
         ),
         mode: "primary",

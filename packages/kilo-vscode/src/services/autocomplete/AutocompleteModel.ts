@@ -1,5 +1,6 @@
 import { ResponseMetaData } from "./types"
 import type { KiloConnectionService } from "../cli-backend"
+import { HttpError } from "./classic-auto-complete/ErrorBackoff"
 
 const DEFAULT_MODEL = "mistralai/codestral-2508"
 const PROVIDER_DISPLAY_NAME = "Kilo Gateway"
@@ -68,6 +69,10 @@ export class AutocompleteModel {
     // Capture SSE-level errors so they propagate to the caller. The SDK's SSE
     // client catches HTTP errors (402, 401, 429, 5xx) internally and silently
     // ends the stream. Without this, errors never reach ErrorBackoff.
+    //
+    // We convert errors with a parseable HTTP status into HttpError instances
+    // so ErrorBackoff can classify them via a structured `.status` property
+    // rather than fragile regex parsing of the message string.
     let sseError: Error | undefined
     const { stream } = await client.kilo.fim(
       {
@@ -81,7 +86,9 @@ export class AutocompleteModel {
         signal,
         sseMaxRetryAttempts: 1,
         onSseError: (error) => {
-          sseError = error instanceof Error ? error : new Error(String(error))
+          const msg = error instanceof Error ? error.message : String(error)
+          const match = msg.match(/\b([45]\d{2})\b/)
+          sseError = match ? new HttpError(Number(match[1]), msg) : error instanceof Error ? error : new Error(msg)
         },
       },
     )

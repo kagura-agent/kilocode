@@ -1,8 +1,10 @@
 import { describe, it, expect, beforeEach } from "bun:test"
 import {
   ErrorBackoff,
+  HttpError,
   extractStatus,
   classify,
+  isAbortError,
 } from "../../src/services/autocomplete/classic-auto-complete/ErrorBackoff"
 
 describe("extractStatus", () => {
@@ -33,6 +35,58 @@ describe("extractStatus", () => {
   it("extracts 429 when message contains other numbers before the status", () => {
     expect(extractStatus(new Error("after 128 retries: 429 Too Many Requests"))).toBe(429)
   })
+
+  it("extracts status from HttpError via structured property", () => {
+    expect(extractStatus(new HttpError(402, "Payment Required"))).toBe(402)
+  })
+
+  it("prefers HttpError.status over message regex", () => {
+    // HttpError with status 402 but message mentioning 500 — structured wins
+    expect(extractStatus(new HttpError(402, "SSE failed: 500 Internal Server Error"))).toBe(402)
+  })
+})
+
+describe("HttpError", () => {
+  it("has name HttpError", () => {
+    const err = new HttpError(402, "Payment Required")
+    expect(err.name).toBe("HttpError")
+  })
+
+  it("is an instance of Error", () => {
+    const err = new HttpError(402, "Payment Required")
+    expect(err instanceof Error).toBe(true)
+  })
+
+  it("preserves status and message", () => {
+    const err = new HttpError(429, "Too Many Requests")
+    expect(err.status).toBe(429)
+    expect(err.message).toBe("Too Many Requests")
+  })
+})
+
+describe("isAbortError", () => {
+  it("detects DOMException AbortError", () => {
+    const err = new DOMException("The operation was aborted", "AbortError")
+    expect(isAbortError(err)).toBe(true)
+  })
+
+  it("detects Error with name AbortError", () => {
+    const err = new Error("aborted")
+    err.name = "AbortError"
+    expect(isAbortError(err)).toBe(true)
+  })
+
+  it("detects error message containing abort", () => {
+    expect(isAbortError(new Error("The user aborted the request"))).toBe(true)
+  })
+
+  it("returns false for regular errors", () => {
+    expect(isAbortError(new Error("Connection timed out"))).toBe(false)
+  })
+
+  it("returns false for HttpError", () => {
+    expect(isAbortError(new HttpError(402, "Payment Required"))).toBe(false)
+  })
 })
 
 describe("classify", () => {
@@ -60,12 +114,35 @@ describe("classify", () => {
     expect(classify(new Error("SSE failed: 503 Service Unavailable"))).toBe("retriable")
   })
 
-  it("classifies no-status errors as transient", () => {
-    expect(classify(new Error("Connection timed out"))).toBe("transient")
+  it("classifies no-status errors as retriable (fail-safe)", () => {
+    expect(classify(new Error("Connection timed out"))).toBe("retriable")
   })
 
-  it("classifies 404 as transient", () => {
-    expect(classify(new Error("SSE failed: 404 Not Found"))).toBe("transient")
+  it("classifies 404 as retriable", () => {
+    expect(classify(new Error("SSE failed: 404 Not Found"))).toBe("retriable")
+  })
+
+  it("classifies abort errors as transient", () => {
+    const err = new DOMException("The operation was aborted", "AbortError")
+    expect(classify(err)).toBe("transient")
+  })
+
+  it("classifies abort-named errors as transient", () => {
+    const err = new Error("aborted")
+    err.name = "AbortError"
+    expect(classify(err)).toBe("transient")
+  })
+
+  it("classifies HttpError 402 as fatal", () => {
+    expect(classify(new HttpError(402, "Payment Required"))).toBe("fatal")
+  })
+
+  it("classifies HttpError 429 as retriable", () => {
+    expect(classify(new HttpError(429, "Too Many Requests"))).toBe("retriable")
+  })
+
+  it("classifies HttpError 500 as retriable", () => {
+    expect(classify(new HttpError(500, "Internal Server Error"))).toBe("retriable")
   })
 })
 
@@ -202,15 +279,45 @@ describe("ErrorBackoff", () => {
     })
   })
 
-  describe("transient errors", () => {
-    it("does not block after a transient error", () => {
-      backoff.failure(new Error("Connection timed out"))
+  describe("transient errors (abort only)", () => {
+    it("does not block after an abort error", () => {
+      const err = new DOMException("The operation was aborted", "AbortError")
+      backoff.failure(err)
       expect(backoff.blocked()).toBe(false)
     })
 
-    it("returns transient kind", () => {
-      const kind = backoff.failure(new Error("Connection timed out"))
+    it("returns transient kind for abort errors", () => {
+      const err = new DOMException("The operation was aborted", "AbortError")
+      const kind = backoff.failure(err)
       expect(kind).toBe("transient")
+    })
+  })
+
+  describe("unrecognized errors (fail-safe)", () => {
+    it("blocks after an unrecognized error (fail-safe)", () => {
+      backoff.failure(new Error("Connection timed out"))
+      expect(backoff.blocked()).toBe(true)
+    })
+
+    it("returns retriable kind for unrecognized errors", () => {
+      const kind = backoff.failure(new Error("Connection timed out"))
+      expect(kind).toBe("retriable")
+    })
+
+    it("applies exponential backoff for unrecognized errors", () => {
+      const now = Date.now()
+      const original = Date.now
+      try {
+        Date.now = () => now
+        backoff.failure(new Error("DNS resolution failed"))
+        expect(backoff.blocked()).toBe(true)
+
+        // After 2s (base delay) backoff should expire
+        Date.now = () => now + 2001
+        expect(backoff.blocked()).toBe(false)
+      } finally {
+        Date.now = original
+      }
     })
   })
 
@@ -223,8 +330,16 @@ describe("ErrorBackoff", () => {
       expect(backoff.failure(new Error("SSE failed: 429 Too Many Requests"))).toBe("retriable")
     })
 
-    it("returns 'transient' for unknown errors", () => {
-      expect(backoff.failure(new Error("Unknown error"))).toBe("transient")
+    it("returns 'retriable' for unknown errors (fail-safe)", () => {
+      expect(backoff.failure(new Error("Unknown error"))).toBe("retriable")
+    })
+
+    it("returns 'transient' for abort errors", () => {
+      expect(backoff.failure(new DOMException("aborted", "AbortError"))).toBe("transient")
+    })
+
+    it("returns 'fatal' for HttpError 402", () => {
+      expect(backoff.failure(new HttpError(402, "Payment Required"))).toBe("fatal")
     })
   })
 

@@ -3,8 +3,12 @@
  *
  * Classifies errors into:
  * - **fatal**: 401, 402, 403 — stops all requests until explicitly reset
- * - **retriable**: 429, 5xx, network errors — exponential backoff with cap
- * - **transient**: abort, unknown — no special handling
+ * - **retriable**: 429, 5xx, network errors, unknown — exponential backoff with cap
+ * - **transient**: abort only — no special handling
+ *
+ * The default for unrecognized errors is "retriable" (fail-safe). Only aborted
+ * requests are classified as "transient", since they are expected during normal
+ * typing and should not trigger backoff.
  *
  * When a fatal error (like 402 Payment Required) is detected, autocomplete
  * requests are blocked to prevent thousands of wasted API calls. The caller
@@ -30,26 +34,67 @@ const FATAL_PROBE_INTERVAL_MS = 300_000
 export type ErrorKind = "fatal" | "retriable" | "transient"
 
 /**
- * Extract an HTTP status code from an error message like "SSE failed: 402 Payment Required"
- * or "FIM request failed: 429 Too Many Requests".
- * Only matches 4xx/5xx after a colon — the two error sources (SDK SSE client and
- * gateway FIM route) both use this format.
+ * Custom error class that carries a structured HTTP status code.
+ * Used by AutocompleteModel to propagate SSE error status without
+ * relying on regex parsing of error messages.
+ */
+export class HttpError extends Error {
+  public readonly status: number
+  constructor(status: number, message: string) {
+    super(message)
+    this.name = "HttpError"
+    this.status = status
+  }
+}
+
+/**
+ * Extract an HTTP status code from an error.
+ *
+ * Checks for structured `HttpError.status` first, then falls back to
+ * regex parsing of the message string for SDK errors formatted like
+ * "SSE failed: 402 Payment Required".
  */
 export function extractStatus(error: unknown): number | null {
+  // Prefer structured status from HttpError
+  if (error instanceof HttpError) return error.status
+
   const msg = error instanceof Error ? error.message : String(error)
   const match = msg.match(/:\s*([45]\d{2})\b/)
   return match ? Number(match[1]) : null
 }
 
 /**
+ * Check whether an error represents an intentional abort (e.g. user typed
+ * again, cancelling the previous request). Aborted requests are expected
+ * during normal usage and should not trigger any backoff.
+ */
+export function isAbortError(error: unknown): boolean {
+  if (error instanceof DOMException && error.name === "AbortError") return true
+  if (error instanceof Error && error.name === "AbortError") return true
+  if (error instanceof Error && error.message.includes("abort")) return true
+  return false
+}
+
+/**
  * Classify an error into one of three categories based on its HTTP status code.
+ *
+ * Fail-safe: unrecognized errors default to "retriable" so backoff is always
+ * applied. Only abort errors are classified as "transient" (no backoff).
  */
 export function classify(error: unknown): ErrorKind {
+  // Aborted requests are expected (user typed again) — never penalize
+  if (isAbortError(error)) return "transient"
+
   const status = extractStatus(error)
-  if (status === null) return "transient"
   if (status === 401 || status === 402 || status === 403) return "fatal"
-  if (status === 429 || status >= 500) return "retriable"
-  return "transient"
+  if (status === 429 || (status !== null && status >= 500)) return "retriable"
+
+  // No recognized status code — fail-safe: treat as retriable so backoff
+  // is applied. This prevents request storms from unrecognized errors.
+  if (status === null) return "retriable"
+
+  // Known 4xx status codes other than 401/402/403/429 (e.g., 404, 400)
+  return "retriable"
 }
 
 export class ErrorBackoff {

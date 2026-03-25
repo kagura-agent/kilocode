@@ -14,8 +14,8 @@ export function PageVersionSwitcher({ platform }: Props) {
       <span className="version-banner-icon">{legacy ? "\u24D8" : "\u2728"}</span>
       <span>
         {legacy
-          ? "This page documents the legacy VSCode extension. The current VSCode extension & CLI does not have an equivalent page yet."
-          : "This page documents the current VSCode extension & CLI. There is no equivalent page for the legacy VSCode extension."}
+          ? "This page applies to the legacy VSCode extension."
+          : "This page applies to the current VSCode extension & CLI."}
       </span>
 
       <style jsx>{`
@@ -27,6 +27,7 @@ export function PageVersionSwitcher({ platform }: Props) {
           border-radius: 0.5rem;
           font-size: 0.875rem;
           line-height: 1.5;
+          margin-top: 1rem;
           margin-bottom: 1.5rem;
           border: 1px solid var(--border-color);
           background-color: var(--bg-secondary);

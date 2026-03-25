@@ -1083,6 +1083,8 @@ export const dict = {
   "settings.agentBehaviour.removeSkill.confirm":
     '스킬 "{{name}}"을(를) 제거하시겠습니까? 디스크에서 스킬 파일이 삭제됩니다.',
   "settings.agentBehaviour.removeSkill.button": "제거",
+  "settings.agentBehaviour.rules.description":
+    "규칙은 에이전트 동작을 안내하는 지시 파일입니다. 모든 대화의 시스템 프롬프트에 포함됩니다. 추가 규칙을 포함하려면 아래에 파일 경로를 추가하세요.",
   "settings.agentBehaviour.instructionFiles": "추가 지시 파일",
   "settings.agentBehaviour.instructionFiles.description": "시스템 프롬프트에 포함되는 추가 지시 파일 경로",
   "settings.agentBehaviour.mcpEmpty":

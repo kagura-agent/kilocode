@@ -1068,6 +1068,8 @@ export const dict = {
   "settings.agentBehaviour.removeSkill.title": "移除技能",
   "settings.agentBehaviour.removeSkill.confirm": '移除技能 "{{name}}" 吗？这会从磁盘中删除该技能文件。',
   "settings.agentBehaviour.removeSkill.button": "移除",
+  "settings.agentBehaviour.rules.description":
+    "规则是指导代理行为的指令文件。它们会被包含在每次对话的系统提示词中。在下方添加文件路径以包含额外的规则。",
   "settings.agentBehaviour.instructionFiles": "附加指令文件",
   "settings.agentBehaviour.instructionFiles.description": "包含在系统提示词中的附加指令文件路径",
   "settings.agentBehaviour.mcpEmpty": "未配置 MCP 服务器。编辑 opencode 配置文件以添加 MCP 服务器。",

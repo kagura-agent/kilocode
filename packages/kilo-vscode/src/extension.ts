@@ -183,6 +183,9 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand("kilo-code.new.settingsButtonClicked", (tab?: string) => {
       settingsEditorProvider.openPanel("settings", tab)
     }),
+    vscode.commands.registerCommand("kilo-code.new.supersizeSidebar", async () => {
+      await vscode.commands.executeCommand("workbench.action.setSidebarWidth", { width: 400 })
+    }),
     // legacy-migration start
     vscode.commands.registerCommand("kilo-code.new.openMigrationWizard", () => {
       provider.postMessage({ type: "navigate", view: "migration" })

@@ -105,6 +105,11 @@
         "icon": "$(settings-gear)"
       },
       {
+        "command": "kilo-code.new.supersizeSidebar",
+        "title": "Supersize",
+        "icon": "$(screen-full)"
+      },
+      {
         "command": "kilo-code.new.openInTab",
         "title": "Kilo Code",
         "icon": {
@@ -360,6 +365,11 @@
         {
           "command": "kilo-code.new.settingsButtonClicked",
           "group": "navigation@6",
+          "when": "view == kilo-code.SidebarProvider"
+        },
+        {
+          "command": "kilo-code.new.supersizeSidebar",
+          "group": "navigation@7",
           "when": "view == kilo-code.SidebarProvider"
         }
       ],

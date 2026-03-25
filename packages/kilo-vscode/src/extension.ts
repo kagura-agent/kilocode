@@ -183,19 +183,32 @@ export function activate(context: vscode.ExtensionContext) {
     (() => {
       let maximized = false
       return vscode.commands.registerCommand("kilo-code.new.supersizeSidebar", async () => {
+        const view = provider.view
+        if (!view) return
+
+        // Detect which sidebar we're in: toggle the primary sidebar and
+        // check if our view disappears. If it does, we're in primary.
         await vscode.commands.executeCommand(`${KiloProvider.viewType}.focus`)
-        // increaseViewSize only affects the primary sidebar, and
-        // maximizeAuxiliaryBar only affects the secondary sidebar,
-        // so calling both is safe — only the relevant one has effect.
+        await vscode.commands.executeCommand("workbench.action.toggleSidebarVisibility")
+        const inPrimary = !view.visible
+        await vscode.commands.executeCommand("workbench.action.toggleSidebarVisibility")
+        await vscode.commands.executeCommand(`${KiloProvider.viewType}.focus`)
+
         if (maximized) {
-          await vscode.commands.executeCommand("workbench.action.restoreAuxiliaryBar")
-          for (let i = 0; i < 20; i++) {
-            await vscode.commands.executeCommand("workbench.action.decreaseViewSize")
+          if (inPrimary) {
+            for (let i = 0; i < 20; i++) {
+              await vscode.commands.executeCommand("workbench.action.decreaseViewSize")
+            }
+          } else {
+            await vscode.commands.executeCommand("workbench.action.restoreAuxiliaryBar")
           }
         } else {
-          await vscode.commands.executeCommand("workbench.action.maximizeAuxiliaryBar")
-          for (let i = 0; i < 20; i++) {
-            await vscode.commands.executeCommand("workbench.action.increaseViewSize")
+          if (inPrimary) {
+            for (let i = 0; i < 20; i++) {
+              await vscode.commands.executeCommand("workbench.action.increaseViewSize")
+            }
+          } else {
+            await vscode.commands.executeCommand("workbench.action.maximizeAuxiliaryBar")
           }
         }
         maximized = !maximized

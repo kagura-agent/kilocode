@@ -21,6 +21,9 @@ const ModeEditView: Component<Props> = (props) => {
   const { config, updateConfig } = useConfig()
   const session = useSession()
 
+  // agent() may be undefined for modes that only exist in the config draft (just
+  // created, not yet saved). This is fine — native defaults to false (correct for
+  // custom modes) and all fields read from cfg() which comes from config context.
   const agent = () => session.agents().find((a) => a.name === props.name)
   const native = () => agent()?.native ?? false
 

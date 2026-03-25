@@ -1087,7 +1087,7 @@ export const dict = {
   "settings.agentBehaviour.createMode.cancel": "Cancel",
   "settings.agentBehaviour.createMode.nameRequired": "Name is required",
   "settings.agentBehaviour.createMode.nameInvalid":
-    "Name must contain only lowercase letters, numbers, hyphens, and underscores",
+    "Name must start with a lowercase letter and contain only lowercase letters, numbers, and hyphens",
   "settings.agentBehaviour.createMode.nameTaken": "A mode with this name already exists",
   "settings.agentBehaviour.editMode": "Edit Mode",
   "settings.agentBehaviour.editMode.description": "Description",

@@ -2177,7 +2177,8 @@
 }
 
 /* Session List Items */
-.session-list [data-slot="list-item-title"] {
+.session-list [data-slot="list-item-title"],
+.cloud-session-list [data-slot="list-item-title"] {
   flex: 1;
   min-width: 0;
   overflow: hidden;
@@ -2186,7 +2187,8 @@
   text-align: left;
 }
 
-.session-list [data-slot="list-item-description"] {
+.session-list [data-slot="list-item-description"],
+.cloud-session-list [data-slot="list-item-description"] {
   flex-shrink: 0;
   margin-left: 8px;
   font-size: 12px;
@@ -2195,7 +2197,12 @@
 }
 
 body.vscode-light .session-list [data-slot="list-item"][data-active="true"] [data-slot="list-item-description"],
-body.vscode-light .session-list [data-slot="list-item"][data-selected="true"] [data-slot="list-item-description"] {
+body.vscode-light .session-list [data-slot="list-item"][data-selected="true"] [data-slot="list-item-description"],
+body.vscode-light .cloud-session-list [data-slot="list-item"][data-active="true"] [data-slot="list-item-description"],
+body.vscode-light
+  .cloud-session-list
+  [data-slot="list-item"][data-selected="true"]
+  [data-slot="list-item-description"] {
   color: var(--text-on-interactive-base, white);
 }
 

@@ -397,7 +397,7 @@ When a tool is set to `"ask"`, Kilo pauses and displays a permission prompt. You
 | ---------------- | -------------------------------------------------------- |
 | **Allow once**   | Allow this specific invocation only                      |
 | **Allow always** | Allow this tool (or pattern) for the rest of the session |
-| **Deny**         | Block this specific invocation                           |
+| **Reject**       | Block this specific invocation                           |
 
 ## Defaults
 
@@ -533,7 +533,7 @@ When a tool is set to `"ask"`, Kilo pauses and displays a permission prompt. You
 | ---------------- | -------------------------------------------------------- |
 | **Allow once**   | Allow this specific invocation only                      |
 | **Allow always** | Allow this tool (or pattern) for the rest of the session |
-| **Deny**         | Block this specific invocation                           |
+| **Reject**       | Block this specific invocation                           |
 
 ## Defaults
 

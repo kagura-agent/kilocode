@@ -70,6 +70,9 @@ export class AgentManagerProvider implements Disposable {
       (msg) => this.outputChannel.appendLine(`[SessionTerminal] ${msg}`),
       createTerminalHost(),
     )
+    this.terminalManager.onTerminalListChanged((sessionId, terminals) => {
+      this.postToWebview({ type: "agentManager.terminalList", sessionId, terminals })
+    })
     this.gitOps = new GitOps({ log: (...args) => this.log(...args) })
     this.statsPoller = new GitStatsPoller({
       getWorktrees: () => this.state?.getWorktrees() ?? [],
@@ -215,6 +218,27 @@ export class AgentManagerProvider implements Disposable {
     }
     if (m.type === "agentManager.showExistingLocalTerminal") {
       this.terminalManager.syncLocalOnSessionSwitch()
+      return null
+    }
+    if (m.type === "agentManager.addTerminal") {
+      this.terminalManager.addTerminal(m.sessionId, this.state, m.name)
+      return null
+    }
+    if (m.type === "agentManager.addLocalTerminal") {
+      this.terminalManager.addLocalTerminal(m.name)
+      return null
+    }
+    if (m.type === "agentManager.focusTerminal") {
+      this.terminalManager.focusTerminal(m.sessionId, m.index)
+      return null
+    }
+    if (m.type === "agentManager.closeTerminal") {
+      this.terminalManager.closeTerminal(m.sessionId, m.index)
+      return null
+    }
+    if (m.type === "agentManager.requestTerminals") {
+      const terminals = this.terminalManager.getTerminals(m.sessionId)
+      this.postToWebview({ type: "agentManager.terminalList", sessionId: m.sessionId, terminals })
       return null
     }
     if (m.type === "agentManager.requestRepoInfo") {

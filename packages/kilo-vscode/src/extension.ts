@@ -211,6 +211,9 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand("kilo-code.new.agentManager.showTerminal", () => {
       agentManagerProvider.showTerminalForCurrentSession()
     }),
+    vscode.commands.registerCommand("kilo-code.new.agentManager.newTerminal", () => {
+      agentManagerProvider.postMessage({ type: "action", action: "newTerminal" })
+    }),
     vscode.commands.registerCommand("kilo-code.new.agentManager.toggleDiff", () => {
       agentManagerProvider.postMessage({ type: "action", action: "toggleDiff" })
     }),

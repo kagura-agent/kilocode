@@ -7,6 +7,7 @@ import type { TerminalHost, TerminalHandle } from "./SessionTerminalManager"
 
 export function createTerminalHost(): TerminalHost {
   const terminalMap = new WeakMap<vscode.Terminal, TerminalHandle>()
+  const handleToTerminal = new WeakMap<TerminalHandle, vscode.Terminal>()
 
   const wrap = (terminal: vscode.Terminal): TerminalHandle => {
     const existing = terminalMap.get(terminal)
@@ -19,6 +20,7 @@ export function createTerminalHost(): TerminalHost {
       },
     }
     terminalMap.set(terminal, handle)
+    handleToTerminal.set(handle, terminal)
     return handle
   }
 
@@ -29,8 +31,21 @@ export function createTerminalHost(): TerminalHost {
           cwd: opts.cwd,
           name: opts.name,
           iconPath: new vscode.ThemeIcon("terminal"),
+          color: opts.color ? new vscode.ThemeColor(opts.color) : undefined,
         }),
       ),
+    createSplitTerminal: (opts) => {
+      const parent = handleToTerminal.get(opts.parent)
+      return wrap(
+        vscode.window.createTerminal({
+          cwd: opts.cwd,
+          name: opts.name,
+          iconPath: new vscode.ThemeIcon("terminal"),
+          color: opts.color ? new vscode.ThemeColor(opts.color) : undefined,
+          location: parent ? { parentTerminal: parent } : undefined,
+        }),
+      )
+    },
     activeTerminal: () => {
       const t = vscode.window.activeTerminal
       return t ? wrap(t) : undefined

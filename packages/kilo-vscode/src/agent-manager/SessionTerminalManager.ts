@@ -12,7 +12,8 @@ export interface TerminalHandle {
 }
 
 export interface TerminalHost {
-  createTerminal(opts: { cwd: string; name: string }): TerminalHandle
+  createTerminal(opts: { cwd: string; name: string; color?: string }): TerminalHandle
+  createSplitTerminal(opts: { cwd: string; name: string; color?: string; parent: TerminalHandle }): TerminalHandle
   activeTerminal(): TerminalHandle | undefined
   repoPath(): string | undefined
   showWarning(msg: string): void
@@ -27,19 +28,54 @@ export interface Disposable {
   dispose(): void
 }
 
+// ---------------------------------------------------------------------------
+// Terminal group — tracks N terminals per session
+// ---------------------------------------------------------------------------
+
+export interface TerminalEntry {
+  handle: TerminalHandle
+  name: string
+  cwd: string
+}
+
+export interface TerminalGroup {
+  terminals: TerminalEntry[]
+  focused: number // index of last-focused terminal
+  color: string
+}
+
+/** Info about a single terminal, sent to the webview. */
+export interface TerminalInfo {
+  name: string
+  index: number
+  active: boolean
+}
+
+// Rotating colors assigned to each worktree group
+const GROUP_COLORS = [
+  "terminal.ansiGreen",
+  "terminal.ansiBlue",
+  "terminal.ansiYellow",
+  "terminal.ansiMagenta",
+  "terminal.ansiCyan",
+  "terminal.ansiRed",
+]
+
 /**
- * Manages terminals for agent manager sessions.
- * Each session can have an associated terminal that opens in the session's worktree directory,
- * or the main repo folder for local sessions.
+ * Manages terminal groups for agent manager sessions.
+ * Each session can have multiple terminals grouped together as split panes.
+ * Switching sessions switches to the corresponding terminal group.
  */
 export class SessionTerminalManager {
   private static readonly LOCAL_KEY = "__local__"
 
-  private terminals = new Map<string, { terminal: TerminalHandle; cwd: string }>()
+  private groups = new Map<string, TerminalGroup>()
   private disposables: Disposable[] = []
   private commandHandlers = new Map<string, (...args: unknown[]) => Promise<unknown>>()
   private commandDisposables = new Map<string, Disposable>()
   private panelOpen = false
+  private colorIndex = 0
+  private onChange: ((sessionId: string, terminals: TerminalInfo[]) => void) | undefined
 
   constructor(
     private log: (msg: string) => void,
@@ -47,17 +83,35 @@ export class SessionTerminalManager {
   ) {
     this.disposables.push(
       host.onTerminalClosed((terminal) => {
-        for (const [sessionId, entry] of this.terminals) {
-          if (entry.terminal !== terminal) continue
-          this.terminals.delete(sessionId)
-          this.log(`Removed terminal mapping for session ${sessionId} (terminal closed)`)
+        for (const [sessionId, group] of this.groups) {
+          const idx = group.terminals.findIndex((t) => t.handle === terminal)
+          if (idx === -1) continue
+          group.terminals.splice(idx, 1)
+          // Adjust focused index
+          if (group.focused >= group.terminals.length) group.focused = Math.max(0, group.terminals.length - 1)
+          this.log(`Removed terminal ${idx} from group ${sessionId} (terminal closed)`)
+          if (group.terminals.length === 0) {
+            this.groups.delete(sessionId)
+            this.log(`Removed empty group for session ${sessionId}`)
+          }
+          this.emitChange(sessionId)
           break
         }
         this.updateContextKey()
       }),
       host.onActiveTerminalChanged((terminal) => {
+        if (terminal) {
+          this.panelOpen = true
+          // Track last-focused terminal within its group
+          for (const [, group] of this.groups) {
+            const idx = group.terminals.findIndex((t) => t.handle === terminal)
+            if (idx !== -1) {
+              group.focused = idx
+              break
+            }
+          }
+        }
         const managed = terminal ? this.isManaged(terminal) : false
-        if (terminal) this.panelOpen = true
         void host.setContext("kilo-code.agentTerminalFocus", managed)
       }),
     )
@@ -80,13 +134,26 @@ export class SessionTerminalManager {
     })
   }
 
+  /** Register a callback for when the terminal list changes for a session. */
+  onTerminalListChanged(cb: (sessionId: string, terminals: TerminalInfo[]) => void): void {
+    this.onChange = cb
+  }
+
   /**
-   * Show (or create) a terminal for the given session.
+   * Show (or create) the first terminal for the given session.
    * Resolves CWD from the worktree state, falling back to repo root.
    */
   showTerminal(sessionId: string, state: WorktreeStateManager | undefined): void {
-    // If terminal already exists, just focus it
-    if (this.showExisting(sessionId, false)) return
+    const group = this.groups.get(sessionId)
+    if (group && group.terminals.length > 0) {
+      const target = this.focusedEntry(group)
+      if (target && target.handle.exitStatus === undefined) {
+        target.handle.show(false)
+        this.panelOpen = true
+        this.updateContextKey()
+        return
+      }
+    }
 
     const repoPath = this.host.repoPath()
     const worktreePath = state?.directoryFor(sessionId)
@@ -100,17 +167,81 @@ export class SessionTerminalManager {
 
     const session = state?.getSession(sessionId)
     const worktree = session?.worktreeId ? state?.getWorktree(session.worktreeId) : undefined
-    const name = worktree ? `Agent: ${worktree.branch}` : "Agent: local"
+    const label = worktree ? worktree.branch : "local"
+    const name = `Agent: ${label}`
 
-    this.showOrCreate(sessionId, cwd, name)
+    this.addTerminalToGroup(sessionId, cwd, name)
+  }
+
+  /**
+   * Add a new terminal to an existing session's group (split pane).
+   * If no group exists yet, creates a new standalone terminal.
+   */
+  addTerminal(sessionId: string, state: WorktreeStateManager | undefined, name?: string): void {
+    const repoPath = this.host.repoPath()
+    const worktreePath = state?.directoryFor(sessionId)
+    const cwd = worktreePath ?? repoPath
+
+    if (!cwd) {
+      this.log(`addTerminal: no cwd resolved for session ${sessionId}`)
+      this.host.showWarning("Open a folder that contains a git repository to use worktrees")
+      return
+    }
+
+    const session = state?.getSession(sessionId)
+    const worktree = session?.worktreeId ? state?.getWorktree(session.worktreeId) : undefined
+    const label = worktree ? worktree.branch : "local"
+    const group = this.groups.get(sessionId)
+    const count = group ? group.terminals.length + 1 : 1
+    const terminal = name || `${label} (${count})`
+
+    this.addTerminalToGroup(sessionId, cwd, terminal)
+  }
+
+  /**
+   * Focus a specific terminal within a session's group by index.
+   */
+  focusTerminal(sessionId: string, index: number): void {
+    const group = this.groups.get(sessionId)
+    if (!group) return
+
+    const entry = group.terminals[index]
+    if (!entry || entry.handle.exitStatus !== undefined) return
+
+    group.focused = index
+    entry.handle.show(false)
+    this.panelOpen = true
+    this.updateContextKey()
+  }
+
+  /**
+   * Close a specific terminal within a session's group by index.
+   */
+  closeTerminal(sessionId: string, index: number): void {
+    const group = this.groups.get(sessionId)
+    if (!group) return
+
+    const entry = group.terminals[index]
+    if (!entry) return
+
+    entry.handle.dispose()
+    // The onTerminalClosed callback handles cleanup
   }
 
   /**
    * Show (or create) a terminal for the local repo (no session required).
-   * Used when the user triggers a terminal in local mode without an active session.
    */
   showLocalTerminal(): void {
-    if (this.showExisting(SessionTerminalManager.LOCAL_KEY, false)) return
+    const group = this.groups.get(SessionTerminalManager.LOCAL_KEY)
+    if (group && group.terminals.length > 0) {
+      const target = this.focusedEntry(group)
+      if (target && target.handle.exitStatus === undefined) {
+        target.handle.show(false)
+        this.panelOpen = true
+        this.updateContextKey()
+        return
+      }
+    }
 
     const cwd = this.host.repoPath()
     if (!cwd) {
@@ -119,7 +250,25 @@ export class SessionTerminalManager {
       return
     }
 
-    this.showOrCreate(SessionTerminalManager.LOCAL_KEY, cwd, "Agent: local")
+    this.addTerminalToGroup(SessionTerminalManager.LOCAL_KEY, cwd, "Agent: local")
+  }
+
+  /**
+   * Add a new terminal to the local group.
+   */
+  addLocalTerminal(name?: string): void {
+    const cwd = this.host.repoPath()
+    if (!cwd) {
+      this.log("addLocalTerminal: no repo folder open")
+      this.host.showWarning("Open a folder to use the local terminal")
+      return
+    }
+
+    const group = this.groups.get(SessionTerminalManager.LOCAL_KEY)
+    const count = group ? group.terminals.length + 1 : 1
+    const label = name || `local (${count})`
+
+    this.addTerminalToGroup(SessionTerminalManager.LOCAL_KEY, cwd, label)
   }
 
   /**
@@ -131,6 +280,7 @@ export class SessionTerminalManager {
 
   /**
    * Sync terminal on session switch: only switch terminals when panel is open.
+   * Shows the last-focused terminal in the session's group.
    */
   syncOnSessionSwitch(sessionId: string): boolean {
     if (!this.panelOpen) {
@@ -154,38 +304,54 @@ export class SessionTerminalManager {
   }
 
   /**
-   * Show the terminal for a session if it already exists (used when switching sessions).
-   * Returns true if the terminal was shown, false if no terminal exists for the session.
-   * Pass preserveFocus=true to keep focus on the current editor (default for session switching).
+   * Show the last-focused terminal for a session if a group exists.
+   * Returns true if the terminal was shown, false if no group exists.
    */
   showExisting(sessionId: string, preserveFocus = true): boolean {
-    const entry = this.terminals.get(sessionId)
-    if (!entry) return false
+    const group = this.groups.get(sessionId)
+    if (!group || group.terminals.length === 0) return false
 
-    if (entry.terminal.exitStatus !== undefined) {
-      this.terminals.delete(sessionId)
-      this.log(`showExisting: terminal exited for session ${sessionId}, clearing`)
-      return false
-    }
+    // Clean up exited terminals
+    this.cleanExited(sessionId, group)
+    if (group.terminals.length === 0) return false
 
-    entry.terminal.show(preserveFocus)
+    const target = this.focusedEntry(group)
+    if (!target) return false
+
+    target.handle.show(preserveFocus)
     this.panelOpen = true
-    this.log(`showExisting: revealed terminal for session ${sessionId}`)
+    this.log(`showExisting: revealed terminal ${group.focused} for session ${sessionId}`)
     return true
   }
 
   /**
-   * Check if a session has an active terminal.
+   * Check if a session has any active terminal.
    */
   hasTerminal(sessionId: string): boolean {
-    const entry = this.terminals.get(sessionId)
-    return entry !== undefined && entry.terminal.exitStatus === undefined
+    const group = this.groups.get(sessionId)
+    if (!group) return false
+    return group.terminals.some((t) => t.handle.exitStatus === undefined)
+  }
+
+  /**
+   * Get the terminal list for a session (for sending to webview).
+   */
+  getTerminals(sessionId: string): TerminalInfo[] {
+    const group = this.groups.get(sessionId)
+    if (!group) return []
+    return group.terminals.map((t, i) => ({
+      name: t.name,
+      index: i,
+      active: i === group.focused,
+    }))
   }
 
   dispose(): void {
     void this.host.setContext("kilo-code.agentTerminalFocus", false)
-    for (const entry of this.terminals.values()) entry.terminal.dispose()
-    this.terminals.clear()
+    for (const group of this.groups.values()) {
+      for (const entry of group.terminals) entry.handle.dispose()
+    }
+    this.groups.clear()
     for (const d of this.commandDisposables.values()) d.dispose()
     this.commandDisposables.clear()
     this.commandHandlers.clear()
@@ -221,8 +387,8 @@ export class SessionTerminalManager {
   }
 
   private isManaged(terminal: TerminalHandle): boolean {
-    for (const entry of this.terminals.values()) {
-      if (entry.terminal === terminal) return true
+    for (const group of this.groups.values()) {
+      if (group.terminals.some((t) => t.handle === terminal)) return true
     }
     return false
   }
@@ -234,32 +400,61 @@ export class SessionTerminalManager {
     void this.host.setContext("kilo-code.agentTerminalFocus", managed)
   }
 
-  private showOrCreate(sessionId: string, cwd: string, name: string): void {
-    let entry = this.terminals.get(sessionId)
+  private nextColor(): string {
+    const color = GROUP_COLORS[this.colorIndex % GROUP_COLORS.length]
+    this.colorIndex++
+    return color
+  }
 
-    // Clean up exited terminals
-    if (entry && entry.terminal.exitStatus !== undefined) {
-      this.terminals.delete(sessionId)
-      entry = undefined
+  private focusedEntry(group: TerminalGroup): TerminalEntry | undefined {
+    return group.terminals[group.focused] ?? group.terminals[0]
+  }
+
+  private cleanExited(sessionId: string, group: TerminalGroup): void {
+    const before = group.terminals.length
+    group.terminals = group.terminals.filter((t) => t.handle.exitStatus === undefined)
+    if (group.terminals.length !== before) {
+      if (group.focused >= group.terminals.length) group.focused = Math.max(0, group.terminals.length - 1)
+      if (group.terminals.length === 0) this.groups.delete(sessionId)
+      this.emitChange(sessionId)
+    }
+  }
+
+  private addTerminalToGroup(sessionId: string, cwd: string, name: string): void {
+    let group = this.groups.get(sessionId)
+
+    if (group) {
+      // Clean exited terminals first
+      this.cleanExited(sessionId, group)
+      group = this.groups.get(sessionId) // may have been deleted
     }
 
-    // Recreate if CWD changed
-    if (entry && entry.cwd !== cwd) {
-      entry.terminal.dispose()
-      this.terminals.delete(sessionId)
-      entry = undefined
-      this.log(`showTerminal: cwd changed for session ${sessionId}, recreating`)
+    if (!group) {
+      // First terminal — create a standalone terminal and a new group
+      const color = this.nextColor()
+      const handle = this.host.createTerminal({ cwd, name, color })
+      group = { terminals: [{ handle, name, cwd }], focused: 0, color }
+      this.groups.set(sessionId, group)
+      this.log(`created new terminal group for session ${sessionId} (color=${color})`)
+    } else {
+      // Additional terminal — split alongside the first terminal in the group
+      const parent = group.terminals[0]
+      const handle = this.host.createSplitTerminal({ cwd, name, color: group.color, parent: parent.handle })
+      const idx = group.terminals.length
+      group.terminals.push({ handle, name, cwd })
+      group.focused = idx
+      this.log(`added terminal ${idx} to group ${sessionId}`)
     }
 
-    if (!entry) {
-      const terminal = this.host.createTerminal({ cwd, name })
-      entry = { terminal, cwd }
-      this.terminals.set(sessionId, entry)
-      this.log(`showTerminal: created terminal for session ${sessionId} (cwd=${cwd})`)
-    }
-
-    entry.terminal.show(false)
+    const target = this.focusedEntry(group)
+    if (target) target.handle.show(false)
     this.panelOpen = true
     this.updateContextKey()
+    this.emitChange(sessionId)
+  }
+
+  private emitChange(sessionId: string): void {
+    if (!this.onChange) return
+    this.onChange(sessionId, this.getTerminals(sessionId))
   }
 }

@@ -67,7 +67,7 @@ export function buildKeybindingMap(
   // Ensure fallback bindings are always present (may be missing from
   // cached packageJSON if the extension hasn't been fully reloaded)
   if (!bindings.toggleDiff) bindings.toggleDiff = formatKeybinding(mac ? "cmd+d" : "ctrl+d", mac)
-  if (!bindings.showShortcuts) bindings.showShortcuts = formatKeybinding(mac ? "cmd+shift+/" : "ctrl+shift+/", mac)
+  if (!bindings.newTerminal) bindings.newTerminal = formatKeybinding(mac ? "cmd+shift+/" : "ctrl+shift+/", mac)
 
   return bindings
 }

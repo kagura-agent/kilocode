@@ -3504,3 +3504,51 @@ body.vscode-high-contrast-light {
     margin: 4px 0;
   }
 }
+
+/* Terminal group dropdown (inside split-menu) */
+
+.am-terminal-item [data-component="icon"] {
+  flex-shrink: 0;
+}
+
+.am-terminal-item-active {
+  color: var(--text-accent);
+}
+
+.am-terminal-item-active [data-component="icon"] {
+  color: var(--text-accent);
+}
+
+.am-terminal-item-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.am-terminal-item-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--text-weak);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  opacity: 0;
+  transition: opacity 120ms;
+  margin-left: auto;
+}
+
+[data-slot="dropdown-menu-item"]:hover .am-terminal-item-close {
+  opacity: 0.6;
+}
+
+.am-terminal-item-close:hover {
+  opacity: 1 !important;
+  background: var(--surface-inset-base-hover);
+  color: var(--text-error);
+}

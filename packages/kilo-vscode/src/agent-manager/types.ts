@@ -13,6 +13,7 @@ import type { WorktreeStats, LocalStats } from "./GitStatsPoller"
 import type { ApplyConflict } from "./GitOps"
 import type { BranchListItem, WorktreeSetupErrorCode } from "./git-import"
 import type { ExternalWorktreeItem } from "./WorktreeManager"
+import type { TerminalInfo } from "./SessionTerminalManager"
 
 // ---------------------------------------------------------------------------
 // Shared payload types
@@ -180,6 +181,12 @@ interface ActionOutMessage {
   action: string
 }
 
+interface TerminalListMessage {
+  type: "agentManager.terminalList"
+  sessionId: string
+  terminals: TerminalInfo[]
+}
+
 /** All messages the Agent Manager extension sends to the webview. */
 export type AgentManagerOutMessage =
   | WorktreeStatsMessage
@@ -203,6 +210,7 @@ export type AgentManagerOutMessage =
   | WorktreeDiffMessage
   | WorktreeDiffFileMessage
   | ActionOutMessage
+  | TerminalListMessage
 
 // ---------------------------------------------------------------------------
 // Webview → Extension messages (onMessage)
@@ -259,6 +267,34 @@ interface OpenWorktreeIn {
 
 interface ShowExistingLocalTerminalIn {
   type: "agentManager.showExistingLocalTerminal"
+}
+
+interface AddTerminalIn {
+  type: "agentManager.addTerminal"
+  sessionId: string
+  name?: string
+}
+
+interface AddLocalTerminalIn {
+  type: "agentManager.addLocalTerminal"
+  name?: string
+}
+
+interface FocusTerminalIn {
+  type: "agentManager.focusTerminal"
+  sessionId: string
+  index: number
+}
+
+interface CloseTerminalIn {
+  type: "agentManager.closeTerminal"
+  sessionId: string
+  index: number
+}
+
+interface RequestTerminalsIn {
+  type: "agentManager.requestTerminals"
+  sessionId: string
 }
 
 interface RequestRepoInfoIn {
@@ -425,6 +461,11 @@ export type AgentManagerInMessage =
   | ShowLocalTerminalIn
   | OpenWorktreeIn
   | ShowExistingLocalTerminalIn
+  | AddTerminalIn
+  | AddLocalTerminalIn
+  | FocusTerminalIn
+  | CloseTerminalIn
+  | RequestTerminalsIn
   | RequestRepoInfoIn
   | CreateMultiVersionIn
   | RenameWorktreeIn

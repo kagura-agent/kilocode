@@ -38,12 +38,12 @@ describe("SessionTerminalManager structure", () => {
     expect(text).toContain("onActiveTerminalChanged")
   })
 
-  it("dispose clears the context key, disposes terminals, and clears the map", () => {
+  it("dispose clears the context key, disposes terminals, and clears the groups", () => {
     const text = body("dispose")
     // All three are required for clean shutdown — missing any would leak resources
     expect(text).toContain("kilo-code.agentTerminalFocus")
-    expect(text).toContain("terminal.dispose()")
-    expect(text).toContain("terminals.clear()")
+    expect(text).toContain("handle.dispose()")
+    expect(text).toContain("groups.clear()")
   })
 
   it("showTerminal resolves CWD from worktree with repo fallback", () => {
@@ -54,22 +54,21 @@ describe("SessionTerminalManager structure", () => {
   })
 
   /**
-   * Regression: showOrCreate must check exitStatus before checking CWD changes.
-   * If reversed, a stale exited terminal with a different CWD would hit the
-   * dispose path instead of the cleanup path, potentially leaving ghost entries.
+   * Regression: addTerminalToGroup must check exit status before adding.
+   * cleanExited is called at the start to remove stale terminals.
    */
-  it("showOrCreate checks exit status before CWD mismatch", () => {
-    const text = body("showOrCreate")
-    const exitIdx = text.indexOf("exitStatus")
-    const cwdIdx = text.indexOf("entry.cwd !== cwd")
-    expect(exitIdx).toBeGreaterThan(-1)
-    expect(cwdIdx).toBeGreaterThan(-1)
-    expect(exitIdx, "exit check must come before cwd check").toBeLessThan(cwdIdx)
+  it("addTerminalToGroup cleans exited terminals before adding new ones", () => {
+    const text = body("addTerminalToGroup")
+    const cleanIdx = text.indexOf("cleanExited")
+    const createIdx = text.indexOf("createTerminal")
+    expect(cleanIdx).toBeGreaterThan(-1)
+    expect(createIdx).toBeGreaterThan(-1)
+    expect(cleanIdx, "clean check must come before create").toBeLessThan(createIdx)
   })
 
-  it("showOrCreate updates context key after showing terminal", () => {
-    const text = body("showOrCreate")
-    const showIdx = text.lastIndexOf("entry.terminal.show")
+  it("addTerminalToGroup updates context key after showing terminal", () => {
+    const text = body("addTerminalToGroup")
+    const showIdx = text.lastIndexOf("target.handle.show")
     const contextIdx = text.lastIndexOf("this.updateContextKey()")
     expect(showIdx).toBeGreaterThan(-1)
     expect(contextIdx).toBeGreaterThan(-1)
@@ -86,5 +85,19 @@ describe("SessionTerminalManager structure", () => {
     const text = body("syncLocalOnSessionSwitch")
     expect(text).toContain("if (!this.panelOpen)")
     expect(text).toContain("this.showExistingLocal()")
+  })
+
+  it("createSplitTerminal uses parent terminal for grouping", () => {
+    const text = body("addTerminalToGroup")
+    expect(text).toContain("createSplitTerminal")
+    expect(text).toContain("parent: parent.handle")
+  })
+
+  it("tracks last-focused terminal in onActiveTerminalChanged", () => {
+    const cls = getClass()
+    const ctor = cls.getConstructors()[0]
+    expect(ctor).toBeTruthy()
+    const text = ctor!.getText()
+    expect(text).toContain("group.focused = idx")
   })
 })

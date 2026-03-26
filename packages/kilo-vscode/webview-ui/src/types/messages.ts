@@ -957,6 +957,19 @@ export interface AgentManagerLocalStatsMessage {
   stats: LocalGitStats
 }
 
+// Agent Manager: Terminal list for a session (extension → webview)
+export interface AgentManagerTerminalInfo {
+  name: string
+  index: number
+  active: boolean
+}
+
+export interface AgentManagerTerminalListMessage {
+  type: "agentManager.terminalList"
+  sessionId: string
+  terminals: AgentManagerTerminalInfo[]
+}
+
 // Set the model for a session (extension → webview, used during multi-version creation)
 export interface AgentManagerSetSessionModelMessage {
   type: "agentManager.setSessionModel"
@@ -1268,6 +1281,7 @@ export type ExtensionMessage =
   | AgentManagerApplyWorktreeDiffResultMessage
   | AgentManagerWorktreeStatsMessage
   | AgentManagerLocalStatsMessage
+  | AgentManagerTerminalListMessage
   // legacy-migration start
   | LegacyMigrationDataMessage
   | LegacyMigrationProgressMessage
@@ -1677,6 +1691,39 @@ export interface ShowExistingLocalTerminalRequest {
   type: "agentManager.showExistingLocalTerminal"
 }
 
+// Add a new terminal to a session's terminal group
+export interface AddTerminalRequest {
+  type: "agentManager.addTerminal"
+  sessionId: string
+  name?: string
+}
+
+// Add a new terminal to the local terminal group
+export interface AddLocalTerminalRequest {
+  type: "agentManager.addLocalTerminal"
+  name?: string
+}
+
+// Focus a specific terminal within a session's group
+export interface FocusTerminalRequest {
+  type: "agentManager.focusTerminal"
+  sessionId: string
+  index: number
+}
+
+// Close a specific terminal within a session's group
+export interface CloseTerminalRequest {
+  type: "agentManager.closeTerminal"
+  sessionId: string
+  index: number
+}
+
+// Request current terminal list for a session
+export interface RequestTerminalsMessage {
+  type: "agentManager.requestTerminals"
+  sessionId: string
+}
+
 // Open a file in the selected worktree for a specific session
 export interface AgentManagerOpenFileRequest {
   type: "agentManager.openFile"
@@ -1959,6 +2006,11 @@ export type WebviewMessage =
   | ShowLocalTerminalRequest
   | OpenWorktreeRequest
   | ShowExistingLocalTerminalRequest
+  | AddTerminalRequest
+  | AddLocalTerminalRequest
+  | FocusTerminalRequest
+  | CloseTerminalRequest
+  | RequestTerminalsMessage
   | AgentManagerOpenFileRequest
   | CreateMultiVersionRequest
   | SetTabOrderRequest

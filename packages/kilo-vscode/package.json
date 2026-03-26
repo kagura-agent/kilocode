@@ -159,6 +159,12 @@
         "icon": "$(terminal)"
       },
       {
+        "command": "kilo-code.new.agentManager.newTerminal",
+        "title": "Agent Manager: New Terminal",
+        "category": "Kilo Code",
+        "icon": "$(terminal)"
+      },
+      {
         "command": "kilo-code.new.agentManager.toggleDiff",
         "title": "Agent Manager: Toggle Diff Panel",
         "category": "Kilo Code",
@@ -493,7 +499,7 @@
         "when": "activeWebviewPanelId == 'kilo-code.new.AgentManagerPanel'"
       },
       {
-        "command": "kilo-code.new.agentManager.showShortcuts",
+        "command": "kilo-code.new.agentManager.newTerminal",
         "key": "ctrl+shift+/",
         "mac": "cmd+shift+/",
         "when": "activeWebviewPanelId == 'kilo-code.new.AgentManagerPanel'"

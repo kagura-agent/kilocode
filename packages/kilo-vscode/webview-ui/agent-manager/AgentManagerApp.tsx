@@ -30,6 +30,8 @@ import type {
   AgentManagerApplyWorktreeDiffConflict,
   AgentManagerWorktreeStatsMessage,
   AgentManagerLocalStatsMessage,
+  AgentManagerTerminalListMessage,
+  AgentManagerTerminalInfo,
   WorktreeFileDiff,
   WorktreeGitStats,
   LocalGitStats,
@@ -130,6 +132,7 @@ const defaultBindings: Record<string, string> = {
   previousTab: isMac ? "⌘⌥←" : "Ctrl+Alt+←",
   nextTab: isMac ? "⌘⌥→" : "Ctrl+Alt+→",
   showTerminal: isMac ? "⌘/" : "Ctrl+/",
+  newTerminal: isMac ? "⌘⇧/" : "Ctrl+Shift+/",
   toggleDiff: isMac ? "⌘D" : "Ctrl+D",
   showShortcuts: isMac ? "⌘⇧/" : "Ctrl+Shift+/",
   newTab: isMac ? "⌘T" : "Ctrl+T",
@@ -270,6 +273,7 @@ function buildShortcutCategories(
       title: t("agentManager.shortcuts.category.terminal"),
       shortcuts: [
         { label: t("agentManager.shortcuts.toggleTerminal"), binding: bindings.showTerminal ?? "" },
+        { label: "New Terminal", binding: bindings.newTerminal ?? "" },
         { label: t("agentManager.shortcuts.toggleDiff"), binding: bindings.toggleDiff ?? "" },
       ],
     },
@@ -352,6 +356,9 @@ const AgentManagerContent: Component = () => {
   const [applyTarget, setApplyTarget] = createSignal<string | undefined>()
   const [applySelectedFiles, setApplySelectedFiles] = createSignal<string[]>([])
   const [applySelectionTouched, setApplySelectionTouched] = createSignal(false)
+
+  // Per-session terminal list from the extension
+  const [terminalLists, setTerminalLists] = createSignal<Record<string, AgentManagerTerminalInfo[]>>({})
 
   // Pending local tab counter for generating unique IDs
   let pendingCounter = 0
@@ -1008,6 +1015,10 @@ const AgentManagerContent: Component = () => {
         const id = session.currentSessionID()
         if (id) vscode.postMessage({ type: "agentManager.showTerminal", sessionId: id })
         else if (selection() === LOCAL) vscode.postMessage({ type: "agentManager.showLocalTerminal" })
+      } else if (msg.action === "newTerminal") {
+        const id = session.currentSessionID()
+        if (id) vscode.postMessage({ type: "agentManager.addTerminal", sessionId: id })
+        else if (selection() === LOCAL) vscode.postMessage({ type: "agentManager.addLocalTerminal" })
       } else if (msg.action === "toggleDiff") {
         if (reviewActive()) {
           closeReviewTab()
@@ -1375,6 +1386,11 @@ const AgentManagerContent: Component = () => {
         const ev = msg as AgentManagerLocalStatsMessage
         setLocalStats(ev.stats)
         setRepoBranch(ev.stats.branch)
+      }
+
+      if (msg.type === "agentManager.terminalList") {
+        const ev = msg as AgentManagerTerminalListMessage
+        setTerminalLists((prev) => ({ ...prev, [ev.sessionId]: ev.terminals }))
       }
     })
 
@@ -2628,23 +2644,101 @@ const AgentManagerContent: Component = () => {
                     />
                   </Tooltip>
                 </Show>
-                <TooltipKeybind
-                  title={t("agentManager.tab.terminal")}
-                  keybind={kb().showTerminal ?? ""}
-                  placement="bottom"
-                >
-                  <IconButton
-                    icon="console"
-                    size="small"
-                    variant="ghost"
-                    label={t("agentManager.tab.openTerminal")}
-                    onClick={() => {
+                {/* Terminal split button: icon opens terminal, chevron opens dropdown */}
+                <div class="am-split-button">
+                  <TooltipKeybind
+                    title={t("agentManager.tab.terminal")}
+                    keybind={kb().showTerminal ?? ""}
+                    placement="bottom"
+                  >
+                    <IconButton
+                      icon="console"
+                      size="small"
+                      variant="ghost"
+                      label={t("agentManager.tab.openTerminal")}
+                      onClick={() => {
+                        const id = session.currentSessionID()
+                        if (id) vscode.postMessage({ type: "agentManager.showTerminal", sessionId: id })
+                        else if (selection() === LOCAL) vscode.postMessage({ type: "agentManager.showLocalTerminal" })
+                      }}
+                    />
+                  </TooltipKeybind>
+                  <DropdownMenu
+                    gutter={4}
+                    placement="bottom-end"
+                    onOpenChange={(open) => {
+                      if (!open) return
                       const id = session.currentSessionID()
-                      if (id) vscode.postMessage({ type: "agentManager.showTerminal", sessionId: id })
-                      else if (selection() === LOCAL) vscode.postMessage({ type: "agentManager.showLocalTerminal" })
+                      if (id) vscode.postMessage({ type: "agentManager.requestTerminals", sessionId: id })
                     }}
-                  />
-                </TooltipKeybind>
+                  >
+                    <DropdownMenu.Trigger class="am-split-arrow" aria-label="Terminal options">
+                      <Icon name="chevron-down" size="small" />
+                    </DropdownMenu.Trigger>
+                    <DropdownMenu.Portal>
+                      <DropdownMenu.Content class="am-split-menu">
+                        {(() => {
+                          const id = session.currentSessionID()
+                          const terminals = id ? (terminalLists()[id] ?? []) : []
+                          return (
+                            <>
+                              <Show when={terminals.length > 0}>
+                                <For each={terminals}>
+                                  {(term) => (
+                                    <DropdownMenu.Item
+                                      class={`am-terminal-item ${term.active ? "am-terminal-item-active" : ""}`}
+                                      onSelect={() => {
+                                        if (id)
+                                          vscode.postMessage({
+                                            type: "agentManager.focusTerminal",
+                                            sessionId: id,
+                                            index: term.index,
+                                          })
+                                      }}
+                                    >
+                                      <Icon name="console" size="small" />
+                                      <span class="am-terminal-item-name">{term.name}</span>
+                                      <button
+                                        class="am-terminal-item-close"
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          if (id)
+                                            vscode.postMessage({
+                                              type: "agentManager.closeTerminal",
+                                              sessionId: id,
+                                              index: term.index,
+                                            })
+                                        }}
+                                      >
+                                        <Icon name="close" size="small" />
+                                      </button>
+                                    </DropdownMenu.Item>
+                                  )}
+                                </For>
+                                <DropdownMenu.Separator />
+                              </Show>
+                              <DropdownMenu.Item
+                                onSelect={() => {
+                                  if (id) vscode.postMessage({ type: "agentManager.addTerminal", sessionId: id })
+                                  else if (selection() === LOCAL)
+                                    vscode.postMessage({ type: "agentManager.addLocalTerminal" })
+                                }}
+                              >
+                                <Icon name="plus" size="small" />
+                                <DropdownMenu.ItemLabel>New Terminal</DropdownMenu.ItemLabel>
+                                <span class="am-menu-shortcut">
+                                  {parseBindingTokens(kb().newTerminal ?? "").map((token) => (
+                                    <kbd class="am-menu-key">{token}</kbd>
+                                  ))}
+                                </span>
+                              </DropdownMenu.Item>
+                            </>
+                          )
+                        })()}
+                      </DropdownMenu.Content>
+                    </DropdownMenu.Portal>
+                  </DropdownMenu>
+                </div>
               </div>
             </div>
             <DragOverlay>

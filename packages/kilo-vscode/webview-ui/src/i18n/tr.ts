@@ -1078,6 +1078,10 @@ export const dict = {
   "settings.agentBehaviour.removeMcp.confirm":
     '"{{name}}" MCP sunucusu kaldırılsın mı? Bu, yapılandırmanızdan kaldırılacak.',
   "settings.agentBehaviour.removeMcp.button": "Kaldır",
+  "settings.agentBehaviour.mcpDetail.command": "Komut",
+  "settings.agentBehaviour.mcpDetail.args": "Argümanlar",
+  "settings.agentBehaviour.mcpDetail.env": "Ortam",
+  "settings.agentBehaviour.mcpDetail.disabled": "Bu sunucu devre dışı.",
   "settings.agentBehaviour.mcpEmpty":
     "Yapılandırılmış MCP sunucusu yok. MCP sunucuları eklemek için opencode yapılandırma dosyasını düzenleyin.",
   "settings.agentBehaviour.workflowsPlaceholder": "İş akışları çalışma alanınızdaki iş akışı dosyaları ile yönetilir.",

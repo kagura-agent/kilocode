@@ -1102,6 +1102,10 @@ export const dict = {
   "settings.agentBehaviour.instructionFiles": "Archivos de instrucciones adicionales",
   "settings.agentBehaviour.instructionFiles.description":
     "Rutas a archivos de instrucciones adicionales incluidos en el prompt del sistema",
+  "settings.agentBehaviour.mcpDetail.command": "Comando",
+  "settings.agentBehaviour.mcpDetail.args": "Argumentos",
+  "settings.agentBehaviour.mcpDetail.env": "Entorno",
+  "settings.agentBehaviour.mcpDetail.disabled": "Este servidor está deshabilitado.",
   "settings.agentBehaviour.mcpEmpty":
     "No hay servidores MCP configurados. Edite el archivo de configuración de opencode para añadir servidores MCP.",
   "settings.agentBehaviour.workflowsPlaceholder":

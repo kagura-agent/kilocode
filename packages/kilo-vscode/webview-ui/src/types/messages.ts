@@ -322,6 +322,8 @@ export type PermissionConfig = Partial<Record<string, PermissionRule>>
 export interface AgentConfig {
   model?: string | null
   prompt?: string
+  description?: string
+  mode?: "subagent" | "primary" | "all"
   temperature?: number
   top_p?: number
   steps?: number
@@ -628,7 +630,7 @@ export interface DeviceAuthCancelledMessage {
 
 export interface NavigateMessage {
   type: "navigate"
-  view: "newTask" | "marketplace" | "history" | "cloudHistory" | "profile" | "settings" | "migration" | "subAgentViewer" // legacy-migration: "migration"
+  view: "newTask" | "marketplace" | "history" | "profile" | "settings" | "migration" | "subAgentViewer" // legacy-migration: "migration"
   tab?: string
 }
 
@@ -1301,6 +1303,7 @@ export type ExtensionMessage =
   | ProviderActionErrorMessage
   | RecentsLoadedMessage
   | LanguageChangedMessage
+  | ContinueInWorktreeProgressMessage
 
 // ============================================
 // Messages FROM webview TO extension
@@ -1630,6 +1633,12 @@ export interface PromoteSessionRequest {
   sessionId: string
 }
 
+// Open an unassigned session locally (clear any worktree directory override)
+export interface OpenLocallyRequest {
+  type: "agentManager.openLocally"
+  sessionId: string
+}
+
 // Add a new session to an existing worktree
 export interface AddSessionToWorktreeRequest {
   type: "agentManager.addSessionToWorktree"
@@ -1939,6 +1948,29 @@ export interface RequestRecentsMessage {
   type: "requestRecents"
 }
 
+// Continue in Worktree: transfer sidebar session + git state to an isolated worktree
+export interface ContinueInWorktreeRequest {
+  type: "continueInWorktree"
+  sessionId: string
+}
+
+export type ContinueInWorktreeStatus =
+  | "capturing"
+  | "creating"
+  | "setup"
+  | "transferring"
+  | "forking"
+  | "done"
+  | "error"
+
+// Continue in Worktree: progress updates (extension → webview)
+export interface ContinueInWorktreeProgressMessage {
+  type: "continueInWorktreeProgress"
+  status: ContinueInWorktreeStatus
+  detail?: string
+  error?: string
+}
+
 export type WebviewMessage =
   | SendMessageRequest
   | AbortRequest
@@ -1994,6 +2026,7 @@ export type WebviewMessage =
   | DeleteWorktreeRequest
   | RemoveStaleWorktreeRequest
   | PromoteSessionRequest
+  | OpenLocallyRequest
   | AddSessionToWorktreeRequest
   | ForkSessionRequest
   | CloseSessionRequest
@@ -2055,6 +2088,7 @@ export type WebviewMessage =
   | SaveCustomProviderMessage
   | PersistRecentsRequest
   | RequestRecentsMessage
+  | ContinueInWorktreeRequest
 
 // ============================================
 // VS Code API type

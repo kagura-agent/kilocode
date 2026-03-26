@@ -37,6 +37,17 @@ No. Redeploy does **not** delete your files, git repos, or cron jobs. It stops t
 
 You can directly access the files in /root/.openclaw/ on the [KiloClaw Dashboard](https://app.kilo.ai/claw) using the file browser of the edit files dialog. This can be a useful way to examine or update the config files (especially `openclaw.json`) if you run into an issue. There may also be backups in the form of `openclaw.bak` files that you can manually restore from if needed.
 
+### Google OAuth token revoked
+
+If you see a message that your OAuth token for Google Drive, Gmail, or another Google Workspace service has been revoked — for example, because your Google account was temporarily suspended or reset by Google — you can fix it by reconnecting Google:
+
+1. Go to the **Settings** tab on your [KiloClaw dashboard](/docs/kiloclaw/dashboard)
+2. In the **Google Account** section, click **Disconnect** to remove the stale credentials
+3. Follow the [Google Workspace setup process](/docs/kiloclaw/development-tools/google#setup) again to reconnect and refresh the OAuth token
+4. **Redeploy** your KiloClaw instance from the dashboard so it picks up the new credentials
+
+After redeploying, your Google integrations (Gmail, Drive, Calendar, etc.) should work normally again.
+
 ### The gateway shows "Crashed"
 
 The OpenClaw process is automatically restarted when it crashes. Check the Gateway Process tab on your dashboard for the exit code and restart count. If it keeps crashing:

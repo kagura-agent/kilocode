@@ -53,6 +53,12 @@ export const KiloNotifications: Component = () => {
     return sel
   })
 
+  const modelName = createMemo(() => {
+    const sel = suggestedModel()
+    if (!sel) return undefined
+    return provider.findModel(sel)?.name
+  })
+
   const canSwitchModel = createMemo(() => {
     const suggestion = suggestedModel()
     if (!suggestion) return false
@@ -88,7 +94,7 @@ export const KiloNotifications: Component = () => {
           <div class="kilo-notifications-footer">
             <Show when={canSwitchModel()}>
               <button class="kilo-notifications-action-btn" onClick={handleTryModel}>
-                {language.t("notifications.action.tryModel")}
+                {language.t("notifications.action.tryModel", { model: modelName() })}
               </button>
             </Show>
             <Show when={current()?.action}>

@@ -4,7 +4,7 @@ import path from "path"
 import os from "os"
 import { Filesystem } from "../util/filesystem"
 
-const app = "kilo" // kilocode_change
+const app = process.env.KILO_DEV ? "kilo-dev" : "kilo" // kilocode_change
 
 const data = path.join(xdgData!, app)
 const cache = path.join(xdgCache!, app)

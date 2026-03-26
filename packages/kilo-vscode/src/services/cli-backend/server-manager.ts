@@ -2,6 +2,7 @@ import { type ChildProcess } from "child_process"
 import { spawn } from "../../util/process"
 import * as crypto from "crypto"
 import * as fs from "fs"
+import * as os from "os"
 import * as path from "path"
 import * as vscode from "vscode"
 import { t } from "./i18n"
@@ -63,6 +64,17 @@ export class ServerManager {
     const stat = fs.statSync(cliPath)
     console.log("[Kilo New] ServerManager: 📄 CLI isFile:", stat.isFile())
     console.log("[Kilo New] ServerManager: 📄 CLI mode (octal):", (stat.mode & 0o777).toString(8))
+
+    const app = process.env.KILO_DEV ? "kilo-dev" : "kilo"
+    const xdgData = process.env.XDG_DATA_HOME ?? path.join(os.homedir(), ".local", "share")
+    const xdgConfig = process.env.XDG_CONFIG_HOME ?? path.join(os.homedir(), ".config")
+    const xdgState = process.env.XDG_STATE_HOME ?? path.join(os.homedir(), ".local", "state")
+    const xdgCache = process.env.XDG_CACHE_HOME ?? path.join(os.homedir(), ".cache")
+    console.log("[Kilo New] ServerManager: 📂 CLI data dirs:")
+    console.log("[Kilo New] ServerManager:   - data:  ", path.join(xdgData, app))
+    console.log("[Kilo New] ServerManager:   - config:", path.join(xdgConfig, app))
+    console.log("[Kilo New] ServerManager:   - state: ", path.join(xdgState, app))
+    console.log("[Kilo New] ServerManager:   - cache: ", path.join(xdgCache, app))
 
     return new Promise((resolve, reject) => {
       console.log("[Kilo New] ServerManager: 🎬 Spawning CLI process:", cliPath, ["serve", "--port", "0"])

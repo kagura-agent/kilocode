@@ -13,6 +13,12 @@
  *   --insiders        Prefer VS Code Insiders over stable
  *   --wait            Block until the VS Code window is closed
  *   --clean           Wipe the user-data and extensions dirs before launching
+ *   --dev-data-dirs   Use dev-specific CLI data dirs (separate auth, sessions, config from your main install)
+ *                    Sets KILO_DEV=1 which makes the CLI use "kilo-dev" as the app name:
+ *                    e.g. ~/.local/share/kilo-dev/  (data: auth, sessions)
+ *                         ~/.config/kilo-dev/        (config)
+ *                         ~/.local/state/kilo-dev/   (state)
+ *                         ~/.cache/kilo-dev/          (cache)
  *
  * Environment:
  *   VSCODE_EXEC_PATH  Path to VS Code executable (same as --app-path)
@@ -84,6 +90,7 @@ const insiders = opts["insiders"] === true
 const explicit = opts["app-path"] as string | undefined
 const blocking = opts["wait"] === true
 const clean = opts["clean"] === true
+const devDataDirs = opts["dev-data-dirs"] === true
 
 // ---------------------------------------------------------------------------
 // VS Code executable detection
@@ -303,15 +310,18 @@ async function launch() {
     args.push("--wait")
   }
 
+  const env = devDataDirs ? { ...process.env, KILO_DEV: "1" } : process.env
+
   console.log(`[launch] Starting VS Code (${mode} mode)`)
   console.log(`[launch] Executable: ${app}`)
   console.log(`[launch] Workspace:  ${workspace}`)
   console.log(`[launch] State:      ${base}`)
+  if (devDataDirs) console.log(`[launch] Dev data:   using kilo-dev dirs (KILO_DEV=1)`)
 
   if (blocking) {
     const result = Bun.spawnSync([app, ...args], {
       cwd: workspace,
-      env: process.env,
+      env,
       stdio: ["ignore", "inherit", "inherit"],
     })
     console.log(`[launch] VS Code exited (code ${result.exitCode})`)
@@ -321,7 +331,7 @@ async function launch() {
   const child = spawn(app, args, {
     cwd: workspace,
     detached: !win,
-    env: process.env,
+    env,
     stdio: "ignore",
     ...(win ? { shell: true } : {}),
   })

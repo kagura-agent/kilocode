@@ -770,7 +770,8 @@
     "test:visual:update": "playwright test --update-snapshots",
     "snapshot:build": "bun script/dev-snapshot.ts build",
     "snapshot:install": "bun script/dev-snapshot.ts install",
-    "extension": "bun script/launch.ts"
+    "extension": "bun script/launch.ts",
+    "extension:dev-data-dirs": "bun script/launch.ts --dev-data-dirs"
   },
   "devDependencies": {
     "@playwright/test": "1.57.0",

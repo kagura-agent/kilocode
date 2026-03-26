@@ -16,13 +16,6 @@ If you're typing code in the editor and want AI to finish your line or block, ch
 ## Quick Setup
 
 {% tabs %}
-{% tab label="VSCode (Legacy)" %}
-
-Find the Kilo Code icon ({% kilo-code-icon /%}) in VS Code's Primary Side Bar. Click it to open the chat panel.
-
-**Lost the panel?** Go to View > Open View... and search for "Kilo Code"
-
-{% /tab %}
 {% tab label="VSCode" %}
 
 Click the Kilo Code icon ({% kilo-code-icon /%}) in VS Code's Primary Side Bar to open the sidebar chat. You can also pop it out into an editor tab for a larger workspace.
@@ -31,6 +24,13 @@ Click the Kilo Code icon ({% kilo-code-icon /%}) in VS Code's Primary Side Bar t
 {% tab label="CLI" %}
 
 Open your terminal and run `kilo` to launch the interactive TUI. You'll see a prompt where you can start typing requests immediately. The TUI is fully keyboard-driven — no mouse required.
+
+{% /tab %}
+{% tab label="VSCode (Legacy)" %}
+
+Find the Kilo Code icon ({% kilo-code-icon /%}) in VS Code's Primary Side Bar. Click it to open the chat panel.
+
+**Lost the panel?** Go to View > Open View... and search for "Kilo Code"
 
 {% /tab %}
 {% /tabs %}
@@ -63,30 +63,6 @@ Open your terminal and run `kilo` to launch the interactive TUI. You'll see a pr
 ## The Chat Interface
 
 {% tabs %}
-{% tab label="VSCode (Legacy)" %}
-
-{% image src="/docs/img/the-chat-interface/the-chat-interface-1.png" alt="Chat interface components labeled with callouts" width="800" caption="Everything you need is right here" /%}
-
-**Essential controls:**
-
-- **Chat history** - See your conversation and task history
-- **Input field** - Type your requests here (press Enter to send)
-- **Action buttons** - Approve or reject Kilo's proposed changes
-- **Plus button** - Start a new task session
-- **Mode selector** - Choose how Kilo should approach your task
-
-**Providing context with @-mentions:**
-
-Reference files and other context directly in your message using `@`:
-
-- `@file` - Reference a specific file
-- `@url` - Include content from a URL
-- `@problems` - Include current VS Code problems
-- `@terminal` - Include terminal output
-- `@git-changes` - Include uncommitted changes
-- `@commit` - Reference a specific commit
-
-{% /tab %}
 {% tab label="VSCode" %}
 
 **Essential controls:**
@@ -113,6 +89,30 @@ The extension automatically passes context from your editor, including your open
 **Providing context:**
 
 Type `@` in the TUI to get file autocomplete suggestions, or mention file paths directly in your message (e.g., "look at src/utils.ts") and the agent will read them. When using the non-interactive `kilo run` command, you can pass `-f path/to/file.ts` to explicitly include files (this flag is not available in the TUI). The agent also has `glob`, `grep`, and `read` tools to discover files on its own.
+
+{% /tab %}
+{% tab label="VSCode (Legacy)" %}
+
+{% image src="/docs/img/the-chat-interface/the-chat-interface-1.png" alt="Chat interface components labeled with callouts" width="800" caption="Everything you need is right here" /%}
+
+**Essential controls:**
+
+- **Chat history** - See your conversation and task history
+- **Input field** - Type your requests here (press Enter to send)
+- **Action buttons** - Approve or reject Kilo's proposed changes
+- **Plus button** - Start a new task session
+- **Mode selector** - Choose how Kilo should approach your task
+
+**Providing context with @-mentions:**
+
+Reference files and other context directly in your message using `@`:
+
+- `@file` - Reference a specific file
+- `@url` - Include content from a URL
+- `@problems` - Include current VS Code problems
+- `@terminal` - Include terminal output
+- `@git-changes` - Include uncommitted changes
+- `@commit` - Reference a specific commit
 
 {% /tab %}
 {% /tabs %}
@@ -149,6 +149,24 @@ Type `@` in the TUI to get file autocomplete suggestions, or mention file paths 
 When Kilo Code needs more information to complete a task, it uses the [`ask_followup_question`](/docs/automate/tools/ask-followup-question) tool. To make responding easier and faster, Kilo Code often provides suggested answers alongside the question.
 
 {% tabs %}
+{% tab label="VSCode" %}
+
+**How it works:**
+
+1. **Question Appears** - Kilo Code asks a question using the `question` tool
+2. **Options Displayed** - Selectable options are presented that you can choose from
+3. **Selection** - Pick an option or type a custom response
+
+{% /tab %}
+{% tab label="CLI" %}
+
+**How it works:**
+
+1. **Question Appears** - Kilo Code asks a question using the `question` tool
+2. **Options Displayed** - Selectable options are presented that you can choose from
+3. **Selection** - Pick an option or type a custom response
+
+{% /tab %}
 {% tab label="VSCode (Legacy)" %}
 
 {% image src="/docs/img/suggested-responses/suggested-responses.png" alt="Example of Kilo Code asking a question with suggested response buttons below it" width="800" caption="Suggested responses appear as clickable buttons below questions" /%}
@@ -174,15 +192,6 @@ You have two options for using suggested responses:
    - **Result**: The text of the suggestion is copied into the chat input box. You can then modify the text as needed before pressing Enter to send your customized response. This is useful when a suggestion is close but needs minor adjustments.
 
 {% /tab %}
-{% tab label="VSCode & CLI" %}
-
-**How it works:**
-
-1. **Question Appears** - Kilo Code asks a question using the `question` tool
-2. **Options Displayed** - Selectable options are presented that you can choose from
-3. **Selection** - Pick an option or type a custom response
-
-{% /tab %}
 {% /tabs %}
 
 **Benefits:**
@@ -196,19 +205,6 @@ This feature streamlines the interaction when Kilo Code requires clarification, 
 ## Tips for Better Workflow
 
 {% tabs %}
-{% tab label="VSCode (Legacy)" %}
-
-{% callout type="tip" %}
-**Move Kilo Code to the Secondary Side Bar** for a better layout. Right-click on the Kilo Code icon in the Activity Bar and select **Move To → Secondary Side Bar**. This lets you see the Explorer, Search, Source Control, etc. alongside Kilo Code.
-
-{% image src="/docs/img/move-to-secondary.png" alt="Move to Secondary Side Bar" width="600" caption="Move Kilo Code to the Secondary Side Bar for better workspace organization" /%}
-{% /callout %}
-
-{% callout type="tip" %}
-**Drag files directly into chat.** Once you have Kilo Code in a separate sidebar from the file explorer, you can drag files from the explorer into the chat window (even multiple at once). Just hold down the Shift key after you start dragging the files.
-{% /callout %}
-
-{% /tab %}
 {% tab label="VSCode" %}
 
 {% callout type="tip" %}
@@ -232,6 +228,19 @@ This feature streamlines the interaction when Kilo Code requires clarification, 
 
 {% callout type="tip" %}
 **The TUI is keyboard-driven.** Navigate, approve changes, and switch agents entirely from the keyboard — no mouse needed.
+{% /callout %}
+
+{% /tab %}
+{% tab label="VSCode (Legacy)" %}
+
+{% callout type="tip" %}
+**Move Kilo Code to the Secondary Side Bar** for a better layout. Right-click on the Kilo Code icon in the Activity Bar and select **Move To → Secondary Side Bar**. This lets you see the Explorer, Search, Source Control, etc. alongside Kilo Code.
+
+{% image src="/docs/img/move-to-secondary.png" alt="Move to Secondary Side Bar" width="600" caption="Move Kilo Code to the Secondary Side Bar for better workspace organization" /%}
+{% /callout %}
+
+{% callout type="tip" %}
+**Drag files directly into chat.** Once you have Kilo Code in a separate sidebar from the file explorer, you can drag files from the explorer into the chat window (even multiple at once). Just hold down the Shift key after you start dragging the files.
 {% /callout %}
 
 {% /tab %}

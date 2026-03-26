@@ -295,7 +295,7 @@ export class KiloConnectionService {
     this.stopHealthPoll()
     this.sseClient?.dispose()
 
-    const server = await this.serverManager.getServer()
+    const server = await this.serverManager.getServer(workspaceDir)
     this.info = { port: server.port }
 
     const config: ServerConfig = {

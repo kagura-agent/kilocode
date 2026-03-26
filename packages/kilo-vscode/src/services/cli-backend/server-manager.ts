@@ -10,48 +10,127 @@ import { parseServerPort } from "./server-utils"
 export interface ServerInstance {
   port: number
   password: string
-  process: ChildProcess
+  pid: number
+  /** null when reconnecting to a server from a previous session. */
+  process: ChildProcess | null
 }
 
 const STARTUP_TIMEOUT_SECONDS = 30
+const KILO_DIR = ".kilo"
+const STATE_FILE = "server.json"
+const HEALTH_TIMEOUT_MS = 3000
 
 export class ServerManager {
   private instance: ServerInstance | null = null
   private startupPromise: Promise<ServerInstance> | null = null
+  private workdir: string | null = null
 
   constructor(private readonly context: vscode.ExtensionContext) {}
 
   /**
-   * Get or start the server instance
+   * Get or start the server instance.
+   * On first call after a restart, attempts to reconnect to a server that
+   * survived the previous session (via `.kilo/server.json`) before spawning
+   * a fresh process.
    */
-  async getServer(): Promise<ServerInstance> {
-    console.log("[Kilo New] ServerManager: 🔍 getServer called")
+  async getServer(workspaceDir: string): Promise<ServerInstance> {
+    console.log("[Kilo New] ServerManager: getServer called")
+    this.workdir = workspaceDir
+
+    // For reconnected servers (no ChildProcess exit handler), re-check liveness.
+    if (this.instance && !this.instance.process && !ServerManager.isProcessAlive(this.instance.pid)) {
+      console.log("[Kilo New] ServerManager: Reconnected server PID", this.instance.pid, "died, clearing")
+      this.instance = null
+      this.deleteCurrentState()
+    }
+
     if (this.instance) {
-      console.log("[Kilo New] ServerManager: ♻️ Returning existing instance:", { port: this.instance.port })
+      console.log("[Kilo New] ServerManager: Returning existing instance:", { port: this.instance.port })
       return this.instance
     }
 
     if (this.startupPromise) {
-      console.log("[Kilo New] ServerManager: ⏳ Startup already in progress, waiting...")
+      console.log("[Kilo New] ServerManager: Startup already in progress, waiting...")
       return this.startupPromise
     }
 
-    console.log("[Kilo New] ServerManager: 🚀 Starting new server instance...")
-    this.startupPromise = this.startServer()
+    console.log("[Kilo New] ServerManager: Resolving server instance...")
+    this.startupPromise = this.resolveServer(workspaceDir)
     try {
       this.instance = await this.startupPromise
-      console.log("[Kilo New] ServerManager: ✅ Server started successfully:", { port: this.instance.port })
+      console.log("[Kilo New] ServerManager: Server ready:", { port: this.instance.port, pid: this.instance.pid })
       return this.instance
     } finally {
       this.startupPromise = null
     }
   }
 
-  private async startServer(): Promise<ServerInstance> {
+  /**
+   * Try reconnecting to a surviving server, fall back to spawning a fresh one.
+   * Wrapped in a single async path so `startupPromise` guards against concurrent callers.
+   */
+  private async resolveServer(workspaceDir: string): Promise<ServerInstance> {
+    const reconnected = await this.tryReconnect(workspaceDir)
+    if (reconnected) return reconnected
+    return this.startServer(workspaceDir)
+  }
+
+  /**
+   * Attempt to reconnect to a `kilo serve` process from a previous VS Code
+   * session. Reads `.kilo/server.json`, checks whether the PID is alive, and
+   * hits the health endpoint. Returns a ServerInstance on success, or null if
+   * the old server is gone/unreachable.
+   */
+  private async tryReconnect(workspaceDir: string): Promise<ServerInstance | null> {
+    const file = ServerManager.statePath(workspaceDir)
+    let raw: string
+    try {
+      raw = fs.readFileSync(file, "utf-8")
+    } catch (err) {
+      console.log("[Kilo New] ServerManager: No server.json found, starting fresh:", err)
+      return null
+    }
+
+    let state: { port: number; password: string; pid: number }
+    try {
+      state = JSON.parse(raw)
+    } catch (err) {
+      console.warn("[Kilo New] ServerManager: Corrupt server.json, ignoring:", err)
+      ServerManager.deleteStateFile(file)
+      return null
+    }
+
+    if (!state.port || !state.password || !state.pid) {
+      console.warn("[Kilo New] ServerManager: Incomplete server.json, ignoring")
+      ServerManager.deleteStateFile(file)
+      return null
+    }
+
+    // Is the old process still alive?
+    if (!ServerManager.isProcessAlive(state.pid)) {
+      console.log("[Kilo New] ServerManager: Previous server PID", state.pid, "is no longer alive")
+      ServerManager.deleteStateFile(file)
+      return null
+    }
+
+    // Process is alive — verify it's actually our kilo server by hitting health.
+    // If health fails, the PID may have been recycled by the OS — do NOT kill it.
+    const healthy = await ServerManager.checkHealth(state.port, state.password)
+    if (!healthy) {
+      console.log("[Kilo New] ServerManager: Previous server failed health check, discarding stale state")
+      ServerManager.deleteStateFile(file)
+      return null
+    }
+
+    console.log("[Kilo New] ServerManager: Previous server is healthy, reusing PID", state.pid, "on port", state.port)
+    return { port: state.port, password: state.password, pid: state.pid, process: null }
+  }
+
+  private async startServer(workspaceDir: string): Promise<ServerInstance> {
     const password = crypto.randomBytes(32).toString("hex")
     const cliPath = this.getCliPath()
-    console.log("[Kilo New] ServerManager: 📍 CLI path:", cliPath)
-    console.log("[Kilo New] ServerManager: 🔐 Generated password (length):", password.length)
+    console.log("[Kilo New] ServerManager: CLI path:", cliPath)
+    console.log("[Kilo New] ServerManager: Generated password (length):", password.length)
 
     // Verify the CLI binary exists
     if (!fs.existsSync(cliPath)) {
@@ -61,11 +140,11 @@ export class ServerManager {
     }
 
     const stat = fs.statSync(cliPath)
-    console.log("[Kilo New] ServerManager: 📄 CLI isFile:", stat.isFile())
-    console.log("[Kilo New] ServerManager: 📄 CLI mode (octal):", (stat.mode & 0o777).toString(8))
+    console.log("[Kilo New] ServerManager: CLI isFile:", stat.isFile())
+    console.log("[Kilo New] ServerManager: CLI mode (octal):", (stat.mode & 0o777).toString(8))
 
     return new Promise((resolve, reject) => {
-      console.log("[Kilo New] ServerManager: 🎬 Spawning CLI process:", cliPath, ["serve", "--port", "0"])
+      console.log("[Kilo New] ServerManager: Spawning CLI process:", cliPath, ["serve", "--port", "0"])
       const serverProcess = spawn(cliPath, ["serve", "--port", "0"], {
         env: {
           ...process.env,
@@ -84,40 +163,43 @@ export class ServerManager {
         stdio: ["ignore", "pipe", "pipe"],
         detached: true,
       })
-      console.log("[Kilo New] ServerManager: 📦 Process spawned with PID:", serverProcess.pid)
+      console.log("[Kilo New] ServerManager: Process spawned with PID:", serverProcess.pid)
 
       let resolved = false
       const stderrLines: string[] = []
 
       serverProcess.stdout?.on("data", (data: Buffer) => {
         const output = data.toString()
-        console.log("[Kilo New] ServerManager: 📥 CLI Server stdout:", output)
+        console.log("[Kilo New] ServerManager: CLI Server stdout:", output)
 
         const port = parseServerPort(output)
         if (port !== null && !resolved) {
           resolved = true
-          console.log("[Kilo New] ServerManager: 🎯 Port detected:", port)
-          resolve({ port, password, process: serverProcess })
+          console.log("[Kilo New] ServerManager: Port detected:", port)
+          const pid = serverProcess.pid ?? 0
+          this.writeState(workspaceDir, { port, password, pid })
+          resolve({ port, password, pid, process: serverProcess })
         }
       })
 
       serverProcess.stderr?.on("data", (data: Buffer) => {
         const errorOutput = data.toString()
-        console.error("[Kilo New] ServerManager: ⚠️ CLI Server stderr:", errorOutput)
+        console.error("[Kilo New] ServerManager: CLI Server stderr:", errorOutput)
         stderrLines.push(errorOutput)
       })
 
       serverProcess.on("error", (error) => {
-        console.error("[Kilo New] ServerManager: ❌ Process error:", error)
+        console.error("[Kilo New] ServerManager: Process error:", error)
         if (!resolved) {
           reject(error)
         }
       })
 
       serverProcess.on("exit", (code) => {
-        console.log("[Kilo New] ServerManager: 🛑 Process exited with code:", code)
+        console.log("[Kilo New] ServerManager: Process exited with code:", code)
         if (this.instance?.process === serverProcess) {
           this.instance = null
+          this.deleteCurrentState()
         }
         if (!resolved) {
           const { userMessage, userDetails } = toErrorMessage(
@@ -131,7 +213,7 @@ export class ServerManager {
 
       setTimeout(() => {
         if (!resolved) {
-          console.error(`[Kilo New] ServerManager: ⏰ Server startup timeout (${STARTUP_TIMEOUT_SECONDS}s)`)
+          console.error(`[Kilo New] ServerManager: Server startup timeout (${STARTUP_TIMEOUT_SECONDS}s)`)
           ServerManager.killProcess(serverProcess)
           const { userMessage, userDetails } = toErrorMessage(
             t("server.startupTimeout", { seconds: STARTUP_TIMEOUT_SECONDS }),
@@ -148,8 +230,68 @@ export class ServerManager {
     // Always use the bundled binary from the extension directory
     const binName = process.platform === "win32" ? "kilo.exe" : "kilo"
     const cliPath = path.join(this.context.extensionPath, "bin", binName)
-    console.log("[Kilo New] ServerManager: 📦 Using CLI path:", cliPath)
+    console.log("[Kilo New] ServerManager: Using CLI path:", cliPath)
     return cliPath
+  }
+
+  // ── State persistence ────────────────────────────────────────────────
+
+  private static statePath(workspaceDir: string): string {
+    return path.join(workspaceDir, KILO_DIR, STATE_FILE)
+  }
+
+  private writeState(workspaceDir: string, state: { port: number; password: string; pid: number }): void {
+    const dir = path.join(workspaceDir, KILO_DIR)
+    try {
+      fs.mkdirSync(dir, { recursive: true })
+      fs.writeFileSync(ServerManager.statePath(workspaceDir), JSON.stringify(state, null, 2))
+    } catch (err) {
+      console.warn("[Kilo New] ServerManager: Failed to write server.json:", err)
+    }
+  }
+
+  private deleteCurrentState(): void {
+    if (!this.workdir) return
+    ServerManager.deleteStateFile(ServerManager.statePath(this.workdir))
+  }
+
+  private static deleteStateFile(file: string): void {
+    try {
+      fs.unlinkSync(file)
+    } catch (err) {
+      console.log("[Kilo New] ServerManager: Could not delete server.json:", err)
+    }
+  }
+
+  // ── Process helpers ──────────────────────────────────────────────────
+
+  /** Check whether a PID is still alive (works cross-platform). */
+  private static isProcessAlive(pid: number): boolean {
+    try {
+      process.kill(pid, 0)
+      return true
+    } catch (err) {
+      console.log("[Kilo New] ServerManager: PID", pid, "is not alive:", err)
+      return false
+    }
+  }
+
+  /** Hit GET /global/health to verify the server is responsive and authentic. */
+  private static async checkHealth(port: number, password: string): Promise<boolean> {
+    try {
+      const controller = new AbortController()
+      const timer = setTimeout(() => controller.abort(), HEALTH_TIMEOUT_MS)
+      const auth = `Basic ${Buffer.from(`kilo:${password}`).toString("base64")}`
+      const res = await fetch(`http://127.0.0.1:${port}/global/health`, {
+        headers: { Authorization: auth },
+        signal: controller.signal,
+      })
+      clearTimeout(timer)
+      return res.ok
+    } catch (err) {
+      console.log("[Kilo New] ServerManager: Health check failed:", err)
+      return false
+    }
   }
 
   /**
@@ -162,15 +304,20 @@ export class ServerManager {
     if (proc.pid === undefined) {
       return
     }
+    ServerManager.killPid(proc.pid, signal)
+  }
+
+  /** Send a signal to a PID (and its process group on Unix). */
+  private static killPid(pid: number, signal: NodeJS.Signals = "SIGTERM"): void {
     try {
       if (process.platform !== "win32") {
         // Negative PID targets the entire process group
-        process.kill(-proc.pid, signal)
+        process.kill(-pid, signal)
       } else {
-        proc.kill(signal)
+        process.kill(pid, signal)
       }
-    } catch {
-      // Process already gone — ignore
+    } catch (err) {
+      console.log("[Kilo New] ServerManager: Process", pid, "already gone:", err)
     }
   }
 
@@ -178,24 +325,33 @@ export class ServerManager {
     if (!this.instance) {
       return
     }
-    const proc = this.instance.process
+
+    const { process: proc, pid } = this.instance
     this.instance = null
+    this.deleteCurrentState()
 
-    console.log("[Kilo New] ServerManager: 🔴 Disposing — sending SIGTERM to process group, PID:", proc.pid)
-    ServerManager.killProcess(proc, "SIGTERM")
+    if (proc) {
+      // We own the ChildProcess handle — use it for clean shutdown.
+      console.log("[Kilo New] ServerManager: Disposing — sending SIGTERM to process group, PID:", pid)
+      ServerManager.killProcess(proc, "SIGTERM")
 
-    // SIGKILL fallback after 5s: mirrors the desktop app going straight to
-    // start_kill(). Ensures the process tree dies even if SIGTERM is ignored
-    // or Instance.disposeAll() hangs past the serve.ts shutdown timeout.
-    const timer = setTimeout(() => {
-      if (proc.exitCode === null) {
-        console.warn("[Kilo New] ServerManager: ⚠️ Process did not exit after SIGTERM, sending SIGKILL")
-        ServerManager.killProcess(proc, "SIGKILL")
-      }
-    }, 5000)
-    // unref so this timer doesn't prevent the extension host from exiting
-    timer.unref()
-    proc.on("exit", () => clearTimeout(timer))
+      // SIGKILL fallback after 5s: mirrors the desktop app going straight to
+      // start_kill(). Ensures the process tree dies even if SIGTERM is ignored
+      // or Instance.disposeAll() hangs past the serve.ts shutdown timeout.
+      const timer = setTimeout(() => {
+        if (proc.exitCode === null) {
+          console.warn("[Kilo New] ServerManager: Process did not exit after SIGTERM, sending SIGKILL")
+          ServerManager.killProcess(proc, "SIGKILL")
+        }
+      }, 5000)
+      // unref so this timer doesn't prevent the extension host from exiting
+      timer.unref()
+      proc.on("exit", () => clearTimeout(timer))
+    } else {
+      // Reconnected server — no ChildProcess handle, kill by PID directly.
+      console.log("[Kilo New] ServerManager: Disposing reconnected server, PID:", pid)
+      ServerManager.killPid(pid, "SIGTERM")
+    }
   }
 }
 

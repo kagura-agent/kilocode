@@ -104,7 +104,7 @@ export class AgentManagerProvider implements Disposable {
   private capture(event: string, props?: Record<string, unknown>) {
     this.host.capture(event, {
       source: PLATFORM,
-      ...snapshot(this.getStateManager(), this.panel?.sessions.getBusySessionCount()),
+      ...snapshot(this.getStateManager(), this.panel?.sessions.getActiveSessionCount()),
       ...(props ?? {}),
     })
   }

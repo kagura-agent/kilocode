@@ -1829,6 +1829,15 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
     return getBusySessionCount(this.sessionStatusMap)
   }
 
+  /** Returns the number of sessions in "busy" or "retry" state — matches the webview's activeSessionCount. */
+  public getActiveSessionCount(): number {
+    let count = 0
+    for (const status of this.sessionStatusMap.values()) {
+      if (status === "busy" || status === "retry") count++
+    }
+    return count
+  }
+
   /**
    * Handle config update request from the webview.
    * Applies a partial config update via the global config endpoint, then pushes

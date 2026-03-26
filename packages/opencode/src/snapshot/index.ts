@@ -9,6 +9,7 @@ import z from "zod"
 import { Config } from "../config/config"
 import { Instance } from "../project/instance"
 import { Scheduler } from "../scheduler"
+import * as KiloSnapshot from "../kilocode/snapshot" // kilocode_change
 
 export namespace Snapshot {
   const log = Log.create({ service: "snapshot" })
@@ -55,11 +56,7 @@ export namespace Snapshot {
     if (Instance.project.vcs !== "git" || Flag.KILO_CLIENT === "acp") return
     const cfg = await Config.get()
     if (cfg.snapshot === false) return
-    const git = gitdir()
-    // kilocode_change start
-    await ensureGit(git)
-    await syncAlternates(git)
-    // kilocode_change end
+    const git = await KiloSnapshot.prepare() // kilocode_change
     await add(git)
     const hash = await $`git --git-dir ${git} --work-tree ${Instance.worktree} write-tree`
       .quiet()
@@ -77,7 +74,7 @@ export namespace Snapshot {
   export type Patch = z.infer<typeof Patch>
 
   export async function patch(hash: string): Promise<Patch> {
-    const git = await gitFor() // kilocode_change
+    const git = await KiloSnapshot.prepare() // kilocode_change
     await add(git)
     const result =
       await $`git -c core.autocrlf=false -c core.longpaths=true -c core.symlinks=true -c core.quotepath=false --git-dir ${git} --work-tree ${Instance.worktree} diff --no-ext-diff --name-only ${hash} -- .`
@@ -105,7 +102,7 @@ export namespace Snapshot {
 
   export async function restore(snapshot: string) {
     log.info("restore", { commit: snapshot })
-    const git = await gitFor() // kilocode_change
+    const git = await KiloSnapshot.prepare() // kilocode_change
     const result =
       await $`git -c core.longpaths=true -c core.symlinks=true --git-dir ${git} --work-tree ${Instance.worktree} read-tree ${snapshot} && git -c core.longpaths=true -c core.symlinks=true --git-dir ${git} --work-tree ${Instance.worktree} checkout-index -a -f`
         .quiet()
@@ -125,7 +122,7 @@ export namespace Snapshot {
   export async function revert(patches: Patch[]) {
     const files = new Set<string>()
     for (const item of patches) {
-      const git = await gitFor() // kilocode_change
+      const git = await KiloSnapshot.prepare() // kilocode_change
       for (const file of item.files) {
         if (files.has(file)) continue
         log.info("reverting", { file, hash: item.hash })
@@ -156,7 +153,7 @@ export namespace Snapshot {
   }
 
   export async function diff(hash: string) {
-    const git = await gitFor() // kilocode_change
+    const git = await KiloSnapshot.prepare() // kilocode_change
     await add(git)
     const result =
       await $`git -c core.autocrlf=false -c core.longpaths=true -c core.symlinks=true -c core.quotepath=false --git-dir ${git} --work-tree ${Instance.worktree} diff --no-ext-diff ${hash} -- .`
@@ -191,7 +188,7 @@ export namespace Snapshot {
     })
   export type FileDiff = z.infer<typeof FileDiff>
   export async function diffFull(from: string, to: string): Promise<FileDiff[]> {
-    const git = await gitFor() // kilocode_change
+    const git = await KiloSnapshot.prepare() // kilocode_change
     const result: FileDiff[] = []
     const status = new Map<string, "added" | "deleted" | "modified">()
 
@@ -253,35 +250,9 @@ export namespace Snapshot {
     return result
   }
 
-  // kilocode_change start
   function gitdir() {
-    const project = Instance.project
-    const workhash = Bun.hash(Instance.worktree).toString(36)
-    return path.join(Global.Path.data, "snapshot", project.id, workhash)
+    return KiloSnapshot.gitdir() // kilocode_change
   }
-
-  function legacygitdir() {
-    const project = Instance.project
-    return path.join(Global.Path.data, "snapshot", project.id)
-  }
-
-  async function ensureGit(git: string) {
-    if (!(await fs.mkdir(git, { recursive: true }))) return
-    await $`git init`
-      .env({
-        ...process.env,
-        GIT_DIR: git,
-        GIT_WORK_TREE: Instance.worktree,
-      })
-      .quiet()
-      .nothrow()
-    await $`git --git-dir ${git} config core.autocrlf false`.quiet().nothrow()
-    await $`git --git-dir ${git} config core.longpaths true`.quiet().nothrow()
-    await $`git --git-dir ${git} config core.symlinks true`.quiet().nothrow()
-    await $`git --git-dir ${git} config core.fsmonitor false`.quiet().nothrow()
-    log.info("initialized")
-  }
-  // kilocode_change end
 
   async function add(git: string) {
     await syncExclude(git)
@@ -303,28 +274,6 @@ export namespace Snapshot {
 
     await Filesystem.write(target, text)
   }
-
-  // kilocode_change start
-  async function syncAlternates(git: string) {
-    const legacy = legacygitdir()
-    if (legacy === git) return
-    const objects = path.join(legacy, "objects")
-    const exists = await fs
-      .stat(objects)
-      .then(() => true)
-      .catch(() => false)
-    const target = path.join(git, "objects", "info", "alternates")
-    await fs.mkdir(path.join(git, "objects", "info"), { recursive: true })
-    await Filesystem.write(target, exists ? objects + "\n" : "")
-  }
-
-  async function gitFor() {
-    const git = gitdir()
-    await ensureGit(git)
-    await syncAlternates(git)
-    return git
-  }
-  // kilocode_change end
 
   async function excludes() {
     const file = await $`git rev-parse --path-format=absolute --git-path info/exclude`

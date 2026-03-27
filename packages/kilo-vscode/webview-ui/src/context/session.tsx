@@ -352,6 +352,12 @@ export const SessionProvider: ParentComponent = (props) => {
       // Writing globally here would cause every other session (that hasn't
       // set its own override) to inherit this session's model.
       setStore("sessionOverrides", sid, selection)
+      // Cancel in-progress retry so the new model takes effect immediately.
+      // Without this, the backoff loop continues with the stale model and
+      // the user has no way to interrupt it from the chat UI.
+      if (statusMap[sid]?.type === "retry") {
+        vscode.postMessage({ type: "abort", sessionID: sid })
+      }
     } else {
       // No active session (sidebar) — write globally
       setUserSetAgents((prev) => ({ ...prev, [agentName]: true }))

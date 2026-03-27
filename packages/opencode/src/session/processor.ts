@@ -402,6 +402,13 @@ export namespace SessionProcessor {
                   next: Date.now() + delay,
                 })
                 await SessionRetry.sleep(delay, input.abort).catch(() => {})
+                // kilocode_change start — exit retry loop when aborted
+                // (e.g. user switched model during rate-limit backoff)
+                if (input.abort.aborted) {
+                  SessionStatus.set(input.sessionID, { type: "idle" })
+                  break
+                }
+                // kilocode_change end
                 continue
               }
               input.assistantMessage.error = error

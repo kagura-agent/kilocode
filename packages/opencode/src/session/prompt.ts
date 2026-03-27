@@ -324,11 +324,13 @@ export namespace SessionPrompt {
     // on the user message and will be retrieved from lastUser below
     let structuredOutput: unknown | undefined
 
-    // kilocode_change — cache environment details per turn so the last user
-    // message stays byte-identical across tool-loop steps (prompt caching).
-    // Keyed by user message ID so it recomputes when a new user message arrives.
-    let envBlock: string | undefined
-    let envUser: string | undefined
+    // kilocode_change — cache environment details per user message so that
+    // older user messages keep their envBlock across turns, preserving the
+    // byte-identical conversation prefix for Anthropic prompt caching.
+    // Without this, the envBlock would only be on the *last* user message,
+    // causing earlier user messages to lose theirs on new turns and breaking
+    // the prefix match (everything after that point shifts).
+    const envCache = new Map<string, string>()
 
     let step = 0
     const session = await Session.get(sessionID)
@@ -701,27 +703,32 @@ export namespace SessionPrompt {
 
       await Plugin.trigger("experimental.chat.messages.transform", {}, { messages: msgs })
 
-      // kilocode_change start — ephemerally inject dynamic editor context into last user message
-      if (envUser !== lastUser.id) {
-        envBlock = environmentDetails(lastUser.editorContext)
-        envUser = lastUser.id
+      // kilocode_change start — ephemerally inject dynamic editor context into user messages.
+      // Each user message's envBlock is computed once (when it becomes the last user message)
+      // and preserved in subsequent turns so the conversation prefix stays byte-identical
+      // for Anthropic prompt caching. Previously, only the *last* user message received the
+      // envBlock, causing earlier user messages to lose theirs on new turns and invalidating
+      // the cached prefix at that position.
+      if (!envCache.has(lastUser.id)) {
+        envCache.set(lastUser.id, environmentDetails(lastUser.editorContext))
       }
-      if (envBlock) {
-        const idx = msgs.findLastIndex((m) => m.info.role === "user")
-        if (idx !== -1)
-          msgs[idx] = {
-            ...msgs[idx],
-            parts: [
-              ...msgs[idx].parts,
-              {
-                id: Identifier.ascending("part"),
-                sessionID,
-                messageID: msgs[idx].info.id,
-                type: "text",
-                text: envBlock,
-              } satisfies MessageV2.TextPart,
-            ],
-          }
+      for (let i = 0; i < msgs.length; i++) {
+        if (msgs[i].info.role !== "user") continue
+        const env = envCache.get(msgs[i].info.id)
+        if (!env) continue
+        msgs[i] = {
+          ...msgs[i],
+          parts: [
+            ...msgs[i].parts,
+            {
+              id: Identifier.ascending("part"),
+              sessionID,
+              messageID: msgs[i].info.id,
+              type: "text",
+              text: env,
+            } satisfies MessageV2.TextPart,
+          ],
+        }
       }
       // kilocode_change end
 

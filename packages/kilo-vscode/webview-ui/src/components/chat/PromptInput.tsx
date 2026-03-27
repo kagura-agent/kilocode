@@ -208,7 +208,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
   const onNewTaskRequest = () => {
     const prompt = text().trim()
     // Pre-populate the draft for the new (empty) session so the effect restores it
-    if (prompt) drafts.set("__new__", prompt)
+    if (prompt) drafts.set(worktree?.pendingId() ?? "__new__", prompt)
     session.clearCurrentSession()
   }
   window.addEventListener("newTaskRequest", onNewTaskRequest)
@@ -286,7 +286,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
       const failed = message as import("../../types/messages").SendMessageFailedMessage
       // Only restore draft if the failure is for the current session and the
       // input is empty (user hasn't started typing something new).
-      const target = failed.sessionID ?? "__new__"
+      const target = failed.sessionID ?? worktree?.pendingId() ?? "__new__"
       if (target === sessionKey() && !text().trim() && imageAttach.images().length === 0) {
         if (failed.text) {
           setText(failed.text)

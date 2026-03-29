@@ -5042,6 +5042,15 @@
                                 "isFree": {
                                   "type": "boolean"
                                 },
+                                "ai_sdk_provider": {
+                                  "type": "string",
+                                  "enum": [
+                                    "anthropic",
+                                    "openai",
+                                    "openai-compatible",
+                                    "openrouter"
+                                  ]
+                                },
                                 "experimental": {
                                   "type": "boolean"
                                 },
@@ -5473,7 +5482,10 @@
                       "type": "boolean"
                     }
                   },
-                  "required": ["enabled", "connected"]
+                  "required": [
+                    "enabled",
+                    "connected"
+                  ]
                 }
               }
             }
@@ -5523,7 +5535,10 @@
                       "type": "boolean"
                     }
                   },
-                  "required": ["enabled", "connected"]
+                  "required": [
+                    "enabled",
+                    "connected"
+                  ]
                 }
               }
             }
@@ -5573,7 +5588,10 @@
                       "type": "boolean"
                     }
                   },
-                  "required": ["enabled", "connected"]
+                  "required": [
+                    "enabled",
+                    "connected"
+                  ]
                 }
               }
             }
@@ -5749,6 +5767,502 @@
           {
             "lang": "js",
             "source": "import { createKiloClient } from \"@kilocode/sdk\n\nconst client = createKiloClient()\nawait client.enhancePrompt.enhance({\n  ...\n})"
+          }
+        ]
+      }
+    },
+    "/kilocode/session-import/project": {
+      "post": {
+        "operationId": "kilocode.sessionImport.project",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "directory",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workspace",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "summary": "Insert project for session import",
+        "description": "Insert or update a project row used by legacy session import.",
+        "responses": {
+          "200": {
+            "description": "Project import result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean"
+                    },
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "ok",
+                    "id"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "worktree": {
+                    "type": "string"
+                  },
+                  "vcs": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "iconUrl": {
+                    "type": "string"
+                  },
+                  "iconColor": {
+                    "type": "string"
+                  },
+                  "timeCreated": {
+                    "type": "number"
+                  },
+                  "timeUpdated": {
+                    "type": "number"
+                  },
+                  "timeInitialized": {
+                    "type": "number"
+                  },
+                  "sandboxes": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "commands": {
+                    "type": "object",
+                    "properties": {
+                      "start": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "id",
+                  "worktree",
+                  "timeCreated",
+                  "timeUpdated",
+                  "sandboxes"
+                ]
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createKiloClient } from \"@kilocode/sdk\n\nconst client = createKiloClient()\nawait client.kilocode.sessionImport.project({\n  ...\n})"
+          }
+        ]
+      }
+    },
+    "/kilocode/session-import/session": {
+      "post": {
+        "operationId": "kilocode.sessionImport.session",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "directory",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workspace",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "summary": "Insert session for session import",
+        "description": "Insert or update a session row used by legacy session import.",
+        "responses": {
+          "200": {
+            "description": "Session import result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean"
+                    },
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "ok",
+                    "id"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "projectID": {
+                    "type": "string"
+                  },
+                  "workspaceID": {
+                    "type": "string"
+                  },
+                  "parentID": {
+                    "type": "string"
+                  },
+                  "slug": {
+                    "type": "string"
+                  },
+                  "directory": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "version": {
+                    "type": "string"
+                  },
+                  "shareURL": {
+                    "type": "string"
+                  },
+                  "summary": {
+                    "type": "object",
+                    "properties": {
+                      "additions": {
+                        "type": "number"
+                      },
+                      "deletions": {
+                        "type": "number"
+                      },
+                      "files": {
+                        "type": "number"
+                      },
+                      "diffs": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {}
+                        }
+                      }
+                    },
+                    "required": [
+                      "additions",
+                      "deletions",
+                      "files"
+                    ]
+                  },
+                  "revert": {
+                    "type": "object",
+                    "properties": {
+                      "messageID": {
+                        "type": "string"
+                      },
+                      "partID": {
+                        "type": "string"
+                      },
+                      "snapshot": {
+                        "type": "string"
+                      },
+                      "diff": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "messageID"
+                    ]
+                  },
+                  "permission": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {}
+                  },
+                  "timeCreated": {
+                    "type": "number"
+                  },
+                  "timeUpdated": {
+                    "type": "number"
+                  },
+                  "timeCompacting": {
+                    "type": "number"
+                  },
+                  "timeArchived": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "id",
+                  "projectID",
+                  "slug",
+                  "directory",
+                  "title",
+                  "version",
+                  "timeCreated",
+                  "timeUpdated"
+                ]
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createKiloClient } from \"@kilocode/sdk\n\nconst client = createKiloClient()\nawait client.kilocode.sessionImport.session({\n  ...\n})"
+          }
+        ]
+      }
+    },
+    "/kilocode/session-import/message": {
+      "post": {
+        "operationId": "kilocode.sessionImport.message",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "directory",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workspace",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "summary": "Insert message for session import",
+        "description": "Insert or update a message row used by legacy session import.",
+        "responses": {
+          "200": {
+            "description": "Message import result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean"
+                    },
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "ok",
+                    "id"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "sessionID": {
+                    "type": "string"
+                  },
+                  "timeCreated": {
+                    "type": "number"
+                  },
+                  "data": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {}
+                  }
+                },
+                "required": [
+                  "id",
+                  "sessionID",
+                  "timeCreated",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createKiloClient } from \"@kilocode/sdk\n\nconst client = createKiloClient()\nawait client.kilocode.sessionImport.message({\n  ...\n})"
+          }
+        ]
+      }
+    },
+    "/kilocode/session-import/part": {
+      "post": {
+        "operationId": "kilocode.sessionImport.part",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "directory",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workspace",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "summary": "Insert part for session import",
+        "description": "Insert or update a part row used by legacy session import.",
+        "responses": {
+          "200": {
+            "description": "Part import result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean"
+                    },
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "ok",
+                    "id"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "messageID": {
+                    "type": "string"
+                  },
+                  "sessionID": {
+                    "type": "string"
+                  },
+                  "timeCreated": {
+                    "type": "number"
+                  },
+                  "data": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {}
+                  }
+                },
+                "required": [
+                  "id",
+                  "messageID",
+                  "sessionID",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createKiloClient } from \"@kilocode/sdk\n\nconst client = createKiloClient()\nawait client.kilocode.sessionImport.part({\n  ...\n})"
           }
         ]
       }
@@ -6158,7 +6672,32 @@
                               },
                               "groups": {
                                 "type": "array",
-                                "items": {}
+                                "items": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "array",
+                                      "prefixItems": [
+                                        {
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "fileRegex": {
+                                              "type": "string"
+                                            },
+                                            "description": {
+                                              "type": "string"
+                                            }
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
                               }
                             }
                           }
@@ -12659,6 +13198,15 @@
                 "isFree": {
                   "type": "boolean"
                 },
+                "ai_sdk_provider": {
+                  "type": "string",
+                  "enum": [
+                    "anthropic",
+                    "openai",
+                    "openai-compatible",
+                    "openrouter"
+                  ]
+                },
                 "experimental": {
                   "type": "boolean"
                 },
@@ -13740,6 +14288,15 @@
           },
           "isFree": {
             "type": "boolean"
+          },
+          "ai_sdk_provider": {
+            "type": "string",
+            "enum": [
+              "anthropic",
+              "openai",
+              "openai-compatible",
+              "openrouter"
+            ]
           }
         },
         "required": [

@@ -2,7 +2,14 @@ import type { KilocodeSessionImportPartData as Part } from "@kilocode/sdk/v2"
 import type { LegacyApiMessage, LegacyHistoryItem } from "./legacy-session-types"
 import { getApiConversationHistory, parseFile } from "./api-history"
 import { createMessageID, createPartID, createSessionID } from "./ids"
-import { createToolUsePart, isText, isToolResult, isToolUse } from "./create-parts-util"
+import { createReasoningPart, createSimpleTextPart, createTextPartWithinMessage, createToolUsePart } from "./create-parts-builders"
+import {
+  isReasoningPart,
+  isSimpleTextPart,
+  isSingleTextPartWithinMessage,
+  isToolResult,
+  isToolUse,
+} from "./create-parts-util"
 import { mergeToolUseAndResult, thereIsNoToolResult } from "./merge-tool-parts"
 
 export async function createParts(id: string, dir: string, item?: LegacyHistoryItem): Promise<Array<NonNullable<Part["body"]>>> {
@@ -22,25 +29,8 @@ function parseParts(
   const sessionID = createSessionID(id)
   const created = entry.ts ?? item?.ts ?? 0
 
-  if (typeof entry.content === "string") {
-    if (!entry.content) return []
-    return [
-      {
-        id: createPartID(id, index, 0),
-        messageID,
-        sessionID,
-        timeCreated: created,
-        data: {
-          type: "text",
-          // Plain string content in API history maps directly to a text part.
-          text: entry.content,
-          time: {
-            start: created,
-            end: created,
-          },
-        },
-      },
-    ]
+  if (isSimpleTextPart(entry)) {
+    return [createSimpleTextPart(createPartID(id, index, 0), messageID, sessionID, created, entry.content)]
   }
 
   if (!Array.isArray(entry.content)) return []
@@ -50,21 +40,9 @@ function parseParts(
   entry.content.forEach((part, partIndex) => {
     const partID = createPartID(id, index, partIndex)
 
-    if (isText(part) && part.text) {
-      parts.push({
-        id: partID,
-        messageID,
-        sessionID,
-        timeCreated: created,
-        data: {
-          type: "text",
-          text: part.text,
-          time: {
-            start: created,
-            end: created,
-          },
-        },
-      })
+    // Legacy can store a message as several pieces; this handles one text block inside that larger message.
+    if (isSingleTextPartWithinMessage(part)) {
+      parts.push(createTextPartWithinMessage(partID, messageID, sessionID, created, part.text))
       return
     }
 
@@ -80,22 +58,8 @@ function parseParts(
       return
     }
 
-    if (entry.type === "reasoning" && entry.text) {
-      parts.push({
-        id: partID,
-        messageID,
-        sessionID,
-        timeCreated: created,
-        data: {
-          type: "reasoning",
-          // Reasoning entries are kept as reasoning parts so we do not lose explicit thinking blocks from legacy history.
-          text: entry.text,
-          time: {
-            start: created,
-            end: created,
-          },
-        },
-      })
+    if (isReasoningPart(entry)) {
+      parts.push(createReasoningPart(partID, messageID, sessionID, created, entry.text))
     }
   })
 

@@ -1,4 +1,3 @@
-import type { KilocodeSessionImportPartData as Part } from "@kilocode/sdk/v2"
 import type { LegacyApiMessage } from "./legacy-session-types"
 
 type ToolUse = {
@@ -8,38 +7,16 @@ type ToolUse = {
   input?: unknown
 }
 
-export function createToolUsePart(
-  partID: string,
-  messageID: string,
-  sessionID: string,
-  created: number,
-  part: { type?: string; id?: string; name?: string; input?: unknown },
-): NonNullable<Part["body"]> {
-  const tool = typeof part.name === "string" ? part.name : "unknown"
+export function isSimpleTextPart(input: LegacyApiMessage): input is LegacyApiMessage & { content: string } {
+  return typeof input.content === "string" && Boolean(input.content)
+}
 
-  return {
-    id: partID,
-    messageID,
-    sessionID,
-    timeCreated: created,
-    data: {
-      type: "tool",
-      callID: part.id ?? partID,
-      tool,
-      state: {
-        // We store tool_use as completed for now because we only have historical snapshots, not live transitions.
-        status: "completed",
-        input: record(part.input),
-        output: tool,
-        title: tool,
-        metadata: {},
-        time: {
-          start: created,
-          end: created,
-        },
-      },
-    },
-  }
+export function isReasoningPart(input: LegacyApiMessage): input is LegacyApiMessage & { type: "reasoning"; text: string } {
+  return input.type === "reasoning" && typeof input.text === "string" && Boolean(input.text)
+}
+
+export function isSingleTextPartWithinMessage(input: unknown): input is { type?: string; text: string } {
+  return isText(input) && Boolean(input.text)
 }
 
 export function record(input: unknown): Record<string, unknown> {

@@ -1535,6 +1535,11 @@ export interface DisconnectMcpMessage {
   name: string
 }
 
+export interface RestartMcpMessage {
+  type: "restartMcp"
+  name: string
+}
+
 export interface McpStatusEntry {
   status: "connected" | "disabled" | "failed" | "needs_auth" | "needs_client_registration"
   error?: string
@@ -2036,6 +2041,7 @@ export type WebviewMessage =
   | RequestMcpStatusMessage
   | ConnectMcpMessage
   | DisconnectMcpMessage
+  | RestartMcpMessage
   | SetLanguageRequest
   | QuestionReplyRequest
   | QuestionRejectRequest

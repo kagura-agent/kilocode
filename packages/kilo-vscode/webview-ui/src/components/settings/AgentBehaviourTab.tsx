@@ -11,6 +11,7 @@ import { Switch } from "@kilocode/kilo-ui/switch"
 import { useConfig } from "../../context/config"
 import { useSession } from "../../context/session"
 import { useLanguage } from "../../context/language"
+import { useVSCode } from "../../context/vscode"
 import type { AgentInfo, SkillInfo } from "../../types/messages"
 import ModeEditView from "./ModeEditView"
 import ModeCreateView from "./ModeCreateView"
@@ -49,6 +50,7 @@ const AgentBehaviourTab: Component = () => {
   const { config, updateConfig } = useConfig()
   const session = useSession()
   const dialog = useDialog()
+  const vscode = useVSCode()
   const [activeSubtab, setActiveSubtab] = createSignal<SubtabId>("agents")
   const [newSkillPath, setNewSkillPath] = createSignal("")
   const [newSkillUrl, setNewSkillUrl] = createSignal("")
@@ -609,6 +611,16 @@ const AgentBehaviourTab: Component = () => {
                             {name}
                           </Switch>
                         </div>
+                        <IconButton
+                          size="small"
+                          variant="ghost"
+                          icon="enter"
+                          title={language.t("settings.agentBehaviour.mcp.restart")}
+                          onClick={(e: MouseEvent) => {
+                            e.stopPropagation()
+                            vscode.postMessage({ type: "restartMcp", name })
+                          }}
+                        />
                         <IconButton
                           size="small"
                           variant="ghost"

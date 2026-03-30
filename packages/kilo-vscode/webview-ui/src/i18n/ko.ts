@@ -1113,6 +1113,7 @@ export const dict = {
     '모드 "{{name}}"을(를) 제거하시겠습니까? 구성을 업데이트하여 모드를 비활성화합니다.',
   "settings.agentBehaviour.removeMode.button": "제거",
   "settings.agentBehaviour.removeMcp.title": "MCP 서버 제거",
+  "settings.agentBehaviour.mcp.restart": "서버 재시작",
   "settings.agentBehaviour.removeMcp.confirm": 'MCP 서버 "{{name}}"을(를) 제거하시겠습니까? 구성에서 제거됩니다.',
   "settings.agentBehaviour.removeMcp.button": "제거",
   "settings.agentBehaviour.editMcp": "MCP 서버 편집",

@@ -1139,6 +1139,7 @@ export const dict = {
     'Modus "{{name}}" entfernen? Dadurch wird der Modus durch Aktualisierung Ihrer Konfiguration deaktiviert.',
   "settings.agentBehaviour.removeMode.button": "Entfernen",
   "settings.agentBehaviour.removeMcp.title": "MCP-Server entfernen",
+  "settings.agentBehaviour.mcp.restart": "Server neu starten",
   "settings.agentBehaviour.removeMcp.confirm":
     'MCP-Server "{{name}}" entfernen? Dadurch wird er aus Ihrer Konfiguration entfernt.',
   "settings.agentBehaviour.removeMcp.button": "Entfernen",

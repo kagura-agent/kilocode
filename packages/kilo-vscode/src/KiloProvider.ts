@@ -658,6 +658,9 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
             console.error("[Kilo New] handleDisconnectMcp failed:", e),
           )
           break
+        case "restartMcp":
+          this.handleRestartMcp(message.name).catch((e) => console.error("[Kilo New] handleRestartMcp failed:", e))
+          break
 
         case "questionReply":
           await handleQuestionReply(this.questionCtx, message.requestID, message.answers)
@@ -1705,6 +1708,19 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
       await this.fetchAndSendMcpStatus()
     } catch (error) {
       console.error("[Kilo New] KiloProvider: Failed to connect MCP:", name, error)
+      await this.fetchAndSendMcpStatus()
+    }
+  }
+
+  private async handleRestartMcp(name: string): Promise<void> {
+    if (!this.client) return
+    const directory = this.getWorkspaceDirectory()
+    try {
+      await this.client.mcp.disconnect({ name, directory }).catch(() => {})
+      await this.client.mcp.connect({ name, directory })
+      await this.fetchAndSendMcpStatus()
+    } catch (error) {
+      console.error("[Kilo New] KiloProvider: Failed to restart MCP:", name, error)
       await this.fetchAndSendMcpStatus()
     }
   }

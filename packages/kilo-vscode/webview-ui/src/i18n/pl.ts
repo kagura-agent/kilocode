@@ -1123,6 +1123,7 @@ export const dict = {
     'Usunąć tryb "{{name}}"? Spowoduje to wyłączenie trybu poprzez aktualizację konfiguracji.',
   "settings.agentBehaviour.removeMode.button": "Usuń",
   "settings.agentBehaviour.removeMcp.title": "Usuń serwer MCP",
+  "settings.agentBehaviour.mcp.restart": "Uruchom ponownie serwer",
   "settings.agentBehaviour.removeMcp.confirm":
     'Usunąć serwer MCP "{{name}}"? Spowoduje to usunięcie go z konfiguracji.',
   "settings.agentBehaviour.removeMcp.button": "Usuń",

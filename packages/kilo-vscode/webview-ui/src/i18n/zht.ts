@@ -1098,6 +1098,7 @@ export const dict = {
   "settings.agentBehaviour.removeMode.confirm": '要移除模式 "{{name}}" 嗎？這將透過更新設定來停用該模式。',
   "settings.agentBehaviour.removeMode.button": "移除",
   "settings.agentBehaviour.removeMcp.title": "移除 MCP 伺服器",
+  "settings.agentBehaviour.mcp.restart": "重新啟動伺服器",
   "settings.agentBehaviour.removeMcp.confirm": '要移除 MCP 伺服器 "{{name}}" 嗎？這將從您的設定中移除它。',
   "settings.agentBehaviour.removeMcp.button": "移除",
   "settings.agentBehaviour.editMcp": "編輯 MCP 伺服器",

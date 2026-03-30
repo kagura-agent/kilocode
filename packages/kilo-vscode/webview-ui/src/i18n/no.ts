@@ -1120,6 +1120,7 @@ export const dict = {
     'Vil du fjerne modusen "{{name}}"? Dette vil deaktivere modusen ved å oppdatere konfigurasjonen din.',
   "settings.agentBehaviour.removeMode.button": "Fjern",
   "settings.agentBehaviour.removeMcp.title": "Fjern MCP-server",
+  "settings.agentBehaviour.mcp.restart": "Start server på nytt",
   "settings.agentBehaviour.removeMcp.confirm":
     'Vil du fjerne MCP-serveren "{{name}}"? Dette vil fjerne den fra konfigurasjonen din.',
   "settings.agentBehaviour.removeMcp.button": "Fjern",

@@ -12,6 +12,14 @@ export async function createMessages(id: string, dir: string, item?: LegacyHisto
   const file = await getApiConversationHistory(id, dir)
   const conversation = parseFile(file)
 
+  return parseMessagesFromConversation(conversation, id, item)
+}
+
+export function parseMessagesFromConversation(
+  conversation: LegacyApiMessage[],
+  id: string,
+  item?: LegacyHistoryItem,
+): Array<NonNullable<Message["body"]>> {
   return conversation
     .map((entry, index) => parseMessage(entry, index, id, item))
     .filter((message): message is NonNullable<Message["body"]> => Boolean(message))

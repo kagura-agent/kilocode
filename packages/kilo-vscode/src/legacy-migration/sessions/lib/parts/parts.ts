@@ -20,6 +20,14 @@ export async function createParts(id: string, dir: string, item?: LegacyHistoryI
   const file = await getApiConversationHistory(id, dir)
   const conversation = parseFile(file)
 
+  return parsePartsFromConversation(conversation, id, item)
+}
+
+export function parsePartsFromConversation(
+  conversation: LegacyApiMessage[],
+  id: string,
+  item?: LegacyHistoryItem,
+): Array<NonNullable<Part["body"]>> {
   return conversation.flatMap((entry, index) => parseParts(entry, index, id, conversation, item))
 }
 

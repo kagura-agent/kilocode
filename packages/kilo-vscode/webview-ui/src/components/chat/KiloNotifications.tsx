@@ -68,7 +68,7 @@ export const KiloNotifications: Component = () => {
     vscode.postMessage({
       type: "telemetry",
       event: TelemetryEventName.NOTIFICATION_CLICKED,
-      properties: { actionText: "Try model", suggestModelId: current()?.suggestModelId },
+      properties: { actionText: "Try Auto Free", suggestModelId: current()?.suggestModelId },
     })
   }
 
@@ -91,7 +91,7 @@ export const KiloNotifications: Component = () => {
                 {language.t("notifications.action.tryModel")}
               </button>
             </Show>
-            <Show when={current()?.action}>
+            <Show when={!canSwitchModel() && current()?.action}>
               {(action) => (
                 <button class="kilo-notifications-action-btn" onClick={() => handleAction(action().actionURL)}>
                   {action().actionText}

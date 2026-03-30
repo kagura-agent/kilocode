@@ -68,7 +68,9 @@ function parseParts(
   if (isProviderSpecificReasoning(entry)) {
     const reasoning = getReasoningText(entry)
     if (reasoning) {
-      parts.push(toReasoning(createExtraPartID(id, index, "provider-reasoning"), messageID, sessionID, created, reasoning))
+      parts.push(
+        toReasoning(createExtraPartID(id, index, "provider-reasoning"), messageID, sessionID, created, reasoning),
+      )
     }
   }
 

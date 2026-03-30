@@ -17,6 +17,7 @@ export const dict = {
   "agentManager.worktree.defaultBaseBranch": "Zadana bazna grana",
   "agentManager.worktree.defaultBaseBranchAuto": "Automatsko otkrivanje",
   "agentManager.worktree.copyPath": "Kopiraj putanju",
+  "agentManager.worktree.copyDiff": "Kopiraj razlike",
   "agentManager.worktree.openInVscode": "Otvori u VS Code",
   "agentManager.worktree.rename": "Preimenuj",
   "agentManager.worktree.moveToSection": "Premjesti u sekciju",

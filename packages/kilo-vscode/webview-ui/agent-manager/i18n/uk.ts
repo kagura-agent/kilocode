@@ -18,6 +18,7 @@ export const dict = {
   "agentManager.worktree.defaultBaseBranch": "Гілка за замовчуванням",
   "agentManager.worktree.defaultBaseBranchAuto": "Автоматичне визначення",
   "agentManager.worktree.copyPath": "Копіювати шлях",
+  "agentManager.worktree.copyDiff": "Копіювати diff",
   "agentManager.worktree.openInVscode": "Відкрити у VS Code",
   "agentManager.worktree.rename": "Перейменувати",
   "agentManager.worktree.moveToSection": "Перемістити до розділу",

@@ -247,6 +247,37 @@ export class GitOps {
   }
 
   /**
+   * Build a human-readable unified diff of all working-tree changes relative
+   * to the merge-base with `baseBranch`, including untracked files.
+   * Uses the same temp-index approach as `buildWorktreePatch` to capture
+   * both committed and uncommitted changes in a single diff.
+   */
+  async buildUnifiedDiff(cwd: string, base: string): Promise<string> {
+    const tmp = await fs.mkdtemp(nodePath.join(os.tmpdir(), "kilo-diff-"))
+    const index = nodePath.join(tmp, "index")
+    const env = { ...process.env, GIT_INDEX_FILE: index }
+
+    try {
+      const ancestor = (await this.raw(["merge-base", "HEAD", base], cwd)).trim()
+      const tree = (await this.raw(["rev-parse", `${ancestor}^{tree}`], cwd)).trim()
+
+      const read = await this.exec(["read-tree", "HEAD"], cwd, { env })
+      if (read.code !== 0) return ""
+
+      const add = await this.exec(["add", "-A", "--", "."], cwd, { env })
+      if (add.code !== 0) return ""
+
+      const snap = await this.exec(["write-tree"], cwd, { env })
+      if (snap.code !== 0) return ""
+
+      const diff = await this.exec(["diff", "--find-renames", "--no-color", tree, snap.stdout.trim()], cwd)
+      return diff.stdout
+    } finally {
+      await fs.rm(tmp, { recursive: true, force: true })
+    }
+  }
+
+  /**
    * Build a binary-safe patch of all working-tree changes relative to the
    * merge-base with `baseBranch`. Optionally scoped to `selectedFiles`.
    */

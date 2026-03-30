@@ -75,6 +75,7 @@ interface WorktreeItemProps {
   onCancelRename: () => void
   onRemoveStale: () => void
   onCopyPath: () => void
+  onCopyDiff: () => void
   onOpen: () => void
 }
 
@@ -461,6 +462,10 @@ export const WorktreeItem: Component<WorktreeItemProps> = (props) => {
             <ContextMenu.Item onSelect={() => props.onCopyPath()}>
               <Icon name="copy" size="small" />
               <ContextMenu.ItemLabel>{t("agentManager.worktree.copyPath")}</ContextMenu.ItemLabel>
+            </ContextMenu.Item>
+            <ContextMenu.Item onSelect={() => props.onCopyDiff()}>
+              <Icon name="copy" size="small" />
+              <ContextMenu.ItemLabel>{t("agentManager.worktree.copyDiff")}</ContextMenu.ItemLabel>
             </ContextMenu.Item>
             <ContextMenu.Separator />
             <ContextMenu.Item onSelect={() => props.onMoveToNewSection?.()}>

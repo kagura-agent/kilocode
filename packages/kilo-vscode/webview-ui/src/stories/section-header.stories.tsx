@@ -77,6 +77,7 @@ const wtProps = {
   onCancelRename: noop,
   onRemoveStale: noop,
   onCopyPath: noop,
+  onCopyDiff: noop,
   onOpen: noop,
 }
 

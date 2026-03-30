@@ -2372,6 +2372,9 @@ const AgentManagerContent: Component = () => {
                                   onCancelRename={cancelRename}
                                   onRemoveStale={() => confirmRemoveStaleWorktree(wt.id)}
                                   onCopyPath={() => navigator.clipboard.writeText(wt.path)}
+                                  onCopyDiff={() =>
+                                    vscode.postMessage({ type: "agentManager.copyDiff", worktreeId: wt.id })
+                                  }
                                   onOpen={() =>
                                     vscode.postMessage({ type: "agentManager.openWorktree", worktreeId: wt.id })
                                   }

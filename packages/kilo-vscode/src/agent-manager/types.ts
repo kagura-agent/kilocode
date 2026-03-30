@@ -484,6 +484,11 @@ interface OpenSessionsIn {
   sessionIDs: string[]
 }
 
+interface CopyDiffIn {
+  type: "agentManager.copyDiff"
+  worktreeId: string
+}
+
 interface OpenFileIn {
   type: "agentManager.openFile"
   sessionId: string
@@ -641,6 +646,7 @@ export type AgentManagerInMessage =
   | RefreshPRIn
   | OpenPRIn
   | OpenSessionsIn
+  | CopyDiffIn
   | OpenFileIn
   | GenericOpenFileIn
   | PreviewImageIn

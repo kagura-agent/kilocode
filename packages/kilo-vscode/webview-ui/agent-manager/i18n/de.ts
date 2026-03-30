@@ -17,6 +17,7 @@ export const dict = {
   "agentManager.worktree.defaultBaseBranch": "Standard-Basiszweig",
   "agentManager.worktree.defaultBaseBranchAuto": "Automatisch erkennen",
   "agentManager.worktree.copyPath": "Pfad kopieren",
+  "agentManager.worktree.copyDiff": "Diff kopieren",
   "agentManager.worktree.openInVscode": "In VS Code öffnen",
   "agentManager.worktree.rename": "Umbenennen",
   "agentManager.worktree.moveToSection": "In Bereich verschieben",

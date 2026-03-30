@@ -1969,6 +1969,12 @@ export interface CopyToClipboardRequest {
   text: string
 }
 
+// Copy the full unified diff of a worktree to the clipboard
+export interface CopyDiffRequest {
+  type: "agentManager.copyDiff"
+  worktreeId: string
+}
+
 // Show existing local terminal when switching to local context (no-op if none exists)
 export interface ShowExistingLocalTerminalRequest {
   type: "agentManager.showExistingLocalTerminal"
@@ -2402,6 +2408,7 @@ export type WebviewMessage =
   | ShowLocalTerminalRequest
   | OpenWorktreeRequest
   | CopyToClipboardRequest
+  | CopyDiffRequest
   | ShowExistingLocalTerminalRequest
   | AgentManagerOpenFileRequest
   | CreateMultiVersionRequest

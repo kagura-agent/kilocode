@@ -18,6 +18,7 @@ export const dict = {
   "agentManager.worktree.defaultBaseBranch": "Varsayılan Temel Dal",
   "agentManager.worktree.defaultBaseBranchAuto": "Otomatik algıla",
   "agentManager.worktree.copyPath": "Yolu Kopyala",
+  "agentManager.worktree.copyDiff": "Diff'i Kopyala",
   "agentManager.worktree.openInVscode": "VS Code'da Aç",
   "agentManager.worktree.rename": "Yeniden Adlandır",
   "agentManager.worktree.moveToSection": "Bölüme Taşı",

@@ -17,6 +17,7 @@ export const dict = {
   "agentManager.worktree.defaultBaseBranch": "기본 베이스 브랜치",
   "agentManager.worktree.defaultBaseBranchAuto": "자동 감지",
   "agentManager.worktree.copyPath": "경로 복사",
+  "agentManager.worktree.copyDiff": "차이점 복사",
   "agentManager.worktree.openInVscode": "VS Code에서 열기",
   "agentManager.worktree.rename": "이름 바꾸기",
   "agentManager.worktree.moveToSection": "섹션으로 이동",

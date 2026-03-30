@@ -5,7 +5,7 @@ import type { KiloConnectionService } from "../services/cli-backend"
 import { getErrorMessage } from "../kilo-provider-utils"
 import { isAbsolutePath } from "../path-utils"
 import { WorktreeManager, type CreateWorktreeResult } from "./WorktreeManager"
-import { WorktreeStateManager } from "./WorktreeStateManager"
+import { WorktreeStateManager, remoteRef } from "./WorktreeStateManager"
 import { handleSection } from "./section-handler"
 import { chooseBaseBranch, normalizeBaseBranch } from "./base-branch"
 import { GitStatsPoller, type WorktreePresenceResult } from "./GitStatsPoller"
@@ -464,6 +464,10 @@ export class AgentManagerProvider implements Disposable {
     }
     if (m.type === "agentManager.revertWorktreeFile") {
       void this.diffs.revert(m.sessionId, m.file)
+      return null
+    }
+    if (m.type === "agentManager.copyDiff") {
+      void this.onCopyDiff(m.worktreeId)
       return null
     }
     if (m.type === "agentManager.startDiffWatch") {
@@ -1352,6 +1356,13 @@ export class AgentManagerProvider implements Disposable {
       return
     }
     this.host.openFile(resolved, line, column)
+  }
+
+  private async onCopyDiff(id: string): Promise<void> {
+    const wt = this.getStateManager()?.getWorktree(id)
+    if (!wt) return
+    const diff = await this.gitOps.buildUnifiedDiff(wt.path, remoteRef(wt)).catch(() => "")
+    this.host.copyToClipboard(diff || "No changes")
   }
 
   private postToWebview(message: AgentManagerOutMessage): void {

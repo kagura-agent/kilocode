@@ -179,6 +179,7 @@ const defaultProps = {
   onCancelRename: noop,
   onRemoveStale: noop,
   onCopyPath: noop,
+  onCopyDiff: noop,
   onOpen: noop,
 }
 

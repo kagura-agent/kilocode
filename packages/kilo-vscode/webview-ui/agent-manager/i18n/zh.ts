@@ -17,6 +17,7 @@ export const dict = {
   "agentManager.worktree.defaultBaseBranch": "默认基础分支",
   "agentManager.worktree.defaultBaseBranchAuto": "自动检测",
   "agentManager.worktree.copyPath": "复制路径",
+  "agentManager.worktree.copyDiff": "复制差异",
   "agentManager.worktree.openInVscode": "在 VS Code 中打开",
   "agentManager.worktree.rename": "重命名",
   "agentManager.worktree.moveToSection": "移动到分区",

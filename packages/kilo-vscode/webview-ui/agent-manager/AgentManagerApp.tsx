@@ -358,9 +358,7 @@ const AgentManagerContent: Component = () => {
   const [applySelectedFiles, setApplySelectedFiles] = createSignal<string[]>([])
   const [applySelectionTouched, setApplySelectionTouched] = createSignal(false)
 
-  // Per-session terminal list from the extension
   const [terminalLists, setTerminalLists] = createSignal<Record<string, AgentManagerTerminalInfo[]>>({})
-
   // Pending local tab counter for generating unique IDs
   let pendingCounter = 0
   const PENDING_PREFIX = "pending:"
@@ -1017,8 +1015,8 @@ const AgentManagerContent: Component = () => {
         if (id) vscode.postMessage({ type: "agentManager.showTerminal", sessionId: id })
         else if (selection() === LOCAL) vscode.postMessage({ type: "agentManager.showLocalTerminal" })
       } else if (msg.action === "newTerminal") {
-        const id = session.currentSessionID()
-        if (id) vscode.postMessage({ type: "agentManager.addTerminal", sessionId: id })
+        const sid = session.currentSessionID()
+        if (sid) vscode.postMessage({ type: "agentManager.addTerminal", sessionId: sid })
         else if (selection() === LOCAL) vscode.postMessage({ type: "agentManager.addLocalTerminal" })
       } else if (msg.action === "toggleDiff") {
         if (reviewActive()) {
@@ -2664,7 +2662,6 @@ const AgentManagerContent: Component = () => {
                     />
                   </Tooltip>
                 </Show>
-                {/* Terminal split button: icon opens terminal, chevron opens dropdown */}
                 <div class="am-split-button">
                   <TooltipKeybind
                     title={t("agentManager.tab.terminal")}
@@ -2687,8 +2684,7 @@ const AgentManagerContent: Component = () => {
                     gutter={4}
                     placement="bottom-end"
                     onOpenChange={(open) => {
-                      if (!open) return
-                      const id = session.currentSessionID()
+                      const id = open && session.currentSessionID()
                       if (id) vscode.postMessage({ type: "agentManager.requestTerminals", sessionId: id })
                     }}
                   >
@@ -2698,35 +2694,35 @@ const AgentManagerContent: Component = () => {
                     <DropdownMenu.Portal>
                       <DropdownMenu.Content class="am-split-menu">
                         {(() => {
-                          const id = session.currentSessionID()
-                          const terminals = id ? (terminalLists()[id] ?? []) : []
+                          const sid = session.currentSessionID()
+                          const terms = sid ? (terminalLists()[sid] ?? []) : []
                           return (
                             <>
-                              <Show when={terminals.length > 0}>
-                                <For each={terminals}>
-                                  {(term) => (
+                              <Show when={terms.length > 0}>
+                                <For each={terms}>
+                                  {(t) => (
                                     <DropdownMenu.Item
-                                      class={`am-terminal-item ${term.active ? "am-terminal-item-active" : ""}`}
-                                      onSelect={() => {
-                                        if (id)
-                                          vscode.postMessage({
-                                            type: "agentManager.focusTerminal",
-                                            sessionId: id,
-                                            index: term.index,
-                                          })
-                                      }}
+                                      class={`am-terminal-item ${t.active ? "am-terminal-item-active" : ""}`}
+                                      onSelect={() =>
+                                        sid &&
+                                        vscode.postMessage({
+                                          type: "agentManager.focusTerminal",
+                                          sessionId: sid,
+                                          index: t.index,
+                                        })
+                                      }
                                     >
                                       <Icon name="console" size="small" />
-                                      <span class="am-terminal-item-name">{term.name}</span>
+                                      <span class="am-terminal-item-name">{t.name}</span>
                                       <button
                                         class="am-terminal-item-close"
                                         onClick={(e) => {
                                           e.stopPropagation()
-                                          if (id)
+                                          sid &&
                                             vscode.postMessage({
                                               type: "agentManager.closeTerminal",
-                                              sessionId: id,
-                                              index: term.index,
+                                              sessionId: sid,
+                                              index: t.index,
                                             })
                                         }}
                                       >
@@ -2739,7 +2735,7 @@ const AgentManagerContent: Component = () => {
                               </Show>
                               <DropdownMenu.Item
                                 onSelect={() => {
-                                  if (id) vscode.postMessage({ type: "agentManager.addTerminal", sessionId: id })
+                                  if (sid) vscode.postMessage({ type: "agentManager.addTerminal", sessionId: sid })
                                   else if (selection() === LOCAL)
                                     vscode.postMessage({ type: "agentManager.addLocalTerminal" })
                                 }}

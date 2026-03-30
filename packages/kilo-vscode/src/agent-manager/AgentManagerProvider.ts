@@ -229,44 +229,24 @@ export class AgentManagerProvider implements Disposable {
       void this.configureSetupScript()
       return null
     }
-    if (m.type === "agentManager.showTerminal") {
-      this.terminalManager.showTerminal(m.sessionId, this.state)
-      return null
-    }
-    if (m.type === "agentManager.showLocalTerminal") {
-      this.terminalManager.showLocalTerminal()
-      return null
-    }
-    if (m.type === "agentManager.openWorktree") {
-      this.openWorktreeDirectory(m.worktreeId)
-      return null
-    }
-    if (m.type === "previewImage") {
-      return msg
-    }
-    if (m.type === "agentManager.showExistingLocalTerminal") {
-      this.terminalManager.syncLocalOnSessionSwitch()
-      return null
-    }
-    if (m.type === "agentManager.addTerminal") {
-      this.terminalManager.addTerminal(m.sessionId, this.state, m.name)
-      return null
-    }
-    if (m.type === "agentManager.addLocalTerminal") {
-      this.terminalManager.addLocalTerminal(m.name)
-      return null
-    }
-    if (m.type === "agentManager.focusTerminal") {
-      this.terminalManager.focusTerminal(m.sessionId, m.index)
-      return null
-    }
-    if (m.type === "agentManager.closeTerminal") {
-      this.terminalManager.closeTerminal(m.sessionId, m.index)
-      return null
-    }
+    if (m.type === "agentManager.showTerminal")
+      return (this.terminalManager.showTerminal(m.sessionId, this.state), null)
+    if (m.type === "agentManager.showLocalTerminal") return (this.terminalManager.showLocalTerminal(), null)
+    if (m.type === "agentManager.openWorktree") return (this.openWorktreeDirectory(m.worktreeId), null)
+    if (m.type === "previewImage") return msg
+    if (m.type === "agentManager.showExistingLocalTerminal")
+      return (this.terminalManager.syncLocalOnSessionSwitch(), null)
+    if (m.type === "agentManager.addTerminal")
+      return (this.terminalManager.addTerminal(m.sessionId, this.state, m.name), null)
+    if (m.type === "agentManager.addLocalTerminal") return (this.terminalManager.addLocalTerminal(m.name), null)
+    if (m.type === "agentManager.focusTerminal") return (this.terminalManager.focusTerminal(m.sessionId, m.index), null)
+    if (m.type === "agentManager.closeTerminal") return (this.terminalManager.closeTerminal(m.sessionId, m.index), null)
     if (m.type === "agentManager.requestTerminals") {
-      const terminals = this.terminalManager.getTerminals(m.sessionId)
-      this.postToWebview({ type: "agentManager.terminalList", sessionId: m.sessionId, terminals })
+      this.postToWebview({
+        type: "agentManager.terminalList",
+        sessionId: m.sessionId,
+        terminals: this.terminalManager.getTerminals(m.sessionId),
+      })
       return null
     }
     if (m.type === "agentManager.requestRepoInfo") {

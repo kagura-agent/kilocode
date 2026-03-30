@@ -267,6 +267,7 @@ export const dict = {
   "mcp.status.connected": "подключено",
   "mcp.status.failed": "ошибка",
   "mcp.status.needs_auth": "требуется авторизация",
+  "mcp.status.needs_registration": "требуется регистрация клиента",
   "mcp.status.disabled": "отключено",
 
   "dialog.fork.empty": "Нет сообщений для ответвления",
@@ -758,6 +759,20 @@ export const dict = {
   "provider.custom.models.name.placeholder": "Отображаемое имя",
   "provider.custom.models.remove": "Удалить модель",
   "provider.custom.models.add": "Добавить модель",
+  "provider.custom.models.fetch": "Получить модели",
+  "provider.custom.models.fetching": "Загрузка\u2026",
+  "provider.custom.models.fetch.error": "Не удалось получить модели: {{error}}",
+  "provider.custom.models.fetch.authError": "Ошибка аутентификации. Проверьте API-ключ выше и попробуйте снова.",
+  "provider.custom.models.fetch.empty": "На этом сервере модели не найдены.",
+  "provider.custom.models.fetch.added": "Добавлено {{count}} модель(ей).",
+  "provider.custom.models.fetch.allExist": "Все полученные модели уже добавлены.",
+  "provider.custom.models.fetch.selectAll": "Выбрать все",
+  "provider.custom.models.fetch.deselectAll": "Снять выбор",
+  "provider.custom.models.fetch.found": "Найдено {{count}} моделей",
+  "provider.custom.models.fetch.showing": "Показано {{shown}} из {{total}}",
+  "provider.custom.models.fetch.search": "Поиск моделей\u2026",
+  "provider.custom.models.fetch.add": "Добавить {{count}} модель(ей)",
+  "provider.custom.edit.title": "Редактировать провайдера",
   "provider.custom.headers.label": "Заголовки (необязательно)",
   "provider.custom.headers.key.label": "Заголовок",
   "provider.custom.headers.key.placeholder": "Header-Name",
@@ -916,8 +931,7 @@ export const dict = {
   "settings.autocomplete.title": "Автодополнение",
   "settings.notifications.title": "Уведомления",
   "settings.context.title": "Контекст",
-  "settings.terminal.title": "Терминал",
-  "settings.prompts.title": "Промпты",
+
   "settings.experimental.title": "Экспериментальное",
   "settings.language.title": "Язык",
   "settings.aboutKiloCode.title": "О Kilo Code",
@@ -968,6 +982,18 @@ export const dict = {
   "settings.aboutKiloCode.resetSettings.description":
     "Сбросить все настройки расширения Kilo Code до значений по умолчанию. Это не влияет на конфигурацию CLI или бэкенда.",
   "settings.aboutKiloCode.resetSettings.button": "Сбросить все настройки",
+  "settings.aboutKiloCode.settingsTransfer.title": "Перенос настроек",
+  "settings.aboutKiloCode.settingsTransfer.description":
+    "Экспортируйте или импортируйте настройки для переноса между экземплярами VS Code.",
+  "settings.aboutKiloCode.exportSettings": "Экспорт",
+  "settings.aboutKiloCode.importSettings": "Импорт",
+  "settings.aboutKiloCode.importSettings.invalidJson": "Недопустимый файл JSON. Выберите корректный файл настроек.",
+  "settings.aboutKiloCode.importSettings.invalidConfig": "Файл не содержит допустимых настроек Kilo.",
+  "settings.aboutKiloCode.importSettings.tooLarge": "Файл слишком большой. Файлы настроек должны быть менее 1 MB.",
+  "settings.aboutKiloCode.importSettings.newerVersion":
+    "Этот файл был экспортирован из более новой версии Kilo. Некоторые настройки могут быть проигнорированы.",
+  "settings.aboutKiloCode.importSettings.success":
+    "Настройки импортированы. Просмотрите изменения выше и нажмите «Сохранить».",
 
   "settings.agentBehaviour.subtab.modes": "Режимы",
   "settings.agentBehaviour.subtab.agents": "Agents",
@@ -992,8 +1018,7 @@ export const dict = {
 
   "common.add": "Добавить",
   "common.choose": "Выбрать…",
-  "settings.notImplemented": "Этот раздел ещё не реализован.",
-  "settings.notImplemented.description": "Здесь будут параметры конфигурации и пояснительный текст.",
+
   "settings.autocomplete.autoTrigger.title": "Включить автоматическое встроенное дополнение",
   "settings.autocomplete.autoTrigger.description": "Автоматически показывать предложения дополнения при вводе",
   "settings.autocomplete.smartKeybinding.title": "Включить умную клавишу встроенной задачи",
@@ -1051,6 +1076,12 @@ export const dict = {
   "settings.agentBehaviour.topP.description": "Параметр nucleus-сэмплирования (0-1)",
   "settings.agentBehaviour.maxSteps.title": "Макс. шагов",
   "settings.agentBehaviour.maxSteps.description": "Максимальное число итераций агента",
+  "settings.agentBehaviour.hidden.title": "Скрытый",
+  "settings.agentBehaviour.hidden.description": "Скрыть этого агента из переключателя режимов в поле ввода чата",
+  "settings.agentBehaviour.disable.title": "Отключён",
+  "settings.agentBehaviour.disable.description": "Полностью отключить этого агента — он не будет отображаться нигде",
+  "settings.agentBehaviour.badge.hidden": "скрытый",
+  "settings.agentBehaviour.badge.disabled": "отключён",
   "settings.agentBehaviour.discoveredSkills": "Обнаруженные навыки",
   "settings.agentBehaviour.noSkillsFound":
     "Навыки не обнаружены. Добавьте пути к папкам навыков или URL-адреса ниже, чтобы сделать навыки доступными.",
@@ -1074,6 +1105,14 @@ export const dict = {
   "settings.agentBehaviour.createMode.nameRequired": "Название обязательно",
   "settings.agentBehaviour.createMode.nameInvalid": "Название может содержать только строчные буквы, цифры и дефисы",
   "settings.agentBehaviour.createMode.nameTaken": "Режим с таким названием уже существует",
+  "settings.agentBehaviour.importMode": "Импорт",
+  "settings.agentBehaviour.importMode.invalidName":
+    "Недопустимое имя режима в файле. Имя должно начинаться со строчной буквы и содержать только строчные буквы, цифры и дефисы.",
+  "settings.agentBehaviour.importMode.nameTaken": "Режим с таким названием уже существует.",
+  "settings.agentBehaviour.importMode.invalidJson":
+    "Недопустимый файл JSON. Пожалуйста, выберите корректный файл определения агента.",
+  "settings.agentBehaviour.importMode.tooLarge": "Файл слишком большой. Определения агентов должны быть менее 1 МБ.",
+  "settings.agentBehaviour.exportMode": "Экспортировать определение агента",
   "settings.agentBehaviour.editMode": "Редактировать режим",
   "settings.agentBehaviour.editMode.description": "Описание",
   "settings.agentBehaviour.editMode.prompt": "Системный промпт",
@@ -1089,6 +1128,18 @@ export const dict = {
   "settings.agentBehaviour.removeMcp.title": "Удалить сервер MCP",
   "settings.agentBehaviour.removeMcp.confirm": 'Удалить сервер MCP "{{name}}"? Это удалит его из вашей конфигурации.',
   "settings.agentBehaviour.removeMcp.button": "Удалить",
+  "settings.agentBehaviour.editMcp": "Редактировать сервер MCP",
+  "settings.agentBehaviour.editMcp.transportLocal": "Локальный сервер (транспорт stdio)",
+  "settings.agentBehaviour.editMcp.transportRemote": "Удалённый сервер (транспорт SSE/HTTP)",
+  "settings.agentBehaviour.editMcp.env": "Переменные окружения",
+  "settings.agentBehaviour.editMcp.env.help": "Переменные, передаваемые процессу сервера MCP.",
+  "settings.agentBehaviour.addMcp.command": "Команда",
+  "settings.agentBehaviour.addMcp.command.placeholder": "e.g. npx",
+  "settings.agentBehaviour.addMcp.args": "Аргументы",
+  "settings.agentBehaviour.addMcp.args.help": "Один аргумент на строку. Пути с пробелами сохраняются как есть.",
+  "settings.agentBehaviour.addMcp.args.placeholder": "e.g.\n-y\n@modelcontextprotocol/server-filesystem\n/tmp",
+  "settings.agentBehaviour.addMcp.url": "URL сервера",
+  "settings.agentBehaviour.addMcp.url.placeholder": "e.g. http://localhost:3000/sse",
   "settings.agentBehaviour.skillPaths": "Пути папок навыков",
   "settings.agentBehaviour.skillUrls": "URL навыков",
   "settings.agentBehaviour.removeSkill.title": "Удалить навык",
@@ -1104,7 +1155,7 @@ export const dict = {
   "settings.agentBehaviour.mcpDetail.env": "Окружение",
   "settings.agentBehaviour.mcpDetail.disabled": "Этот сервер отключён.",
   "settings.agentBehaviour.mcpEmpty":
-    "MCP-серверы не настроены. Отредактируйте файл конфигурации opencode для добавления MCP-серверов.",
+    "MCP-серверы не настроены. Добавьте MCP-серверы в kilo.jsonc или попросите агента добавить их.",
   "settings.agentBehaviour.workflowsPlaceholder": "Рабочие процессы управляются через файлы рабочих процессов.",
   "settings.agentBehaviour.workflows.description":
     "Рабочие процессы — это пользовательские слэш-команды, определённые в вашей конфигурации. Введите /command-name в чате, чтобы вызвать их. Команды настраиваются в opencode.json в разделе 'command'.",
@@ -1112,7 +1163,7 @@ export const dict = {
     "Пользовательские команды не настроены. Добавьте команды в opencode.json, чтобы увидеть их здесь.",
   "settings.agentBehaviour.workflows.detail.description": "Описание",
   "settings.agentBehaviour.workflows.detail.template": "Шаблон",
-  "settings.agentBehaviour.notImplemented": "Ещё не реализовано.",
+
   "settings.autoApprove.description":
     "Определите правила запуска инструментов. Большинство инструментов по умолчанию Разрешены. Для doom_loop и external_directory по умолчанию установлено Спрашивать.",
   "settings.autoApprove.level.allow": "Разрешить",
@@ -1167,7 +1218,8 @@ export const dict = {
   "settings.providers.defaultModel.title": "Модель по умолчанию",
   "settings.providers.defaultModel.description": "Основная модель для разговоров",
   "settings.providers.smallModel.title": "Малая модель",
-  "settings.providers.smallModel.description": "Лёгкая модель для генерации заголовков и быстрых задач",
+  "settings.providers.smallModel.description":
+    "Лёгкая модель для генерации заголовков, сообщений коммитов, улучшения промптов и других быстрых задач",
   "settings.providers.disabled": "Отключённые провайдеры",
   "settings.providers.disabled.description": "Провайдеры для скрытия из списка",
   "settings.providers.enabled": "Включённые провайдеры (белый список)",

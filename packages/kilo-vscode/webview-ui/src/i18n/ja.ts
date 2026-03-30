@@ -266,6 +266,7 @@ export const dict = {
   "mcp.status.connected": "接続済み",
   "mcp.status.failed": "失敗",
   "mcp.status.needs_auth": "認証が必要",
+  "mcp.status.needs_registration": "クライアント登録が必要",
   "mcp.status.disabled": "無効",
 
   "dialog.fork.empty": "フォーク元のメッセージがありません",
@@ -750,6 +751,20 @@ export const dict = {
   "provider.custom.models.name.placeholder": "表示名",
   "provider.custom.models.remove": "モデルを削除",
   "provider.custom.models.add": "モデルを追加",
+  "provider.custom.models.fetch": "モデルを取得",
+  "provider.custom.models.fetching": "取得中\u2026",
+  "provider.custom.models.fetch.error": "モデルの取得に失敗しました: {{error}}",
+  "provider.custom.models.fetch.authError": "認証に失敗しました。上記のAPIキーを確認して再試行してください。",
+  "provider.custom.models.fetch.empty": "このサーバーにモデルが見つかりません。",
+  "provider.custom.models.fetch.added": "{{count}}個のモデルを追加しました。",
+  "provider.custom.models.fetch.allExist": "取得したモデルはすべて既に追加されています。",
+  "provider.custom.models.fetch.selectAll": "すべて選択",
+  "provider.custom.models.fetch.deselectAll": "すべて選択解除",
+  "provider.custom.models.fetch.found": "{{count}}個のモデルが見つかりました",
+  "provider.custom.models.fetch.showing": "{{total}}件中{{shown}}件を表示",
+  "provider.custom.models.fetch.search": "モデルを検索\u2026",
+  "provider.custom.models.fetch.add": "{{count}}個のモデルを追加",
+  "provider.custom.edit.title": "プロバイダーを編集",
   "provider.custom.headers.label": "ヘッダー（任意）",
   "provider.custom.headers.key.label": "ヘッダー",
   "provider.custom.headers.key.placeholder": "Header-Name",
@@ -908,8 +923,7 @@ export const dict = {
   "settings.autocomplete.title": "オートコンプリート",
   "settings.notifications.title": "通知",
   "settings.context.title": "コンテキスト",
-  "settings.terminal.title": "ターミナル",
-  "settings.prompts.title": "プロンプト",
+
   "settings.experimental.title": "実験的機能",
   "settings.language.title": "言語",
   "settings.aboutKiloCode.title": "Kilo Codeについて",
@@ -961,6 +975,19 @@ export const dict = {
   "settings.aboutKiloCode.resetSettings.description":
     "Kilo Code拡張機能のすべての設定をデフォルト値にリセットします。CLIやバックエンドの設定には影響しません。",
   "settings.aboutKiloCode.resetSettings.button": "すべての設定をリセット",
+  "settings.aboutKiloCode.settingsTransfer.title": "設定の移行",
+  "settings.aboutKiloCode.settingsTransfer.description":
+    "VS Code インスタンス間で設定を転送するには、エクスポートまたはインポートしてください。",
+  "settings.aboutKiloCode.exportSettings": "エクスポート",
+  "settings.aboutKiloCode.importSettings": "インポート",
+  "settings.aboutKiloCode.importSettings.invalidJson":
+    "無効な JSON ファイルです。有効な設定ファイルを選択してください。",
+  "settings.aboutKiloCode.importSettings.invalidConfig": "ファイルに有効な Kilo の設定が含まれていません。",
+  "settings.aboutKiloCode.importSettings.tooLarge": "ファイルが大きすぎます。設定ファイルは 1 MB 以下にしてください。",
+  "settings.aboutKiloCode.importSettings.newerVersion":
+    "このファイルはより新しいバージョンの Kilo からエクスポートされたものです。一部の設定が無視される場合があります。",
+  "settings.aboutKiloCode.importSettings.success":
+    "設定をインポートしました。上記の変更内容を確認してから、保存をクリックしてください。",
 
   "settings.agentBehaviour.subtab.modes": "モード",
   "settings.agentBehaviour.subtab.agents": "Agents",
@@ -985,9 +1012,7 @@ export const dict = {
 
   "common.add": "追加",
   "common.choose": "選択…",
-  "settings.notImplemented": "このセクションはまだ実装されていません。",
-  "settings.notImplemented.description":
-    "選択した設定カテゴリに関連する設定オプションと説明テキストが含まれる予定です。",
+
   "settings.autocomplete.autoTrigger.title": "自動インライン補完を有効にする",
   "settings.autocomplete.autoTrigger.description": "入力時にインライン補完の提案を自動的に表示",
   "settings.autocomplete.smartKeybinding.title": "スマートインラインタスクキーバインドを有効にする",
@@ -1045,6 +1070,12 @@ export const dict = {
   "settings.agentBehaviour.topP.description": "核サンプリングパラメータ（0-1）",
   "settings.agentBehaviour.maxSteps.title": "最大ステップ数",
   "settings.agentBehaviour.maxSteps.description": "最大エージェント反復回数",
+  "settings.agentBehaviour.hidden.title": "非表示",
+  "settings.agentBehaviour.hidden.description": "チャット入力のモード切り替えからこのエージェントを非表示にする",
+  "settings.agentBehaviour.disable.title": "無効",
+  "settings.agentBehaviour.disable.description": "このエージェントを完全に無効にする — どこにも表示されなくなります",
+  "settings.agentBehaviour.badge.hidden": "非表示",
+  "settings.agentBehaviour.badge.disabled": "無効",
   "settings.agentBehaviour.discoveredSkills": "検出されたスキル",
   "settings.agentBehaviour.noSkillsFound":
     "スキルが見つかりません。スキルを利用可能にするには、以下にスキルフォルダパスまたはURLを追加してください。",
@@ -1067,6 +1098,15 @@ export const dict = {
   "settings.agentBehaviour.createMode.nameRequired": "名前は必須です",
   "settings.agentBehaviour.createMode.nameInvalid": "名前には小文字、数字、ハイフンのみ使用できます",
   "settings.agentBehaviour.createMode.nameTaken": "この名前のモードはすでに存在します",
+  "settings.agentBehaviour.importMode": "インポート",
+  "settings.agentBehaviour.importMode.invalidName":
+    "ファイル内のモード名が無効です。名前は小文字で始まり、小文字、数字、ハイフンのみを含む必要があります。",
+  "settings.agentBehaviour.importMode.nameTaken": "この名前のモードはすでに存在します。",
+  "settings.agentBehaviour.importMode.invalidJson":
+    "無効なJSONファイルです。有効なエージェント定義ファイルを選択してください。",
+  "settings.agentBehaviour.importMode.tooLarge":
+    "ファイルが大きすぎます。エージェント定義は1 MB以下である必要があります。",
+  "settings.agentBehaviour.exportMode": "エージェント定義をエクスポート",
   "settings.agentBehaviour.editMode": "モードを編集",
   "settings.agentBehaviour.editMode.description": "説明",
   "settings.agentBehaviour.editMode.prompt": "システムプロンプト",
@@ -1081,6 +1121,18 @@ export const dict = {
   "settings.agentBehaviour.removeMcp.title": "MCPサーバーを削除",
   "settings.agentBehaviour.removeMcp.confirm": 'MCPサーバー "{{name}}" を削除しますか？設定から削除されます。',
   "settings.agentBehaviour.removeMcp.button": "削除",
+  "settings.agentBehaviour.editMcp": "MCPサーバーを編集",
+  "settings.agentBehaviour.editMcp.transportLocal": "ローカルサーバー（stdio トランスポート）",
+  "settings.agentBehaviour.editMcp.transportRemote": "リモートサーバー（SSE/HTTP トランスポート）",
+  "settings.agentBehaviour.editMcp.env": "環境変数",
+  "settings.agentBehaviour.editMcp.env.help": "MCPサーバープロセスに渡される変数。",
+  "settings.agentBehaviour.addMcp.command": "コマンド",
+  "settings.agentBehaviour.addMcp.command.placeholder": "e.g. npx",
+  "settings.agentBehaviour.addMcp.args": "引数",
+  "settings.agentBehaviour.addMcp.args.help": "1行に1つの引数。スペースを含むパスはそのまま保持されます。",
+  "settings.agentBehaviour.addMcp.args.placeholder": "e.g.\n-y\n@modelcontextprotocol/server-filesystem\n/tmp",
+  "settings.agentBehaviour.addMcp.url": "サーバーURL",
+  "settings.agentBehaviour.addMcp.url.placeholder": "e.g. http://localhost:3000/sse",
   "settings.agentBehaviour.skillPaths": "スキルフォルダパス",
   "settings.agentBehaviour.skillUrls": "スキルURL",
   "settings.agentBehaviour.removeSkill.title": "スキルを削除",
@@ -1096,7 +1148,7 @@ export const dict = {
   "settings.agentBehaviour.mcpDetail.env": "環境",
   "settings.agentBehaviour.mcpDetail.disabled": "このサーバーは無効です。",
   "settings.agentBehaviour.mcpEmpty":
-    "MCPサーバーが設定されていません。opencode設定ファイルを編集してMCPサーバーを追加してください。",
+    "MCPサーバーが設定されていません。kilo.jsoncでMCPサーバーを追加するか、エージェントに追加を依頼してください。",
   "settings.agentBehaviour.workflowsPlaceholder":
     "ワークフローはワークスペース内のワークフローファイルを通じて管理されます。",
   "settings.agentBehaviour.workflows.description":
@@ -1105,7 +1157,7 @@ export const dict = {
     "カスタムコマンドが設定されていません。opencode.json にコマンドを追加するとここに表示されます。",
   "settings.agentBehaviour.workflows.detail.description": "説明",
   "settings.agentBehaviour.workflows.detail.template": "テンプレート",
-  "settings.agentBehaviour.notImplemented": "まだ実装されていません。",
+
   "settings.autoApprove.description":
     "ツールの実行許可を定義します。ほとんどのツールはデフォルトで「許可」されます。doom_loop と external_directory はデフォルトで「確認」になります。",
   "settings.autoApprove.level.allow": "許可",
@@ -1158,7 +1210,8 @@ export const dict = {
   "settings.providers.defaultModel.title": "デフォルトモデル",
   "settings.providers.defaultModel.description": "会話のプライマリモデル",
   "settings.providers.smallModel.title": "小型モデル",
-  "settings.providers.smallModel.description": "タイトル生成やその他の高速タスク用の軽量モデル",
+  "settings.providers.smallModel.description":
+    "タイトル生成、コミットメッセージ生成、プロンプト改善、およびその他の高速タスク用の軽量モデル",
   "settings.providers.disabled": "無効化されたプロバイダー",
   "settings.providers.disabled.description": "プロバイダーリストから非表示にするプロバイダー",
   "settings.providers.enabled": "有効化されたプロバイダー（ホワイトリスト）",

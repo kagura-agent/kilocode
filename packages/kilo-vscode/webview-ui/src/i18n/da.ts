@@ -267,6 +267,7 @@ export const dict = {
   "mcp.status.connected": "forbundet",
   "mcp.status.failed": "mislykkedes",
   "mcp.status.needs_auth": "kræver godkendelse",
+  "mcp.status.needs_registration": "kræver klientregistrering",
   "mcp.status.disabled": "deaktiveret",
 
   "dialog.fork.empty": "Ingen beskeder at forgrene fra",
@@ -751,6 +752,20 @@ export const dict = {
   "provider.custom.models.name.placeholder": "Visningsnavn",
   "provider.custom.models.remove": "Fjern model",
   "provider.custom.models.add": "Tilføj model",
+  "provider.custom.models.fetch": "Hent modeller",
+  "provider.custom.models.fetching": "Henter\u2026",
+  "provider.custom.models.fetch.error": "Kunne ikke hente modeller: {{error}}",
+  "provider.custom.models.fetch.authError": "Godkendelse mislykkedes. Kontrollér API-nøglen ovenfor, og prøv igen.",
+  "provider.custom.models.fetch.empty": "Ingen modeller fundet på denne server.",
+  "provider.custom.models.fetch.added": "{{count}} model(ler) tilføjet.",
+  "provider.custom.models.fetch.allExist": "Alle hentede modeller er allerede tilføjet.",
+  "provider.custom.models.fetch.selectAll": "Vælg alle",
+  "provider.custom.models.fetch.deselectAll": "Fravælg alle",
+  "provider.custom.models.fetch.found": "{{count}} modeller fundet",
+  "provider.custom.models.fetch.showing": "Viser {{shown}} af {{total}}",
+  "provider.custom.models.fetch.search": "Søg modeller\u2026",
+  "provider.custom.models.fetch.add": "Tilføj {{count}} model(ler)",
+  "provider.custom.edit.title": "Rediger udbyder",
   "provider.custom.headers.label": "Headers (valgfrit)",
   "provider.custom.headers.key.label": "Header",
   "provider.custom.headers.key.placeholder": "Header-Name",
@@ -909,8 +924,7 @@ export const dict = {
   "settings.autocomplete.title": "Autofuldførelse",
   "settings.notifications.title": "Notifikationer",
   "settings.context.title": "Kontekst",
-  "settings.terminal.title": "Terminal",
-  "settings.prompts.title": "Prompts",
+
   "settings.experimental.title": "Eksperimentelt",
   "settings.language.title": "Sprog",
   "settings.aboutKiloCode.title": "Om Kilo Code",
@@ -962,6 +976,18 @@ export const dict = {
   "settings.aboutKiloCode.resetSettings.description":
     "Nulstil alle Kilo Code-udvidelsesindstillinger til standardværdierne. Dette påvirker ikke CLI- eller backend-konfiguration.",
   "settings.aboutKiloCode.resetSettings.button": "Nulstil alle indstillinger",
+  "settings.aboutKiloCode.settingsTransfer.title": "Overførsel af indstillinger",
+  "settings.aboutKiloCode.settingsTransfer.description":
+    "Eksportér eller importér dine indstillinger for at overføre dem mellem VS Code-instanser.",
+  "settings.aboutKiloCode.exportSettings": "Eksportér",
+  "settings.aboutKiloCode.importSettings": "Importér",
+  "settings.aboutKiloCode.importSettings.invalidJson": "Ugyldig JSON-fil. Vælg venligst en gyldig indstillingsfil.",
+  "settings.aboutKiloCode.importSettings.invalidConfig": "Filen indeholder ikke gyldige Kilo-indstillinger.",
+  "settings.aboutKiloCode.importSettings.tooLarge": "Filen er for stor. Indstillingsfiler skal være under 1 MB.",
+  "settings.aboutKiloCode.importSettings.newerVersion":
+    "Denne fil blev eksporteret fra en nyere version af Kilo. Nogle indstillinger kan blive ignoreret.",
+  "settings.aboutKiloCode.importSettings.success":
+    "Indstillinger importeret. Gennemgå ændringerne ovenfor, og klik derefter på Gem.",
 
   "settings.agentBehaviour.subtab.modes": "Tilstande",
   "settings.agentBehaviour.subtab.agents": "Agents",
@@ -986,8 +1012,7 @@ export const dict = {
 
   "common.add": "Tilføj",
   "common.choose": "Vælg…",
-  "settings.notImplemented": "Denne sektion er endnu ikke implementeret.",
-  "settings.notImplemented.description": "Den vil indeholde konfigurationsmuligheder og forklarende tekst.",
+
   "settings.autocomplete.autoTrigger.title": "Aktiver automatisk inline-fuldførelse",
   "settings.autocomplete.autoTrigger.description": "Vis automatisk inline-fuldførelsesforslag under indtastning",
   "settings.autocomplete.smartKeybinding.title": "Aktiver smart inline-opgave-tastaturgenvej",
@@ -1045,6 +1070,12 @@ export const dict = {
   "settings.agentBehaviour.topP.description": "Nucleus-samplingparameter (0-1)",
   "settings.agentBehaviour.maxSteps.title": "Maks. trin",
   "settings.agentBehaviour.maxSteps.description": "Maksimale agentiterationer",
+  "settings.agentBehaviour.hidden.title": "Skjult",
+  "settings.agentBehaviour.hidden.description": "Skjul denne agent fra tilstandsvælgeren i chatinput",
+  "settings.agentBehaviour.disable.title": "Deaktiveret",
+  "settings.agentBehaviour.disable.description": "Deaktiver denne agent fuldstændigt — den vises ingen steder",
+  "settings.agentBehaviour.badge.hidden": "skjult",
+  "settings.agentBehaviour.badge.disabled": "deaktiveret",
   "settings.agentBehaviour.discoveredSkills": "Opdagede skills",
   "settings.agentBehaviour.noSkillsFound":
     "Ingen skills fundet. Tilføj skill-mappestier eller URL'er nedenfor for at gøre skills tilgængelige.",
@@ -1067,6 +1098,13 @@ export const dict = {
   "settings.agentBehaviour.createMode.nameRequired": "Navn er påkrævet",
   "settings.agentBehaviour.createMode.nameInvalid": "Navn må kun indeholde små bogstaver, tal og bindestreger",
   "settings.agentBehaviour.createMode.nameTaken": "En tilstand med dette navn eksisterer allerede",
+  "settings.agentBehaviour.importMode": "Importér",
+  "settings.agentBehaviour.importMode.invalidName":
+    "Ugyldigt tilstandsnavn i filen. Navnet skal starte med et lille bogstav og kun indeholde små bogstaver, tal og bindestreger.",
+  "settings.agentBehaviour.importMode.nameTaken": "En tilstand med dette navn eksisterer allerede.",
+  "settings.agentBehaviour.importMode.invalidJson": "Ugyldig JSON-fil. Vælg venligst en gyldig agentdefinitionsfil.",
+  "settings.agentBehaviour.importMode.tooLarge": "Filen er for stor. Agentdefinitioner skal være under 1 MB.",
+  "settings.agentBehaviour.exportMode": "Eksportér agentdefinition",
   "settings.agentBehaviour.editMode": "Rediger tilstand",
   "settings.agentBehaviour.editMode.description": "Beskrivelse",
   "settings.agentBehaviour.editMode.prompt": "Systemprompt",
@@ -1082,6 +1120,18 @@ export const dict = {
   "settings.agentBehaviour.removeMcp.confirm":
     'Vil du fjerne MCP-serveren "{{name}}"? Dette vil fjerne den fra din konfiguration.',
   "settings.agentBehaviour.removeMcp.button": "Fjern",
+  "settings.agentBehaviour.editMcp": "Rediger MCP-server",
+  "settings.agentBehaviour.editMcp.transportLocal": "Lokal server (stdio-transport)",
+  "settings.agentBehaviour.editMcp.transportRemote": "Fjernserver (SSE/HTTP-transport)",
+  "settings.agentBehaviour.editMcp.env": "Miljøvariabler",
+  "settings.agentBehaviour.editMcp.env.help": "Variabler der sendes til MCP-serverprocessen.",
+  "settings.agentBehaviour.addMcp.command": "Kommando",
+  "settings.agentBehaviour.addMcp.command.placeholder": "e.g. npx",
+  "settings.agentBehaviour.addMcp.args": "Argumenter",
+  "settings.agentBehaviour.addMcp.args.help": "Ét argument per linje. Stier med mellemrum bevares som de er.",
+  "settings.agentBehaviour.addMcp.args.placeholder": "e.g.\n-y\n@modelcontextprotocol/server-filesystem\n/tmp",
+  "settings.agentBehaviour.addMcp.url": "Server-URL",
+  "settings.agentBehaviour.addMcp.url.placeholder": "e.g. http://localhost:3000/sse",
   "settings.agentBehaviour.skillPaths": "Skill-mappestier",
   "settings.agentBehaviour.skillUrls": "Skill-URL'er",
   "settings.agentBehaviour.removeSkill.title": "Fjern færdighed",
@@ -1097,7 +1147,7 @@ export const dict = {
   "settings.agentBehaviour.mcpDetail.env": "Miljø",
   "settings.agentBehaviour.mcpDetail.disabled": "Denne server er deaktiveret.",
   "settings.agentBehaviour.mcpEmpty":
-    "Ingen MCP-servere konfigureret. Rediger opencode-konfigurationsfilen for at tilføje MCP-servere.",
+    "Ingen MCP-servere konfigureret. Tilføj MCP-servere i kilo.jsonc, eller bed agenten om at tilføje dem.",
   "settings.agentBehaviour.workflowsPlaceholder": "Workflows administreres via workflow-filer i dit arbejdsområde.",
   "settings.agentBehaviour.workflows.description":
     "Workflows er brugerdefinerede slash-kommandoer defineret i din konfiguration. Skriv /command-name i chatten for at aktivere dem. Kommandoer konfigureres i opencode.json under sektionen 'command'.",
@@ -1105,7 +1155,7 @@ export const dict = {
     "Ingen brugerdefinerede kommandoer konfigureret. Tilføj kommandoer til opencode.json for at se dem her.",
   "settings.agentBehaviour.workflows.detail.description": "Beskrivelse",
   "settings.agentBehaviour.workflows.detail.template": "Skabelon",
-  "settings.agentBehaviour.notImplemented": "Endnu ikke implementeret.",
+
   "settings.autoApprove.description":
     "Definer, hvordan værktøjer må køre. De fleste værktøjer er som standard indstillet til Tillad. doom_loop og external_directory er som standard indstillet til Spørg.",
   "settings.autoApprove.level.allow": "Tillad",
@@ -1159,7 +1209,8 @@ export const dict = {
   "settings.providers.defaultModel.title": "Standardmodel",
   "settings.providers.defaultModel.description": "Primær model til samtaler",
   "settings.providers.smallModel.title": "Lille model",
-  "settings.providers.smallModel.description": "Letvægtsmodel til titelgenerering og hurtige opgaver",
+  "settings.providers.smallModel.description":
+    "Letvægtsmodel til titelgenerering, generering af commit-beskeder, prompt-forbedring og andre hurtige opgaver",
   "settings.providers.disabled": "Deaktiverede udbydere",
   "settings.providers.disabled.description": "Udbydere at skjule fra listen",
   "settings.providers.enabled": "Aktiverede udbydere (hvidliste)",

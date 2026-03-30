@@ -270,6 +270,7 @@ export const dict = {
   "mcp.status.connected": "tilkoblet",
   "mcp.status.failed": "mislyktes",
   "mcp.status.needs_auth": "trenger autentisering",
+  "mcp.status.needs_registration": "trenger klientregistrering",
   "mcp.status.disabled": "deaktivert",
 
   "dialog.fork.empty": "Ingen meldinger å forgrene fra",
@@ -755,6 +756,20 @@ export const dict = {
   "provider.custom.models.name.placeholder": "Visningsnavn",
   "provider.custom.models.remove": "Fjern modell",
   "provider.custom.models.add": "Legg til modell",
+  "provider.custom.models.fetch": "Hent modeller",
+  "provider.custom.models.fetching": "Henter\u2026",
+  "provider.custom.models.fetch.error": "Kunne ikke hente modeller: {{error}}",
+  "provider.custom.models.fetch.authError": "Autentisering mislyktes. Sjekk API-nøkkelen ovenfor og prøv igjen.",
+  "provider.custom.models.fetch.empty": "Ingen modeller funnet på denne serveren.",
+  "provider.custom.models.fetch.added": "{{count}} modell(er) lagt til.",
+  "provider.custom.models.fetch.allExist": "Alle hentede modeller er allerede lagt til.",
+  "provider.custom.models.fetch.selectAll": "Velg alle",
+  "provider.custom.models.fetch.deselectAll": "Fjern alle valg",
+  "provider.custom.models.fetch.found": "{{count}} modeller funnet",
+  "provider.custom.models.fetch.showing": "Viser {{shown}} av {{total}}",
+  "provider.custom.models.fetch.search": "Søk etter modeller\u2026",
+  "provider.custom.models.fetch.add": "Legg til {{count}} modell(er)",
+  "provider.custom.edit.title": "Rediger leverandør",
   "provider.custom.headers.label": "Headere (valgfritt)",
   "provider.custom.headers.key.label": "Header",
   "provider.custom.headers.key.placeholder": "Header-Name",
@@ -913,8 +928,7 @@ export const dict = {
   "settings.autocomplete.title": "Autofullfør",
   "settings.notifications.title": "Varslinger",
   "settings.context.title": "Kontekst",
-  "settings.terminal.title": "Terminal",
-  "settings.prompts.title": "Meldinger",
+
   "settings.experimental.title": "Eksperimentelt",
   "settings.language.title": "Språk",
   "settings.aboutKiloCode.title": "Om Kilo Code",
@@ -965,6 +979,18 @@ export const dict = {
   "settings.aboutKiloCode.resetSettings.description":
     "Tilbakestill alle Kilo Code-utvidelsesinnstillinger til standardverdier. Dette påvirker ikke CLI- eller backend-konfigurasjon.",
   "settings.aboutKiloCode.resetSettings.button": "Tilbakestill alle innstillinger",
+  "settings.aboutKiloCode.settingsTransfer.title": "Overføring av innstillinger",
+  "settings.aboutKiloCode.settingsTransfer.description":
+    "Eksporter eller importer innstillingene dine for å overføre dem mellom VS Code-instanser.",
+  "settings.aboutKiloCode.exportSettings": "Eksporter",
+  "settings.aboutKiloCode.importSettings": "Importer",
+  "settings.aboutKiloCode.importSettings.invalidJson": "Ugyldig JSON-fil. Vennligst velg en gyldig innstillingsfil.",
+  "settings.aboutKiloCode.importSettings.invalidConfig": "Filen inneholder ikke gyldige Kilo-innstillinger.",
+  "settings.aboutKiloCode.importSettings.tooLarge": "Filen er for stor. Innstillingsfiler må være under 1 MB.",
+  "settings.aboutKiloCode.importSettings.newerVersion":
+    "Denne filen ble eksportert fra en nyere versjon av Kilo. Noen innstillinger kan bli ignorert.",
+  "settings.aboutKiloCode.importSettings.success":
+    "Innstillinger importert. Gjennomgå endringene ovenfor, og klikk deretter på Lagre.",
 
   "settings.agentBehaviour.subtab.modes": "Moduser",
   "settings.agentBehaviour.subtab.agents": "Agents",
@@ -989,8 +1015,7 @@ export const dict = {
 
   "common.add": "Legg til",
   "common.choose": "Velg…",
-  "settings.notImplemented": "Denne seksjonen er ikke implementert ennå.",
-  "settings.notImplemented.description": "Den vil inneholde konfigurasjonsalternativer og forklarende tekst.",
+
   "settings.autocomplete.autoTrigger.title": "Aktiver automatisk innebygd fullføring",
   "settings.autocomplete.autoTrigger.description": "Vis automatisk innebygde fullføringsforslag ved skriving",
   "settings.autocomplete.smartKeybinding.title": "Aktiver smart innebygd oppgavetastbinding",
@@ -1048,6 +1073,12 @@ export const dict = {
   "settings.agentBehaviour.topP.description": "Nucleus-samplingsparameter (0-1)",
   "settings.agentBehaviour.maxSteps.title": "Maks. trinn",
   "settings.agentBehaviour.maxSteps.description": "Maksimale agentiterasjoner",
+  "settings.agentBehaviour.hidden.title": "Skjult",
+  "settings.agentBehaviour.hidden.description": "Skjul denne agenten fra modusvelgeren i chatinntastingen",
+  "settings.agentBehaviour.disable.title": "Deaktivert",
+  "settings.agentBehaviour.disable.description": "Deaktiver denne agenten fullstendig — den vises ikke noe sted",
+  "settings.agentBehaviour.badge.hidden": "skjult",
+  "settings.agentBehaviour.badge.disabled": "deaktivert",
   "settings.agentBehaviour.discoveredSkills": "Oppdagede ferdigheter",
   "settings.agentBehaviour.noSkillsFound":
     "Ingen ferdigheter funnet. Legg til ferdighetsmappestier eller URLer nedenfor for å gjøre ferdigheter tilgjengelige.",
@@ -1070,6 +1101,13 @@ export const dict = {
   "settings.agentBehaviour.createMode.nameRequired": "Navn er påkrevd",
   "settings.agentBehaviour.createMode.nameInvalid": "Navn kan bare inneholde små bokstaver, tall og bindestreker",
   "settings.agentBehaviour.createMode.nameTaken": "En modus med dette navnet eksisterer allerede",
+  "settings.agentBehaviour.importMode": "Importer",
+  "settings.agentBehaviour.importMode.invalidName":
+    "Ugyldig modusnavn i filen. Navnet må starte med en liten bokstav og bare inneholde små bokstaver, tall og bindestreker.",
+  "settings.agentBehaviour.importMode.nameTaken": "En modus med dette navnet eksisterer allerede.",
+  "settings.agentBehaviour.importMode.invalidJson": "Ugyldig JSON-fil. Vennligst velg en gyldig agentdefinisjonsfil.",
+  "settings.agentBehaviour.importMode.tooLarge": "Filen er for stor. Agentdefinisjoner må være under 1 MB.",
+  "settings.agentBehaviour.exportMode": "Eksporter agentdefinisjon",
   "settings.agentBehaviour.editMode": "Rediger modus",
   "settings.agentBehaviour.editMode.description": "Beskrivelse",
   "settings.agentBehaviour.editMode.prompt": "Systemprompt",
@@ -1085,6 +1123,18 @@ export const dict = {
   "settings.agentBehaviour.removeMcp.confirm":
     'Vil du fjerne MCP-serveren "{{name}}"? Dette vil fjerne den fra konfigurasjonen din.',
   "settings.agentBehaviour.removeMcp.button": "Fjern",
+  "settings.agentBehaviour.editMcp": "Rediger MCP-server",
+  "settings.agentBehaviour.editMcp.transportLocal": "Lokal server (stdio-transport)",
+  "settings.agentBehaviour.editMcp.transportRemote": "Ekstern server (SSE/HTTP-transport)",
+  "settings.agentBehaviour.editMcp.env": "Miljøvariabler",
+  "settings.agentBehaviour.editMcp.env.help": "Variabler som sendes til MCP-serverprosessen.",
+  "settings.agentBehaviour.addMcp.command": "Kommando",
+  "settings.agentBehaviour.addMcp.command.placeholder": "e.g. npx",
+  "settings.agentBehaviour.addMcp.args": "Argumenter",
+  "settings.agentBehaviour.addMcp.args.help": "Ett argument per linje. Stier med mellomrom bevares som de er.",
+  "settings.agentBehaviour.addMcp.args.placeholder": "e.g.\n-y\n@modelcontextprotocol/server-filesystem\n/tmp",
+  "settings.agentBehaviour.addMcp.url": "Server-URL",
+  "settings.agentBehaviour.addMcp.url.placeholder": "e.g. http://localhost:3000/sse",
   "settings.agentBehaviour.skillPaths": "Ferdighetsmappe-stier",
   "settings.agentBehaviour.skillUrls": "Ferdighets-URLer",
   "settings.agentBehaviour.removeSkill.title": "Fjern ferdighet",
@@ -1100,7 +1150,7 @@ export const dict = {
   "settings.agentBehaviour.mcpDetail.env": "Miljø",
   "settings.agentBehaviour.mcpDetail.disabled": "Denne serveren er deaktivert.",
   "settings.agentBehaviour.mcpEmpty":
-    "Ingen MCP-servere konfigurert. Rediger opencode-konfigurasjonsfilen for å legge til MCP-servere.",
+    "Ingen MCP-servere konfigurert. Legg til MCP-servere i kilo.jsonc, eller be agenten om å legge dem til.",
   "settings.agentBehaviour.workflowsPlaceholder": "Arbeidsflyter administreres via arbeidsflytfiler i arbeidsområdet.",
   "settings.agentBehaviour.workflows.description":
     "Arbeidsflyter er egendefinerte skråstrekkommandoer definert i konfigurasjonen din. Skriv /command-name i chatten for å kjøre dem. Kommandoer konfigureres i opencode.json under seksjonen 'command'.",
@@ -1108,7 +1158,7 @@ export const dict = {
     "Ingen egendefinerte kommandoer konfigurert. Legg til kommandoer i opencode.json for å se dem her.",
   "settings.agentBehaviour.workflows.detail.description": "Beskrivelse",
   "settings.agentBehaviour.workflows.detail.template": "Mal",
-  "settings.agentBehaviour.notImplemented": "Ikke implementert ennå.",
+
   "settings.autoApprove.description":
     "Definer hvordan verktøy kan kjøre. De fleste verktøy har Tillat som standard. doom_loop og external_directory har Spør som standard.",
   "settings.autoApprove.level.allow": "Tillat",
@@ -1161,7 +1211,8 @@ export const dict = {
   "settings.providers.defaultModel.title": "Standardmodell",
   "settings.providers.defaultModel.description": "Primær modell for samtaler",
   "settings.providers.smallModel.title": "Liten modell",
-  "settings.providers.smallModel.description": "Lettvektsmodell for titelgenerering og raske oppgaver",
+  "settings.providers.smallModel.description":
+    "Lettvektsmodell for titelgenerering, generering av commit-meldinger, prompt-forbedring og andre raske oppgaver",
   "settings.providers.disabled": "Deaktiverte leverandører",
   "settings.providers.disabled.description": "Leverandører å skjule fra listen",
   "settings.providers.enabled": "Aktiverte leverandører (hvitliste)",

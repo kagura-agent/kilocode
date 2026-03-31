@@ -27,6 +27,8 @@ interface ChatViewProps {
   readonly?: boolean
   /** When true, show the "Continue in Worktree" button. Defaults to true in the sidebar. */
   continueInWorktree?: boolean
+  /** Sub-agent type name displayed in the header when viewing a sub-agent session. */
+  agent?: string
 }
 
 export const ChatView: Component<ChatViewProps> = (props) => {
@@ -124,7 +126,7 @@ export const ChatView: Component<ChatViewProps> = (props) => {
 
   return (
     <div class="chat-view">
-      <TaskHeader readonly={props.readonly} />
+      <TaskHeader readonly={props.readonly} agent={props.agent} />
       <div class="chat-messages-wrapper">
         <div class="chat-messages">
           <MessageList onSelectSession={props.onSelectSession} onShowHistory={props.onShowHistory} />

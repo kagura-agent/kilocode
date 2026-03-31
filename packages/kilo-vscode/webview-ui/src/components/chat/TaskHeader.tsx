@@ -16,6 +16,8 @@ import type { TodoItem } from "../../types/messages"
 
 interface TaskHeaderProps {
   readonly?: boolean
+  /** Sub-agent type name (e.g. "explore", "code") shown in the header for popout viewers. */
+  agent?: string
 }
 
 export const TaskHeader: Component<TaskHeaderProps> = (props) => {
@@ -67,6 +69,16 @@ export const TaskHeader: Component<TaskHeaderProps> = (props) => {
           {title()}
         </div>
         <div data-slot="task-header-stats">
+          <Show when={props.agent}>
+            {(agent) => (
+              <Tooltip value="Sub-agent type" placement="bottom">
+                <span data-slot="task-header-agent">
+                  <Icon name="brain" size="small" />
+                  {agent()}
+                </span>
+              </Tooltip>
+            )}
+          </Show>
           <Show when={cost()}>
             {(c) => (
               <Tooltip value={language.t("context.usage.sessionCost")} placement="bottom">

@@ -21,7 +21,7 @@ export class SubAgentViewerProvider implements vscode.Disposable {
     private readonly context: vscode.ExtensionContext,
   ) {}
 
-  openPanel(sessionID: string, title?: string): void {
+  openPanel(sessionID: string, title?: string, agent?: string): void {
     const existing = this.panels.get(sessionID)
     if (existing) {
       existing.reveal(vscode.ViewColumn.One)
@@ -75,7 +75,7 @@ export class SubAgentViewerProvider implements vscode.Disposable {
         })
 
         // Navigate to the sub-agent viewer
-        provider.postMessage({ type: "viewSubAgentSession", sessionID })
+        provider.postMessage({ type: "viewSubAgentSession", sessionID, agent })
       } catch (err) {
         console.error("[Kilo New] SubAgentViewerProvider: Failed to load session:", err)
       }

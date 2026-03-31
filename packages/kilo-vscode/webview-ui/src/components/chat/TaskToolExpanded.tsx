@@ -75,7 +75,12 @@ const TaskToolRenderer: Component<ToolProps> = (props) => {
     e.stopPropagation()
     const id = childSessionId()
     if (!id) return
-    vscode.postMessage({ type: "openSubAgentViewer", sessionID: id, title: description() })
+    vscode.postMessage({
+      type: "openSubAgentViewer",
+      sessionID: id,
+      title: description(),
+      agent: props.input.subagent_type as string | undefined,
+    })
   }
 
   const trigger = () => (

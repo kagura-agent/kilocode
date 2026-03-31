@@ -1139,6 +1139,7 @@ export interface EnhancePromptErrorMessage {
 export interface ViewSubAgentSessionMessage {
   type: "viewSubAgentSession"
   sessionID: string
+  agent?: string
 }
 
 export interface DiffViewerDiffsMessage {
@@ -1920,6 +1921,7 @@ export interface OpenSubAgentViewerRequest {
   type: "openSubAgentViewer"
   sessionID: string
   title?: string
+  agent?: string
 }
 
 // Preview an image attachment in VS Code's built-in image viewer

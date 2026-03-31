@@ -137,6 +137,7 @@ export const LanguageBridge: Component<{ children: any }> = (props) => {
 const AppContent: Component = () => {
   const [currentView, setCurrentView] = createSignal<ViewType>("newTask")
   const [settingsTab, setSettingsTab] = createSignal<string | undefined>()
+  const [subagent, setSubagent] = createSignal<string | undefined>()
   // legacy-migration: state-driven flag independent of currentView to avoid
   // race conditions with SettingsEditorProvider's navigate messages.
   const [migrationNeeded, setMigrationNeeded] = createSignal(false)
@@ -202,6 +203,7 @@ const AppContent: Component = () => {
       if (message?.type === "viewSubAgentSession" && message.sessionID) {
         console.log("[Kilo New] App: 🔍 viewSubAgentSession:", message.sessionID)
         session.setCurrentSessionID(message.sessionID)
+        setSubagent(message.agent)
         setCurrentView("subAgentViewer")
       }
       // legacy-migration: state-driven migration wizard
@@ -257,7 +259,7 @@ const AppContent: Component = () => {
               />
             </Match>
             <Match when={currentView() === "subAgentViewer"}>
-              <ChatView readonly />
+              <ChatView readonly agent={subagent()} />
             </Match>
           </Switch>
         }

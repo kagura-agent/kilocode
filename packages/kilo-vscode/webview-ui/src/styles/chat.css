@@ -64,6 +64,19 @@
 }
 
 /* ============================================
+   Task Header Agent Badge
+   ============================================ */
+
+[data-slot="task-header-agent"] {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--text-weak);
+  text-transform: capitalize;
+}
+
+/* ============================================
    Chat View Layout
    ============================================ */
 

@@ -92,6 +92,28 @@ export const ChatViewIdle: Story = {
   ),
 }
 
+/** ChatView finished state — shows the "Task complete" banner when the agent is idle after completing work */
+export const ChatViewFinished: Story = {
+  name: "ChatView — finished (task complete banner)",
+  render: () => {
+    const session = {
+      ...mockSessionValue({ id: SESSION_ID, status: "idle" }),
+      messages: () => [{ id: "msg-001" }] as any[],
+      totalCost: () => 0.0042,
+      contextUsage: () => ({ tokens: 1024, percentage: 12 }),
+    }
+    return (
+      <StoryProviders sessionID={SESSION_ID} status="idle" noPadding>
+        <SessionContext.Provider value={session as any}>
+          <div style={{ width: "100%", height: "300px", display: "flex", "flex-direction": "column" }}>
+            <ChatView />
+          </div>
+        </SessionContext.Provider>
+      </StoryProviders>
+    )
+  },
+}
+
 /** ChatView with messages — shows the full-width "New task" button above the prompt */
 export const ChatViewWithMessages: Story = {
   name: "ChatView — with messages (shows New Task button)",

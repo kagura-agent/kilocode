@@ -171,6 +171,31 @@
   overflow-y: auto;
 }
 
+/* Chat Finished Banner */
+.chat-finished-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px 4px;
+  color: var(--text-success, var(--vscode-testing-iconPassed, #5cb85c));
+}
+
+.chat-finished-line {
+  flex: 1;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.3;
+}
+
+.chat-finished-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  white-space: nowrap;
+  opacity: 0.8;
+}
+
 /* New Task Button */
 .new-task-button-wrapper {
   padding: 8px 12px 0;

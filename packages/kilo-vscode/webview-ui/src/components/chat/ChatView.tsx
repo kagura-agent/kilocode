@@ -149,6 +149,23 @@ export const ChatView: Component<ChatViewProps> = (props) => {
             )}
           </Show>
           <Show when={!props.readonly && hasMessages() && idle() && !blocked()}>
+            <div class="chat-finished-banner" aria-label={language.t("chat.task.complete")}>
+              <span class="chat-finished-line" />
+              <span class="chat-finished-label">
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 16 16"
+                  fill="currentColor"
+                  aria-hidden="true"
+                  style={{ "flex-shrink": "0" }}
+                >
+                  <path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.75.75 0 0 1 1.06-1.06L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0z" />
+                </svg>
+                {language.t("chat.task.complete")}
+              </span>
+              <span class="chat-finished-line" />
+            </div>
             <div class="new-task-button-wrapper">
               <div class="session-actions-row">
                 <Tooltip value="Start a new conversation" placement="top">

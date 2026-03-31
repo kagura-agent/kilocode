@@ -969,7 +969,9 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
           // KiloProvider instance. The Settings panel is a separate provider with no tracked
           // sessions, but it needs session.status to populate sessionStatusMap and allStatusMap
           // for the busy-session warning on Save.
-          if (event.type === "session.status") return true
+          // session.created must also pass through so new sessions (created externally or via
+          // SSE before trackedSessionIds is populated) can reach handleEvent and be registered.
+          if (event.type === "session.status" || event.type === "session.created") return true
 
           return this.trackedSessionIds.has(sessionId)
         },
@@ -2516,7 +2518,10 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
     if (!sessionID && (event.type === "message.part.updated" || event.type === "message.part.delta")) {
       return
     }
-    if (sessionID && !this.trackedSessionIds.has(sessionID)) {
+    // session.created is exempt: the new session's ID is not yet in trackedSessionIds, but we
+    // need to forward it so the webview session list is updated. The tracking side-effect below
+    // (lines ~2548-2551) will add it to trackedSessionIds when appropriate.
+    if (sessionID && !this.trackedSessionIds.has(sessionID) && event.type !== "session.created") {
       return
     }
 

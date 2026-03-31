@@ -945,6 +945,7 @@ export const dict = {
   "prompt.placeholder.default": "Skriv en besked... (Enter for at sende, Shift+Enter for ny linje)",
 
   "context.usage.sessionCost": "Sessionsomkostning",
+  "context.stats.thisSession": "Denne session",
 
   "time.justNow": "lige nu",
   "time.minutesAgo": "{{count}} min. siden",
@@ -1076,6 +1077,7 @@ export const dict = {
   "settings.agentBehaviour.disable.description": "Deaktiver denne agent fuldstændigt — den vises ingen steder",
   "settings.agentBehaviour.badge.hidden": "skjult",
   "settings.agentBehaviour.badge.disabled": "deaktiveret",
+  "settings.agentBehaviour.badge.deprecated": "Udfaset",
   "settings.agentBehaviour.discoveredSkills": "Opdagede skills",
   "settings.agentBehaviour.noSkillsFound":
     "Ingen skills fundet. Tilføj skill-mappestier eller URL'er nedenfor for at gøre skills tilgængelige.",
@@ -1234,7 +1236,6 @@ export const dict = {
 
   // Screen 1 — What's New
   "migration.whatsNew.title": "Nyheder i Kilo Code",
-  "migration.whatsNew.badge": "Beta",
   "migration.whatsNew.subtitle": "Vi har genopbygget udvidelsen på et hurtigere og mere effektivt fundament.",
   "migration.whatsNew.features.performance.title": "Hurtigere agentydelse",
   "migration.whatsNew.features.performance.detail":
@@ -1260,7 +1261,6 @@ export const dict = {
   "migration.migrate.chatHistoryDesc": "Ikke kompatibel med den nye arkitektur",
   "migration.migrate.button": "Migrer indstillinger",
   "migration.migrate.skip": "Spring over",
-  "migration.migrate.back": "Tilbage",
   "migration.migrate.keysDetected": "{{count}} nøgler fundet",
   "migration.migrate.serversConfigured": "{{count}} server(e) konfigureret",
   "migration.migrate.modesFound": "{{count}} tilstand(e) fundet",
@@ -1281,6 +1281,11 @@ export const dict = {
   "migration.complete.cleanupDescription":
     "Dette fjerner de gamle indstillinger fra VS Code-lageret. Du vil ikke kunne køre denne migrering igen.",
   "migration.complete.done": "Færdig",
+  "migration.migrate.sessionsDetected": "{{count}} sessioner fundet",
+  "migration.error.sessionFailed": "Sessionsmigrering mislykkedes",
+  "migration.error.continue": "Fortsæt",
+  "migration.error.action.copy": "Kopiér",
+  "migration.error.toast.copied": "Fejl kopieret til udklipsholder",
   // legacy-migration end
 
   "error.details.show": "Detaljer",
@@ -1294,8 +1299,7 @@ export const dict = {
   "settings.saveBar.warning.many": "Flere sessioner kører og vil blive afbrudt",
   "settings.saveBar.saveAnyway": "Gem alligevel",
   "settings.saveBar.cancel": "Annuller",
-  "notifications.action.previous": "Previous",
-  "notifications.action.next": "Next",
-  "notifications.action.close": "Close",
-  "notifications.action.tryModel": "Try model",
+  "notifications.action.next": "Næste",
+  "notifications.action.close": "Luk",
+  "notifications.action.tryModel": "Prøv {{model}}",
 }

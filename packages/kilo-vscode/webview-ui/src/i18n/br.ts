@@ -947,6 +947,7 @@ export const dict = {
   "prompt.placeholder.default": "Digite uma mensagem... (Enter para enviar, Shift+Enter para nova linha)",
 
   "context.usage.sessionCost": "Custo da sessão",
+  "context.stats.thisSession": "Esta sessão",
 
   "time.justNow": "agora mesmo",
   "time.minutesAgo": "{{count}} min atrás",
@@ -1084,6 +1085,7 @@ export const dict = {
     "Desativar completamente este agente — ele não aparecerá em nenhum lugar",
   "settings.agentBehaviour.badge.hidden": "oculto",
   "settings.agentBehaviour.badge.disabled": "desativado",
+  "settings.agentBehaviour.badge.deprecated": "Descontinuado",
   "settings.agentBehaviour.discoveredSkills": "Habilidades descobertas",
   "settings.agentBehaviour.noSkillsFound":
     "Nenhuma habilidade encontrada. Adicione caminhos de pastas ou URLs abaixo para disponibilizar habilidades.",
@@ -1248,7 +1250,6 @@ export const dict = {
 
   // Screen 1 — What's New
   "migration.whatsNew.title": "O Que Há de Novo no Kilo Code",
-  "migration.whatsNew.badge": "Beta",
   "migration.whatsNew.subtitle": "Reconstruímos a extensão sobre uma base mais rápida e eficiente.",
   "migration.whatsNew.features.performance.title": "Desempenho de Agente Mais Rápido",
   "migration.whatsNew.features.performance.detail":
@@ -1273,7 +1274,6 @@ export const dict = {
   "migration.migrate.chatHistoryDesc": "Incompatível com a nova arquitetura",
   "migration.migrate.button": "Migrar Configurações",
   "migration.migrate.skip": "Pular",
-  "migration.migrate.back": "Voltar",
   "migration.migrate.keysDetected": "{{count}} chaves detectadas",
   "migration.migrate.serversConfigured": "{{count}} servidor(es) configurado(s)",
   "migration.migrate.modesFound": "{{count}} modo(s) encontrado(s)",
@@ -1294,6 +1294,11 @@ export const dict = {
   "migration.complete.cleanupDescription":
     "Isso remove as configurações antigas do armazenamento do VS Code. Você não poderá executar esta migração novamente.",
   "migration.complete.done": "Concluído",
+  "migration.migrate.sessionsDetected": "{{count}} sessões detectadas",
+  "migration.error.sessionFailed": "Falha na migração da sessão",
+  "migration.error.continue": "Continuar",
+  "migration.error.action.copy": "Copiar",
+  "migration.error.toast.copied": "Erro copiado para a área de transferência",
   // legacy-migration end
 
   "error.details.show": "Detalhes",
@@ -1307,8 +1312,7 @@ export const dict = {
   "settings.saveBar.warning.many": "Várias sessões estão em execução e serão interrompidas",
   "settings.saveBar.saveAnyway": "Salvar mesmo assim",
   "settings.saveBar.cancel": "Cancelar",
-  "notifications.action.previous": "Previous",
-  "notifications.action.next": "Next",
-  "notifications.action.close": "Close",
-  "notifications.action.tryModel": "Try model",
+  "notifications.action.next": "Próximo",
+  "notifications.action.close": "Fechar",
+  "notifications.action.tryModel": "Experimentar {{model}}",
 }

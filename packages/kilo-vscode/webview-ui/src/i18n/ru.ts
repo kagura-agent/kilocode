@@ -952,6 +952,7 @@ export const dict = {
   "prompt.placeholder.default": "Введите сообщение... (Enter для отправки, Shift+Enter для новой строки)",
 
   "context.usage.sessionCost": "Стоимость сессии",
+  "context.stats.thisSession": "Эта сессия",
 
   "time.justNow": "только что",
   "time.minutesAgo": "{{count}} мин. назад",
@@ -1082,6 +1083,7 @@ export const dict = {
   "settings.agentBehaviour.disable.description": "Полностью отключить этого агента — он не будет отображаться нигде",
   "settings.agentBehaviour.badge.hidden": "скрытый",
   "settings.agentBehaviour.badge.disabled": "отключён",
+  "settings.agentBehaviour.badge.deprecated": "Устаревший",
   "settings.agentBehaviour.discoveredSkills": "Обнаруженные навыки",
   "settings.agentBehaviour.noSkillsFound":
     "Навыки не обнаружены. Добавьте пути к папкам навыков или URL-адреса ниже, чтобы сделать навыки доступными.",
@@ -1242,7 +1244,6 @@ export const dict = {
 
   // Screen 1 — What's New
   "migration.whatsNew.title": "Что нового в Kilo Code",
-  "migration.whatsNew.badge": "Beta",
   "migration.whatsNew.subtitle": "Мы перестроили расширение на более быстрой и эффективной основе.",
   "migration.whatsNew.features.performance.title": "Более быстрая работа агента",
   "migration.whatsNew.features.performance.detail":
@@ -1267,7 +1268,6 @@ export const dict = {
   "migration.migrate.chatHistoryDesc": "Несовместимы с новой архитектурой",
   "migration.migrate.button": "Перенести настройки",
   "migration.migrate.skip": "Пропустить",
-  "migration.migrate.back": "Назад",
   "migration.migrate.keysDetected": "Обнаружено ключей: {{count}}",
   "migration.migrate.serversConfigured": "Настроено серверов: {{count}}",
   "migration.migrate.modesFound": "Найдено режимов: {{count}}",
@@ -1288,6 +1288,11 @@ export const dict = {
   "migration.complete.cleanupDescription":
     "Это удалит старые настройки из хранилища VS Code. Вы не сможете запустить эту миграцию повторно.",
   "migration.complete.done": "Готово",
+  "migration.migrate.sessionsDetected": "Обнаружено {{count}} сеансов",
+  "migration.error.sessionFailed": "Не удалось перенести сеанс",
+  "migration.error.continue": "Продолжить",
+  "migration.error.action.copy": "Копировать",
+  "migration.error.toast.copied": "Ошибка скопирована в буфер обмена",
   // legacy-migration end
 
   "error.details.show": "Подробности",
@@ -1301,8 +1306,7 @@ export const dict = {
   "settings.saveBar.warning.many": "Несколько сеансов выполняются и будут прерваны",
   "settings.saveBar.saveAnyway": "Сохранить в любом случае",
   "settings.saveBar.cancel": "Отмена",
-  "notifications.action.previous": "Previous",
-  "notifications.action.next": "Next",
-  "notifications.action.close": "Close",
-  "notifications.action.tryModel": "Try model",
+  "notifications.action.next": "Далее",
+  "notifications.action.close": "Закрыть",
+  "notifications.action.tryModel": "Попробовать {{model}}",
 }

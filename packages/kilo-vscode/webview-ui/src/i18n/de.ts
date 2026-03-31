@@ -958,6 +958,7 @@ export const dict = {
   "prompt.placeholder.default": "Nachricht eingeben... (Enter zum Senden, Shift+Enter für neue Zeile)",
 
   "context.usage.sessionCost": "Sitzungskosten",
+  "context.stats.thisSession": "Diese Sitzung",
 
   "time.justNow": "gerade eben",
   "time.minutesAgo": "vor {{count}} Min.",
@@ -1096,6 +1097,7 @@ export const dict = {
   "settings.agentBehaviour.disable.description": "Diesen Agent vollständig deaktivieren — er wird nirgends angezeigt",
   "settings.agentBehaviour.badge.hidden": "versteckt",
   "settings.agentBehaviour.badge.disabled": "deaktiviert",
+  "settings.agentBehaviour.badge.deprecated": "Veraltet",
   "settings.agentBehaviour.discoveredSkills": "Erkannte Skills",
   "settings.agentBehaviour.noSkillsFound":
     "Keine Skills gefunden. Fügen Sie unten Skill-Ordnerpfade oder URLs hinzu, um Skills verfügbar zu machen.",
@@ -1260,7 +1262,6 @@ export const dict = {
 
   // Screen 1 — What's New
   "migration.whatsNew.title": "Neuigkeiten in Kilo Code",
-  "migration.whatsNew.badge": "Beta",
   "migration.whatsNew.subtitle":
     "Wir haben die Erweiterung auf einer schnelleren, effizienteren Grundlage neu aufgebaut.",
   "migration.whatsNew.features.performance.title": "Schnellere Agentenleistung",
@@ -1287,7 +1288,6 @@ export const dict = {
   "migration.migrate.chatHistoryDesc": "Nicht kompatibel mit der neuen Architektur",
   "migration.migrate.button": "Einstellungen migrieren",
   "migration.migrate.skip": "Überspringen",
-  "migration.migrate.back": "Zurück",
   "migration.migrate.keysDetected": "{{count}} Schlüssel erkannt",
   "migration.migrate.serversConfigured": "{{count}} Server konfiguriert",
   "migration.migrate.modesFound": "{{count}} Modus/Modi gefunden",
@@ -1308,6 +1308,11 @@ export const dict = {
   "migration.complete.cleanupDescription":
     "Dadurch werden die alten Einstellungen aus dem VS Code-Speicher entfernt. Sie können diese Migration danach nicht erneut ausführen.",
   "migration.complete.done": "Fertig",
+  "migration.migrate.sessionsDetected": "{{count}} Sitzungen erkannt",
+  "migration.error.sessionFailed": "Sitzungsmigration fehlgeschlagen",
+  "migration.error.continue": "Weiter",
+  "migration.error.action.copy": "Kopieren",
+  "migration.error.toast.copied": "Fehler in die Zwischenablage kopiert",
   // legacy-migration end
 
   "error.details.show": "Details",
@@ -1321,8 +1326,7 @@ export const dict = {
   "settings.saveBar.warning.many": "Mehrere Sitzungen laufen und werden unterbrochen",
   "settings.saveBar.saveAnyway": "Trotzdem speichern",
   "settings.saveBar.cancel": "Abbrechen",
-  "notifications.action.previous": "Previous",
-  "notifications.action.next": "Next",
-  "notifications.action.close": "Close",
-  "notifications.action.tryModel": "Try model",
+  "notifications.action.next": "Weiter",
+  "notifications.action.close": "Schließen",
+  "notifications.action.tryModel": "{{model}} ausprobieren",
 } satisfies Partial<Record<Keys, string>>

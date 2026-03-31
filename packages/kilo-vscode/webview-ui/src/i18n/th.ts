@@ -940,6 +940,7 @@ export const dict = {
   "prompt.placeholder.default": "พิมพ์ข้อความ... (Enter เพื่อส่ง, Shift+Enter เพื่อขึ้นบรรทัดใหม่)",
 
   "context.usage.sessionCost": "ค่าใช้จ่ายเซสชัน",
+  "context.stats.thisSession": "เซสชันนี้",
 
   "time.justNow": "เมื่อสักครู่",
   "time.minutesAgo": "{{count}} นาทีที่แล้ว",
@@ -1068,6 +1069,7 @@ export const dict = {
   "settings.agentBehaviour.disable.description": "ปิดใช้งานเอเจนต์นี้อย่างสมบูรณ์ — จะไม่ปรากฏที่ใดเลย",
   "settings.agentBehaviour.badge.hidden": "ซ่อน",
   "settings.agentBehaviour.badge.disabled": "ปิดใช้งาน",
+  "settings.agentBehaviour.badge.deprecated": "เลิกใช้",
   "settings.agentBehaviour.discoveredSkills": "ทักษะที่ค้นพบ",
   "settings.agentBehaviour.noSkillsFound": "ไม่พบทักษะ เพิ่มเส้นทางโฟลเดอร์หรือ URL ด้านล่างเพื่อทำให้ทักษะพร้อมใช้งาน",
   "settings.agentBehaviour.availableModes": "โหมดกำหนดเองที่ใช้ได้",
@@ -1218,7 +1220,6 @@ export const dict = {
 
   // Screen 1 — What's New
   "migration.whatsNew.title": "มีอะไรใหม่ใน Kilo Code",
-  "migration.whatsNew.badge": "Beta",
   "migration.whatsNew.subtitle": "เราได้สร้างส่วนขยายใหม่บนรากฐานที่เร็วและมีประสิทธิภาพมากขึ้น",
   "migration.whatsNew.features.performance.title": "ประสิทธิภาพเอเจนต์ที่เร็วขึ้น",
   "migration.whatsNew.features.performance.detail":
@@ -1243,7 +1244,6 @@ export const dict = {
   "migration.migrate.chatHistoryDesc": "เข้ากันไม่ได้กับสถาปัตยกรรมใหม่",
   "migration.migrate.button": "ย้ายการตั้งค่า",
   "migration.migrate.skip": "ข้าม",
-  "migration.migrate.back": "ย้อนกลับ",
   "migration.migrate.keysDetected": "ตรวจพบ {{count}} คีย์",
   "migration.migrate.serversConfigured": "กำหนดค่า {{count}} เซิร์ฟเวอร์",
   "migration.migrate.modesFound": "พบ {{count}} โหมด",
@@ -1264,6 +1264,11 @@ export const dict = {
   "migration.complete.cleanupDescription":
     "การดำเนินการนี้จะลบการตั้งค่าเดิมจากที่เก็บข้อมูล VS Code คุณจะไม่สามารถเรียกใช้การย้ายข้อมูลนี้ได้อีก",
   "migration.complete.done": "เสร็จสิ้น",
+  "migration.migrate.sessionsDetected": "ตรวจพบ {{count}} เซสชัน",
+  "migration.error.sessionFailed": "การย้ายเซสชันล้มเหลว",
+  "migration.error.continue": "ดำเนินการต่อ",
+  "migration.error.action.copy": "คัดลอก",
+  "migration.error.toast.copied": "คัดลอกข้อผิดพลาดไปยังคลิปบอร์ดแล้ว",
   // legacy-migration end
 
   "error.details.show": "รายละเอียด",
@@ -1277,8 +1282,7 @@ export const dict = {
   "settings.saveBar.warning.many": "มีหลายเซสชันกำลังทำงานและจะถูกขัดจังหวะ",
   "settings.saveBar.saveAnyway": "บันทึกต่อไป",
   "settings.saveBar.cancel": "ยกเลิก",
-  "notifications.action.previous": "Previous",
-  "notifications.action.next": "Next",
-  "notifications.action.close": "Close",
-  "notifications.action.tryModel": "Try model",
+  "notifications.action.next": "ถัดไป",
+  "notifications.action.close": "ปิด",
+  "notifications.action.tryModel": "ลองใช้ {{model}}",
 }

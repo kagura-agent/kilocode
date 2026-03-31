@@ -598,6 +598,13 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
                 error: err instanceof Error ? err.message : String(err),
               })
             })
+          } else if (message.sessionId) {
+            console.error("[Kilo New] continueInWorktree: no handler registered")
+            this.postMessage({
+              type: "continueInWorktreeProgress",
+              status: "error",
+              error: "Continue in Worktree is not available",
+            })
           }
           break
         case "retryConnection":
@@ -1521,6 +1528,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
           mode: a.mode,
           native: a.native,
           color: a.color,
+          deprecated: a.deprecated,
         })),
         defaultAgent,
       }
@@ -2801,6 +2809,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
       set migrationCheckInFlight(val) {
         self.migrationCheckInFlight = val
       },
+      refreshSessions: () => this.refreshSessions(),
       disposeGlobal: () => this.disposeGlobal(),
       broadcastComplete: () => this.connectionService.notifyMigrationComplete(),
     }

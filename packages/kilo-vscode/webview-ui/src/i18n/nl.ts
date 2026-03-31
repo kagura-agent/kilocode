@@ -945,6 +945,7 @@ export const dict = {
   "prompt.placeholder.error": "Verbinding mislukt. Controleer het uitvoerpaneel of herstart de extensie.",
 
   "context.usage.sessionCost": "Sessiekosten",
+  "context.stats.thisSession": "Deze sessie",
 
   "time.justNow": "zojuist",
   "time.minutesAgo": "{{count}} min geleden",
@@ -1086,6 +1087,7 @@ export const dict = {
   "settings.agentBehaviour.disable.description": "Schakel deze agent volledig uit — deze verschijnt nergens",
   "settings.agentBehaviour.badge.hidden": "verborgen",
   "settings.agentBehaviour.badge.disabled": "uitgeschakeld",
+  "settings.agentBehaviour.badge.deprecated": "Verouderd",
   "settings.agentBehaviour.discoveredSkills": "Ontdekte Skills",
   "settings.agentBehaviour.noSkillsFound":
     "Geen skills ontdekt. Voeg hieronder skill mappaden of URL's toe om skills beschikbaar te maken.",
@@ -1238,7 +1240,6 @@ export const dict = {
 
   // Screen 1 — What's New
   "migration.whatsNew.title": "Wat is er Nieuw in Kilo Code",
-  "migration.whatsNew.badge": "Bèta",
   "migration.whatsNew.subtitle": "We hebben de extensie opnieuw opgebouwd op een snellere, efficiëntere basis.",
   "migration.whatsNew.features.performance.title": "Snellere Agent Prestaties",
   "migration.whatsNew.features.performance.detail":
@@ -1264,7 +1265,6 @@ export const dict = {
   "migration.migrate.chatHistoryDesc": "Niet compatibel met de nieuwe architectuur",
   "migration.migrate.button": "Migreer Instellingen",
   "migration.migrate.skip": "Overslaan",
-  "migration.migrate.back": "Terug",
   "migration.migrate.keysDetected": "{{count}} sleutels gedetecteerd",
   "migration.migrate.serversConfigured": "{{count}} server(s) geconfigureerd",
   "migration.migrate.modesFound": "{{count}} modus(sen) gevonden",
@@ -1285,6 +1285,11 @@ export const dict = {
   "migration.complete.cleanupDescription":
     "Dit verwijdert de oude instellingen uit de VS Code-opslag. U zult deze migratie niet opnieuw kunnen uitvoeren.",
   "migration.complete.done": "Klaar",
+  "migration.migrate.sessionsDetected": "{{count}} sessies gedetecteerd",
+  "migration.error.sessionFailed": "Sessiemigratie is mislukt",
+  "migration.error.continue": "Doorgaan",
+  "migration.error.action.copy": "Kopiëren",
+  "migration.error.toast.copied": "Fout gekopieerd naar het klembord",
   // legacy-migration end
 
   "error.details.show": "Details",
@@ -1299,8 +1304,7 @@ export const dict = {
   "settings.saveBar.warning.many": "Meerdere sessies zijn actief en worden onderbroken",
   "settings.saveBar.saveAnyway": "Toch opslaan",
   "settings.saveBar.cancel": "Annuleren",
-  "notifications.action.previous": "Previous",
-  "notifications.action.next": "Next",
-  "notifications.action.close": "Close",
-  "notifications.action.tryModel": "Try model",
+  "notifications.action.next": "Volgende",
+  "notifications.action.close": "Sluiten",
+  "notifications.action.tryModel": "Probeer {{model}}",
 }

@@ -17,6 +17,7 @@ import type {
 import { PROVIDER_MAP, UNSUPPORTED_PROVIDERS, DEFAULT_MODE_SLUGS } from "./provider-mapping"
 import type { ProviderMapping } from "./provider-mapping"
 import { NATIVE_MODE_DEFAULTS } from "./native-mode-defaults"
+import { getMigrationErrorMessage } from "./errors/migration-error"
 import type {
   LegacyProviderProfiles,
   LegacyProviderSettings,
@@ -32,8 +33,9 @@ import type {
   MigrationProviderInfo,
   MigrationMcpServerInfo,
   MigrationCustomModeInfo,
-  MigrationResultItem,
 } from "./legacy-types"
+import type { MigrationResultItem } from "./migration-types"
+import { createSessionID } from "./sessions/lib/ids"
 import { migrate as migrateSession } from "./sessions/migrate"
 
 // ---------------------------------------------------------------------------
@@ -250,19 +252,16 @@ export async function migrate(
 
   if (selections.sessions?.length) {
     for (const id of selections.sessions) {
-      onProgress("Chat sessions", "migrating")
+      onProgress(id, "migrating")
       const result = await migrateSession(id, context, client)
+      const reason = result.ok ? "Session migrated" : result.message
       results.push({
         item: id,
         category: "session",
         status: result.ok ? "success" : "error",
-        message: result.ok ? "Session migrated" : "Session migration failed",
+        message: reason,
       })
-      onProgress(
-        "Chat sessions",
-        result.ok ? "success" : "error",
-        result.ok ? "Session migrated" : "Session migration failed",
-      )
+      onProgress(id, result.ok ? "success" : "error", reason)
     }
   }
 
@@ -704,7 +703,7 @@ async function migrateAutocomplete(settings: LegacyAutocompleteSettings): Promis
       item: "Autocomplete settings",
       category: "settings",
       status: "error",
-      message: err instanceof Error ? err.message : String(err),
+      message: getMigrationErrorMessage(err),
     }
   }
 }
@@ -752,7 +751,7 @@ async function migrateLanguage(language: string): Promise<MigrationResultItem> {
       item: "Language preference",
       category: "settings",
       status: "error",
-      message: err instanceof Error ? err.message : String(err),
+      message: getMigrationErrorMessage(err),
     }
   }
 }

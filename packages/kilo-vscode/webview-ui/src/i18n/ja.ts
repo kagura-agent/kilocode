@@ -944,6 +944,7 @@ export const dict = {
   "prompt.placeholder.default": "メッセージを入力... (Enterで送信、Shift+Enterで改行)",
 
   "context.usage.sessionCost": "セッションコスト",
+  "context.stats.thisSession": "このセッション",
 
   "time.justNow": "たった今",
   "time.minutesAgo": "{{count}}分前",
@@ -1280,6 +1281,11 @@ export const dict = {
   "migration.complete.cleanupDescription":
     "VS Codeのストレージから古い設定を削除します。この移行を再度実行することはできなくなります。",
   "migration.complete.done": "完了",
+  "migration.migrate.sessionsDetected": "{{count}} 件のセッションが見つかりました",
+  "migration.error.sessionFailed": "セッションの移行に失敗しました",
+  "migration.error.continue": "続行",
+  "migration.error.action.copy": "コピー",
+  "migration.error.toast.copied": "エラーをクリップボードにコピーしました",
   // legacy-migration end
 
   "error.details.show": "詳細",

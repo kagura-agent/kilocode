@@ -958,6 +958,7 @@ export const dict = {
   "prompt.placeholder.default": "Nachricht eingeben... (Enter zum Senden, Shift+Enter für neue Zeile)",
 
   "context.usage.sessionCost": "Sitzungskosten",
+  "context.stats.thisSession": "Diese Sitzung",
 
   "time.justNow": "gerade eben",
   "time.minutesAgo": "vor {{count}} Min.",
@@ -1308,6 +1309,11 @@ export const dict = {
   "migration.complete.cleanupDescription":
     "Dadurch werden die alten Einstellungen aus dem VS Code-Speicher entfernt. Sie können diese Migration danach nicht erneut ausführen.",
   "migration.complete.done": "Fertig",
+  "migration.migrate.sessionsDetected": "{{count}} Sitzungen erkannt",
+  "migration.error.sessionFailed": "Sitzungsmigration fehlgeschlagen",
+  "migration.error.continue": "Weiter",
+  "migration.error.action.copy": "Kopieren",
+  "migration.error.toast.copied": "Fehler in die Zwischenablage kopiert",
   // legacy-migration end
 
   "error.details.show": "Details",

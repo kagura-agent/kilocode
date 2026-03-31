@@ -953,6 +953,7 @@ export const dict = {
   "prompt.placeholder.default": "Escribe un mensaje... (Enter para enviar, Shift+Enter para nueva línea)",
 
   "context.usage.sessionCost": "Coste de la sesión",
+  "context.stats.thisSession": "Esta sesión",
 
   "time.justNow": "justo ahora",
   "time.minutesAgo": "hace {{count}} min",
@@ -1281,6 +1282,7 @@ export const dict = {
   "migration.migrate.keysDetected": "{{count}} claves detectadas",
   "migration.migrate.serversConfigured": "{{count}} servidor(es) configurado(s)",
   "migration.migrate.modesFound": "{{count}} modo(s) encontrado(s)",
+  "migration.migrate.sessionsDetected": "{{count}} sesiones detectadas",
   "migration.migrate.nothingToMigrate": "No se encontró nada para migrar en la configuración heredada.",
 
   // Migrate — item labels (reused from old select keys)
@@ -1298,6 +1300,10 @@ export const dict = {
   "migration.complete.cleanupDescription":
     "Esto elimina la configuración antigua del almacenamiento de VS Code. No podrás volver a ejecutar esta migración.",
   "migration.complete.done": "Hecho",
+  "migration.error.sessionFailed": "La migración de la sesión falló",
+  "migration.error.continue": "Continuar",
+  "migration.error.action.copy": "Copiar",
+  "migration.error.toast.copied": "Error copiado al portapapeles",
   // legacy-migration end
 
   "error.details.show": "Detalles",

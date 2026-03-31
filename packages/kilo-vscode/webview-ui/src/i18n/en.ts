@@ -945,6 +945,7 @@ export const dict = {
   "prompt.placeholder.error": "Connection failed. Check the output panel or restart the extension.",
 
   "context.usage.sessionCost": "Session cost",
+  "context.stats.thisSession": "This session",
 
   "time.justNow": "just now",
   "time.minutesAgo": "{{count}} min ago",
@@ -1274,6 +1275,7 @@ export const dict = {
   "migration.migrate.keysDetected": "{{count}} keys detected",
   "migration.migrate.serversConfigured": "{{count}} server(s) configured",
   "migration.migrate.modesFound": "{{count}} mode(s) found",
+  "migration.migrate.sessionsDetected": "{{count}} sessions detected",
   "migration.migrate.nothingToMigrate": "Nothing to migrate was found in the legacy settings.",
 
   // Migrate — item labels (reused from old select keys)
@@ -1291,6 +1293,10 @@ export const dict = {
   "migration.complete.cleanupDescription":
     "This removes the old settings from VS Code storage. You will not be able to re-run this migration.",
   "migration.complete.done": "Done",
+  "migration.error.sessionFailed": "Session migration failed",
+  "migration.error.continue": "Continue",
+  "migration.error.action.copy": "Copy",
+  "migration.error.toast.copied": "Error copied to clipboard",
   // legacy-migration end
 
   "error.details.show": "Details",

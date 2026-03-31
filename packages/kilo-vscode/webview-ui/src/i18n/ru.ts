@@ -952,6 +952,7 @@ export const dict = {
   "prompt.placeholder.default": "Введите сообщение... (Enter для отправки, Shift+Enter для новой строки)",
 
   "context.usage.sessionCost": "Стоимость сессии",
+  "context.stats.thisSession": "Эта сессия",
 
   "time.justNow": "только что",
   "time.minutesAgo": "{{count}} мин. назад",
@@ -1288,6 +1289,11 @@ export const dict = {
   "migration.complete.cleanupDescription":
     "Это удалит старые настройки из хранилища VS Code. Вы не сможете запустить эту миграцию повторно.",
   "migration.complete.done": "Готово",
+  "migration.migrate.sessionsDetected": "Обнаружено {{count}} сеансов",
+  "migration.error.sessionFailed": "Не удалось перенести сеанс",
+  "migration.error.continue": "Продолжить",
+  "migration.error.action.copy": "Копировать",
+  "migration.error.toast.copied": "Ошибка скопирована в буфер обмена",
   // legacy-migration end
 
   "error.details.show": "Подробности",

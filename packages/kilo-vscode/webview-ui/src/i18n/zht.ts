@@ -934,6 +934,7 @@ export const dict = {
   "prompt.placeholder.default": "輸入訊息... (Enter 送出，Shift+Enter 換行)",
 
   "context.usage.sessionCost": "工作階段費用",
+  "context.stats.thisSession": "此工作階段",
 
   "time.justNow": "剛剛",
   "time.minutesAgo": "{{count}} 分鐘前",
@@ -1244,6 +1245,11 @@ export const dict = {
   "migration.complete.cleanup": "清除舊版設定資料",
   "migration.complete.cleanupDescription": "此操作將從 VS Code 儲存中刪除舊版設定。您將無法再次執行此遷移。",
   "migration.complete.done": "完成",
+  "migration.migrate.sessionsDetected": "偵測到 {{count}} 個工作階段",
+  "migration.error.sessionFailed": "工作階段遷移失敗",
+  "migration.error.continue": "繼續",
+  "migration.error.action.copy": "複製",
+  "migration.error.toast.copied": "錯誤已複製到剪貼簿",
   // legacy-migration end
 
   "error.details.show": "詳細資訊",

@@ -9,6 +9,7 @@ const target = (input: unknown) => input as never
 
 export namespace SessionImportService {
   export async function project(input: SessionImportType.Project): Promise<SessionImportType.Result> {
+
     // Do not resolve an empty legacy worktree, because that would fall back to the current
     // process directory and silently attach the migrated session to the wrong project.
     if (!input.worktree.trim()) {

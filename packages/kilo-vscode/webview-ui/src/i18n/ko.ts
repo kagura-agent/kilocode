@@ -944,6 +944,7 @@ export const dict = {
   "prompt.placeholder.default": "메시지를 입력하세요... (Enter로 전송, Shift+Enter로 줄 바꿈)",
 
   "context.usage.sessionCost": "세션 비용",
+  "context.stats.thisSession": "이 세션",
 
   "time.justNow": "방금",
   "time.minutesAgo": "{{count}}분 전",
@@ -1268,6 +1269,11 @@ export const dict = {
   "migration.complete.cleanupDescription":
     "이 작업은 VS Code 저장소에서 이전 설정을 제거합니다. 이 마이그레이션을 다시 실행할 수 없게 됩니다.",
   "migration.complete.done": "완료",
+  "migration.migrate.sessionsDetected": "{{count}}개의 세션이 감지되었습니다",
+  "migration.error.sessionFailed": "세션 마이그레이션에 실패했습니다",
+  "migration.error.continue": "계속",
+  "migration.error.action.copy": "복사",
+  "migration.error.toast.copied": "오류가 클립보드에 복사되었습니다",
   // legacy-migration end
 
   "error.details.show": "상세 정보",

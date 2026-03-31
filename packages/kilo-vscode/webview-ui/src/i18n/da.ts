@@ -945,6 +945,7 @@ export const dict = {
   "prompt.placeholder.default": "Skriv en besked... (Enter for at sende, Shift+Enter for ny linje)",
 
   "context.usage.sessionCost": "Sessionsomkostning",
+  "context.stats.thisSession": "Denne session",
 
   "time.justNow": "lige nu",
   "time.minutesAgo": "{{count}} min. siden",
@@ -1281,6 +1282,11 @@ export const dict = {
   "migration.complete.cleanupDescription":
     "Dette fjerner de gamle indstillinger fra VS Code-lageret. Du vil ikke kunne køre denne migrering igen.",
   "migration.complete.done": "Færdig",
+  "migration.migrate.sessionsDetected": "{{count}} sessioner fundet",
+  "migration.error.sessionFailed": "Sessionsmigrering mislykkedes",
+  "migration.error.continue": "Fortsæt",
+  "migration.error.action.copy": "Kopiér",
+  "migration.error.toast.copied": "Fejl kopieret til udklipsholder",
   // legacy-migration end
 
   "error.details.show": "Detaljer",

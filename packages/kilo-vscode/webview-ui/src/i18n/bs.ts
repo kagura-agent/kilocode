@@ -952,6 +952,7 @@ export const dict = {
   "prompt.placeholder.default": "Unesite poruku... (Enter za slanje, Shift+Enter za novi red)",
 
   "context.usage.sessionCost": "Cijena sesije",
+  "context.stats.thisSession": "Ova sesija",
 
   "time.justNow": "upravo sada",
   "time.minutesAgo": "prije {{count}} min",
@@ -1290,6 +1291,11 @@ export const dict = {
   "migration.complete.cleanupDescription":
     "Ovo uklanja stare postavke iz VS Code pohrane. Nećete moći ponovo pokrenuti ovu migraciju.",
   "migration.complete.done": "Završeno",
+  "migration.migrate.sessionsDetected": "Otkrivene {{count}} sesije",
+  "migration.error.sessionFailed": "Migracija sesije nije uspjela",
+  "migration.error.continue": "Nastavi",
+  "migration.error.action.copy": "Kopiraj",
+  "migration.error.toast.copied": "Greška kopirana u međuspremnik",
   // legacy-migration end
 
   "error.details.show": "Detalji",

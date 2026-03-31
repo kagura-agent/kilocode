@@ -932,6 +932,7 @@ export const dict = {
   "prompt.placeholder.default": "输入消息... (Enter 发送，Shift+Enter 换行)",
 
   "context.usage.sessionCost": "会话费用",
+  "context.stats.thisSession": "此会话",
 
   "time.justNow": "刚刚",
   "time.minutesAgo": "{{count}} 分钟前",
@@ -1241,6 +1242,11 @@ export const dict = {
   "migration.complete.cleanup": "清除旧版设置数据",
   "migration.complete.cleanupDescription": "此操作将从 VS Code 存储中删除旧版设置。您将无法再次运行此迁移。",
   "migration.complete.done": "完成",
+  "migration.migrate.sessionsDetected": "检测到 {{count}} 个会话",
+  "migration.error.sessionFailed": "会话迁移失败",
+  "migration.error.continue": "继续",
+  "migration.error.action.copy": "复制",
+  "migration.error.toast.copied": "错误已复制到剪贴板",
   // legacy-migration end
 
   "error.details.show": "详细信息",

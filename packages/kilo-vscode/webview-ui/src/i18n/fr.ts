@@ -959,6 +959,7 @@ export const dict = {
   "prompt.placeholder.default": "Tapez un message... (Entrée pour envoyer, Maj+Entrée pour un saut de ligne)",
 
   "context.usage.sessionCost": "Coût de la session",
+  "context.stats.thisSession": "Cette session",
 
   "time.justNow": "à l'instant",
   "time.minutesAgo": "il y a {{count}} min",
@@ -1311,6 +1312,11 @@ export const dict = {
   "migration.complete.cleanupDescription":
     "Cela supprime les anciens paramètres du stockage de VS Code. Vous ne pourrez pas réexécuter cette migration.",
   "migration.complete.done": "Terminé",
+  "migration.migrate.sessionsDetected": "{{count}} sessions détectées",
+  "migration.error.sessionFailed": "La migration de la session a échoué",
+  "migration.error.continue": "Continuer",
+  "migration.error.action.copy": "Copier",
+  "migration.error.toast.copied": "Erreur copiée dans le presse-papiers",
   // legacy-migration end
 
   "error.details.show": "Détails",

@@ -948,6 +948,7 @@ export const dict = {
   "prompt.placeholder.error": "Bağlantı başarısız. Çıktı panelini kontrol edin veya uzantıyı yeniden başlatın.",
 
   "context.usage.sessionCost": "Oturum maliyeti",
+  "context.stats.thisSession": "Bu oturum",
 
   "time.justNow": "az önce",
   "time.minutesAgo": "{{count}} dk önce",
@@ -1278,6 +1279,11 @@ export const dict = {
   "migration.complete.cleanupDescription":
     "Bu, VS Code depolamasından eski ayarları kaldırır. Bu taşımayı yeniden çalıştıramazsınız.",
   "migration.complete.done": "Bitti",
+  "migration.migrate.sessionsDetected": "{{count}} oturum bulundu",
+  "migration.error.sessionFailed": "Oturum taşıma işlemi başarısız oldu",
+  "migration.error.continue": "Devam et",
+  "migration.error.action.copy": "Kopyala",
+  "migration.error.toast.copied": "Hata panoya kopyalandı",
   // legacy-migration end
 
   "error.details.show": "Ayrıntılar",

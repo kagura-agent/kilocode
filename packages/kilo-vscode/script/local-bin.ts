@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 import { $ } from "bun"
 import { join, relative, dirname, basename } from "node:path"
-import { chmodSync, statSync, rmSync, readdirSync, existsSync } from "node:fs"
+import { chmodSync, statSync, rmSync, readdirSync, existsSync, mkdirSync, copyFileSync } from "node:fs"
 
 const forceRebuild = process.argv.includes("--force")
 
@@ -175,8 +175,8 @@ async function main() {
   }
 
   const sourceBinPath = await ensureBuiltBinary()
-  await $`mkdir -p ${targetBinDir}`
-  await $`cp ${sourceBinPath} ${targetBinPath}`
+  mkdirSync(targetBinDir, { recursive: true })
+  copyFileSync(sourceBinPath, targetBinPath)
   chmodSync(targetBinPath, 0o755)
 
   // Record the CLI source version so future runs detect when a rebuild is needed

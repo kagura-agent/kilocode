@@ -1084,6 +1084,7 @@ export const dict = {
     "Desativar completamente este agente — ele não aparecerá em nenhum lugar",
   "settings.agentBehaviour.badge.hidden": "oculto",
   "settings.agentBehaviour.badge.disabled": "desativado",
+  "settings.agentBehaviour.badge.deprecated": "Descontinuado",
   "settings.agentBehaviour.discoveredSkills": "Habilidades descobertas",
   "settings.agentBehaviour.noSkillsFound":
     "Nenhuma habilidade encontrada. Adicione caminhos de pastas ou URLs abaixo para disponibilizar habilidades.",

@@ -1066,6 +1066,7 @@ export const dict = {
   "settings.agentBehaviour.disable.description": "تعطيل هذا الوكيل بالكامل — لن يظهر في أي مكان",
   "settings.agentBehaviour.badge.hidden": "مخفي",
   "settings.agentBehaviour.badge.disabled": "معطل",
+  "settings.agentBehaviour.badge.deprecated": "مُهمَل",
   "settings.agentBehaviour.discoveredSkills": "المهارات المكتشفة",
   "settings.agentBehaviour.noSkillsFound":
     "لم يتم العثور على مهارات. أضف مسارات مجلدات أو عناوين URL أدناه لإتاحة المهارات.",

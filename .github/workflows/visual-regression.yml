@@ -12,7 +12,7 @@ jobs:
       matched: ${{ steps.filter.outputs.matched }}
       is_fork: ${{ steps.fork-check.outputs.is_fork }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: Kilo-Org/paths-filter@master
         id: filter
         with:
@@ -47,7 +47,7 @@ jobs:
     steps:
       - name: Checkout (internal)
         if: needs.check-paths.outputs.is_fork != 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           lfs: true
           token: ${{ secrets.BOT_PAT }}
@@ -55,7 +55,7 @@ jobs:
 
       - name: Checkout (fork)
         if: needs.check-paths.outputs.is_fork == 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           lfs: true
 
@@ -71,13 +71,18 @@ jobs:
             echo "is_baseline_update=false" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
 
       - name: Cache Bun modules
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.bun/install/cache
           key: bun-${{ hashFiles('bun.lock') }}
@@ -87,7 +92,7 @@ jobs:
 
       - name: Cache Playwright browsers
         id: playwright-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ hashFiles('packages/kilo-ui/package.json') }}
@@ -103,7 +108,7 @@ jobs:
 
       - name: Cache Storybook build
         id: storybook-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: packages/kilo-ui/storybook-static
           key: storybook-${{ hashFiles('packages/kilo-ui/src/**', 'packages/kilo-ui/.storybook/**', 'packages/ui/src/**', 'packages/kilo-ui/package.json') }}
@@ -195,7 +200,7 @@ jobs:
 
       - name: Upload test results on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: visual-regression-results
           path: packages/kilo-ui/test-results/
@@ -211,7 +216,7 @@ jobs:
     steps:
       - name: Checkout (internal)
         if: needs.check-paths.outputs.is_fork != 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           lfs: true
           token: ${{ secrets.BOT_PAT }}
@@ -219,7 +224,7 @@ jobs:
 
       - name: Checkout (fork)
         if: needs.check-paths.outputs.is_fork == 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           lfs: true
 
@@ -235,13 +240,18 @@ jobs:
             echo "is_baseline_update=false" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
 
       - name: Cache Bun modules
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.bun/install/cache
           key: bun-${{ hashFiles('bun.lock') }}
@@ -251,7 +261,7 @@ jobs:
 
       - name: Cache Playwright browsers
         id: playwright-cache-vscode
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/ms-playwright
           key: playwright-vscode-${{ hashFiles('packages/kilo-vscode/package.json') }}
@@ -267,7 +277,7 @@ jobs:
 
       - name: Cache Storybook build
         id: storybook-cache-vscode
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: packages/kilo-vscode/storybook-static
           key: storybook-vscode-${{ hashFiles('packages/kilo-vscode/webview-ui/src/**', 'packages/kilo-vscode/.storybook/**', 'packages/kilo-ui/src/**', 'packages/ui/src/**', 'packages/kilo-vscode/package.json') }}
@@ -393,7 +403,7 @@ jobs:
 
       - name: Upload test results on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: visual-regression-vscode-results
           path: packages/kilo-vscode/test-results/

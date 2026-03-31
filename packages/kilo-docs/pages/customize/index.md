@@ -1,4 +1,4 @@
-﻿---
+---
 title: "Customize"
 description: "Make Kilo Code work your way with custom modes, rules, instructions, and more"
 ---

@@ -1083,7 +1083,6 @@ export const dict = {
   "settings.agentBehaviour.disable.description": "Bu ajanı tamamen devre dışı bırak — hiçbir yerde görünmeyecek",
   "settings.agentBehaviour.badge.hidden": "gizli",
   "settings.agentBehaviour.badge.disabled": "devre dışı",
-  "settings.agentBehaviour.badge.deprecated": "Kullanımdan kaldırılmış",
   "settings.agentBehaviour.discoveredSkills": "Keşfedilen Beceriler",
   "settings.agentBehaviour.noSkillsFound":
     "Keşfedilen beceri yok. Becerileri kullanılabilir kılmak için aşağıya beceri klasör yolları veya URL'ler ekleyin.",

@@ -1086,7 +1086,6 @@ export const dict = {
   "settings.agentBehaviour.disable.description": "Schakel deze agent volledig uit — deze verschijnt nergens",
   "settings.agentBehaviour.badge.hidden": "verborgen",
   "settings.agentBehaviour.badge.disabled": "uitgeschakeld",
-  "settings.agentBehaviour.badge.deprecated": "Verouderd",
   "settings.agentBehaviour.discoveredSkills": "Ontdekte Skills",
   "settings.agentBehaviour.noSkillsFound":
     "Geen skills ontdekt. Voeg hieronder skill mappaden of URL's toe om skills beschikbaar te maken.",

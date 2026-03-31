@@ -156,7 +156,16 @@ function detect(): string {
   }
 
   const found = candidates.find((c) => existsSync(c))
-  if (found) return found
+  if (found) {
+    // On Windows, Code.exe is the raw Electron binary and cannot be launched directly
+    // with folder/extension args — use the bin/code.cmd (or code-insiders.cmd) wrapper instead.
+    if (win) {
+      const cmd = found.toLowerCase().includes("insiders") ? "code-insiders.cmd" : "code.cmd"
+      const wrapper = join(found, "..", "bin", cmd)
+      if (existsSync(wrapper)) return wrapper
+    }
+    return found
+  }
 
   // Last resort: PATH lookup
   const path = insiders ? (which("code-insiders") ?? which("code")) : (which("code") ?? which("code-insiders"))
@@ -309,7 +318,9 @@ async function launch() {
   console.log(`[launch] State:      ${base}`)
 
   if (blocking) {
-    const result = Bun.spawnSync([app, ...args], {
+    // On Windows, .cmd files cannot be executed directly — invoke via cmd.exe /c.
+    const cmd = win && app.endsWith(".cmd") ? ["cmd.exe", "/c", app, ...args] : [app, ...args]
+    const result = Bun.spawnSync(cmd, {
       cwd: workspace,
       env: process.env,
       stdio: ["ignore", "inherit", "inherit"],
@@ -318,12 +329,17 @@ async function launch() {
     return
   }
 
-  const child = spawn(app, args, {
+  // On Windows, .cmd files require shell:true. Quote all args so cmd.exe
+  // handles paths with spaces correctly.
+  const spawnArgs = win ? args.map((a) => (a.includes(" ") ? `"${a}"` : a)) : args
+  const child = spawn(win ? `"${app}"` : app, spawnArgs, {
     cwd: workspace,
     detached: !win,
     env: process.env,
     stdio: "ignore",
+    ...(win ? { shell: true } : {}),
   })
+
   child.unref()
 
   console.log(`[launch] VS Code launched (pid ${child.pid})`)

@@ -1991,9 +1991,10 @@ export interface RequestRecentsMessage {
   type: "requestRecents"
 }
 
-export interface PersistFavoritesRequest {
-  type: "persistFavorites"
-  favorites: ModelSelection[]
+export interface ToggleFavoriteRequest {
+  type: "toggleFavorite"
+  providerID: string
+  modelID: string
 }
 
 export interface RequestFavoritesMessage {
@@ -2141,7 +2142,7 @@ export type WebviewMessage =
   | FetchCustomProviderModelsMessage
   | PersistRecentsRequest
   | RequestRecentsMessage
-  | PersistFavoritesRequest
+  | ToggleFavoriteRequest
   | RequestFavoritesMessage
   | ContinueInWorktreeRequest
 

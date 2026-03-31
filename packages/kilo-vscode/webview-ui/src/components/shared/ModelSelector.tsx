@@ -498,18 +498,14 @@ export const ModelSelectorBase: Component<ModelSelectorBaseProps> = (props) => {
                                   aria-pressed={starred()}
                                   onClick={(e) => {
                                     e.stopPropagation()
-                                    // Preserve scroll + selection position — toggling moves
-                                    // the model between groups which shifts DOM content and
-                                    // changes all indices in the flat list.
+                                    // Preserve scroll position — toggling moves the model
+                                    // between groups which shifts DOM content.
                                     const scroll = listRef?.scrollTop
-                                    const pos = selectedIndex()
                                     suppressScroll = true
                                     session!.toggleFavorite(model.providerID, model.id)
-                                    // Clamp selection to the new list length so it stays
-                                    // in-place (pointing at the next item) instead of
-                                    // following the model to its new group.
-                                    const max = flatFiltered().length - 1 + clearOffset()
-                                    setSelectedIndex(Math.min(pos, max))
+                                    // Clear keyboard selection — the model moved to a
+                                    // different group so any numeric index is stale.
+                                    setSelectedIndex(-1)
                                     setPreActiveIdx(-1)
                                     if (scroll !== undefined) {
                                       queueMicrotask(() => {

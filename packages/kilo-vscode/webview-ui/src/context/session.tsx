@@ -601,8 +601,11 @@ export const SessionProvider: ParentComponent = (props) => {
       existing >= 0
         ? store.favoriteModels.filter((_, i) => i !== existing)
         : [...store.favoriteModels, { providerID, modelID }]
+    // Optimistically update local store, then send delta to extension host
+    // which merges against the authoritative globalState — avoids lost-update
+    // races when multiple webviews toggle simultaneously.
     setStore("favoriteModels", updated)
-    vscode.postMessage({ type: "persistFavorites", favorites: updated })
+    vscode.postMessage({ type: "toggleFavorite", providerID, modelID })
   }
 
   // Handle messages from extension

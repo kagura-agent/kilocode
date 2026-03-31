@@ -835,8 +835,16 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
           this.postMessage({ type: "recentsLoaded", recents })
           break
         }
-        case "persistFavorites": {
-          const favorites = validateFavorites(message.favorites)
+        case "toggleFavorite": {
+          // Merge against authoritative globalState to avoid lost-update races
+          // when multiple webviews toggle favorites simultaneously.
+          const current = validateFavorites(this.extensionContext?.globalState.get("favoriteModels"))
+          const key = `${message.providerID}/${message.modelID}`
+          const idx = current.findIndex((f) => `${f.providerID}/${f.modelID}` === key)
+          const favorites =
+            idx >= 0
+              ? current.filter((_, i) => i !== idx)
+              : [...current, { providerID: message.providerID, modelID: message.modelID }]
           await this.extensionContext?.globalState.update("favoriteModels", favorites)
           this.connectionService.notifyFavoritesChanged(favorites)
           break

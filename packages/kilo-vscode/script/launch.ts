@@ -323,7 +323,6 @@ async function launch() {
     detached: !win,
     env: process.env,
     stdio: "ignore",
-    ...(win ? { shell: true } : {}),
   })
   child.unref()
 

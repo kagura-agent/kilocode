@@ -48,6 +48,7 @@ export const dict = {
 
   "command.session.new": "새 세션",
   "command.session.new.task": "새 작업",
+  "chat.task.complete": "작업 완료",
   "command.session.show.changes": "변경 사항 보기",
   "command.file.open": "파일 열기",
   "command.tab.close": "탭 닫기",

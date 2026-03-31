@@ -44,6 +44,7 @@ export const dict = {
 
   "command.session.new": "Yeni oturum",
   "command.session.new.task": "Yeni görev",
+  "chat.task.complete": "Görev tamamlandı",
   "command.session.show.changes": "Değişiklikleri Göster",
   "command.file.open": "Dosya aç",
   "command.tab.close": "Sekmeyi kapat",

@@ -48,6 +48,7 @@ export const dict = {
 
   "command.session.new": "新建会话",
   "command.session.new.task": "新建任务",
+  "chat.task.complete": "任务完成",
   "command.session.show.changes": "显示更改",
   "command.file.open": "打开文件",
   "command.tab.close": "关闭标签页",

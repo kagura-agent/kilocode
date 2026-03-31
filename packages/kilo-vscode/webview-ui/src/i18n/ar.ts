@@ -44,6 +44,7 @@ export const dict = {
 
   "command.session.new": "جلسة جديدة",
   "command.session.new.task": "مهمة جديدة",
+  "chat.task.complete": "اكتملت المهمة",
   "command.session.show.changes": "إظهار التغييرات",
   "command.file.open": "فتح ملف",
   "command.tab.close": "إغلاق علامة التبويب",

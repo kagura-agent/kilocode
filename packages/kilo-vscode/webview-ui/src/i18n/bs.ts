@@ -952,6 +952,7 @@ export const dict = {
   "prompt.placeholder.default": "Unesite poruku... (Enter za slanje, Shift+Enter za novi red)",
 
   "context.usage.sessionCost": "Cijena sesije",
+  "context.stats.parentSession": "Roditeljska sesija",
 
   "time.justNow": "upravo sada",
   "time.minutesAgo": "prije {{count}} min",

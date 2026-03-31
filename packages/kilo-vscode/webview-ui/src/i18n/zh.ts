@@ -932,6 +932,7 @@ export const dict = {
   "prompt.placeholder.default": "输入消息... (Enter 发送，Shift+Enter 换行)",
 
   "context.usage.sessionCost": "会话费用",
+  "context.stats.parentSession": "父会话",
 
   "time.justNow": "刚刚",
   "time.minutesAgo": "{{count}} 分钟前",

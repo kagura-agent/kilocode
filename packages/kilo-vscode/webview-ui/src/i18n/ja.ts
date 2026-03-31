@@ -944,6 +944,7 @@ export const dict = {
   "prompt.placeholder.default": "メッセージを入力... (Enterで送信、Shift+Enterで改行)",
 
   "context.usage.sessionCost": "セッションコスト",
+  "context.stats.parentSession": "親セッション",
 
   "time.justNow": "たった今",
   "time.minutesAgo": "{{count}}分前",

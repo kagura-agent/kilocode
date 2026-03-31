@@ -959,6 +959,7 @@ export const dict = {
   "prompt.placeholder.default": "Tapez un message... (Entrée pour envoyer, Maj+Entrée pour un saut de ligne)",
 
   "context.usage.sessionCost": "Coût de la session",
+  "context.stats.parentSession": "Session parente",
 
   "time.justNow": "à l'instant",
   "time.minutesAgo": "il y a {{count}} min",

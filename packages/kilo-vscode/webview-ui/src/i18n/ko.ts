@@ -944,6 +944,7 @@ export const dict = {
   "prompt.placeholder.default": "메시지를 입력하세요... (Enter로 전송, Shift+Enter로 줄 바꿈)",
 
   "context.usage.sessionCost": "세션 비용",
+  "context.stats.parentSession": "상위 세션",
 
   "time.justNow": "방금",
   "time.minutesAgo": "{{count}}분 전",

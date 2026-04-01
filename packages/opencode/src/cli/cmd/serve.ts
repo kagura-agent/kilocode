@@ -44,7 +44,12 @@ export const ServeCommand = cmd({
     // pipe. If the extension host is hard-killed (crash, OOM) the write-end of
     // the pipe is closed by the OS, causing an EOF here. We detect that and
     // trigger a clean shutdown so no zombie process is left behind.
-    if (process.env["KILO_CLIENT"] === "vscode") {
+    //
+    // Windows is excluded: detached child processes with a piped stdin on
+    // Windows see an immediate EOF (the write-end is not held open the same
+    // way), which would trigger shutdown() before the server can start.
+    // On Windows the SIGTERM path in server-manager.ts is sufficient.
+    if (process.env["KILO_CLIENT"] === "vscode" && process.platform !== "win32") {
       process.stdin.resume()
       process.stdin.on("end", () => {
         shutdown().catch(() => {})

@@ -1,3 +1,4 @@
+$ bun run --conditions=browser ./src/index.ts generate
 {
   "openapi": "3.1.1",
   "info": {
@@ -5805,6 +5806,9 @@
                     },
                     "id": {
                       "type": "string"
+                    },
+                    "skipped": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -5927,6 +5931,9 @@
                     },
                     "id": {
                       "type": "string"
+                    },
+                    "skipped": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -6106,6 +6113,9 @@
                     },
                     "id": {
                       "type": "string"
+                    },
+                    "skipped": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -6368,6 +6378,9 @@
                     },
                     "id": {
                       "type": "string"
+                    },
+                    "skipped": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -13975,6 +13988,10 @@
             "description": "@deprecated Use 'share' field instead. Share newly created sessions automatically",
             "type": "boolean"
           },
+          "remote_control": {
+            "description": "Enable remote control of sessions via Kilo Cloud. Equivalent to running /remote on startup.",
+            "type": "boolean"
+          },
           "autoupdate": {
             "description": "Automatically update to the latest version. Set to true to auto-update, false to disable, or 'notify' to show update notifications",
             "anyOf": [
@@ -15808,6 +15825,9 @@
             "type": "string"
           },
           "prompt": {
+            "type": "string"
+          },
+          "displayPrompt": {
             "type": "string"
           },
           "options": {

@@ -16,6 +16,9 @@ import PROMPT_ASK from "./prompt/ask.txt"
 import PROMPT_ORCHESTRATOR from "./prompt/orchestrator.txt"
 import PROMPT_SUMMARY from "./prompt/summary.txt"
 import PROMPT_TITLE from "./prompt/title.txt"
+// kilocode_change start - import base prompt for display in agent settings
+import PROMPT_ANTHROPIC from "../session/prompt/anthropic.txt"
+// kilocode_change end
 
 import { PermissionNext } from "@/permission/next"
 import { NamedError } from "@opencode-ai/util/error" // kilocode_change
@@ -50,6 +53,7 @@ export namespace Agent {
         .optional(),
       variant: z.string().optional(),
       prompt: z.string().optional(),
+      displayPrompt: z.string().optional(), // kilocode_change - display-only prompt shown in agent settings UI
       options: z.record(z.string(), z.any()),
       steps: z.number().int().positive().optional(),
     })
@@ -209,6 +213,7 @@ export namespace Agent {
       code: {
         name: "code",
         description: "The default agent. Executes tools based on configured permissions.",
+        displayPrompt: PROMPT_ANTHROPIC,
         // kilocode_change end
         options: {},
         permission: PermissionNext.merge(
@@ -225,6 +230,7 @@ export namespace Agent {
       plan: {
         name: "plan",
         description: "Plan mode. Disallows all edit tools.",
+        displayPrompt: PROMPT_ANTHROPIC, // kilocode_change - base prompt for display in agent settings UI
         options: {},
         permission: PermissionNext.merge(
           defaults,

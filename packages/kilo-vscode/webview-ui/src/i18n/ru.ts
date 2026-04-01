@@ -759,6 +759,13 @@ export const dict = {
   "provider.custom.models.name.placeholder": "Отображаемое имя",
   "provider.custom.models.remove": "Удалить модель",
   "provider.custom.models.add": "Добавить модель",
+
+  "provider.custom.models.advanced.label": "Расширенные настройки модели",
+  "provider.custom.models.context.label": "Контекстное окно",
+  "provider.custom.models.output.label": "Максимум выходных токенов",
+  "provider.custom.models.inputPrice.label": "Цена входа",
+  "provider.custom.models.outputPrice.label": "Цена выхода",
+  "provider.custom.models.price.unit": "USD / 1M токенов",
   "provider.custom.models.fetch": "Получить модели",
   "provider.custom.models.fetching": "Загрузка\u2026",
   "provider.custom.models.fetch.error": "Не удалось получить модели: {{error}}",
@@ -788,6 +795,9 @@ export const dict = {
   "provider.custom.error.baseURL.format": "Должен начинаться с http:// или https://",
   "provider.custom.error.required": "Обязательно",
   "provider.custom.error.duplicate": "Дубликат",
+
+  "provider.custom.error.positiveInteger": "Должно быть положительным целым числом",
+  "provider.custom.error.nonNegativeNumber": "Должно быть неотрицательным числом",
   "settings.models.title": "Модели",
   "settings.models.description": "Настройки моделей будут доступны здесь.",
   "settings.agents.title": "Агенты",

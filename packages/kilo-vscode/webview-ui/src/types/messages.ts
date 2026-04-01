@@ -338,7 +338,23 @@ export interface ProviderConfig {
   name?: string
   api_key?: string
   base_url?: string
-  models?: Record<string, unknown>
+  models?: Record<
+    string,
+    {
+      name?: string
+      cost?: {
+        input?: number
+        output?: number
+        cache_read?: number
+        cache_write?: number
+      }
+      limit?: {
+        context?: number
+        input?: number
+        output?: number
+      }
+    }
+  >
   npm?: string
   env?: string[]
   options?: Record<string, unknown>

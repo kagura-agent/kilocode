@@ -758,6 +758,13 @@ export const dict = {
   "provider.custom.models.name.placeholder": "Naziv za prikaz",
   "provider.custom.models.remove": "Ukloni model",
   "provider.custom.models.add": "Dodaj model",
+
+  "provider.custom.models.advanced.label": "Napredne postavke modela",
+  "provider.custom.models.context.label": "Kontekstni prozor",
+  "provider.custom.models.output.label": "Maksimalni izlazni tokeni",
+  "provider.custom.models.inputPrice.label": "Cijena ulaza",
+  "provider.custom.models.outputPrice.label": "Cijena izlaza",
+  "provider.custom.models.price.unit": "USD / 1M tokena",
   "provider.custom.models.fetch": "Preuzmi modele",
   "provider.custom.models.fetching": "Preuzimanje\u2026",
   "provider.custom.models.fetch.error": "Preuzimanje modela nije uspjelo: {{error}}",
@@ -788,6 +795,9 @@ export const dict = {
   "provider.custom.error.baseURL.format": "Mora početi sa http:// ili https://",
   "provider.custom.error.required": "Obavezno",
   "provider.custom.error.duplicate": "Duplikat",
+
+  "provider.custom.error.positiveInteger": "Mora biti pozitivan cijeli broj",
+  "provider.custom.error.nonNegativeNumber": "Mora biti nenegativan broj",
   "settings.models.title": "Modeli",
   "settings.models.description": "Postavke modela će se ovdje moći podešavati.",
   "settings.agents.title": "Agenti",

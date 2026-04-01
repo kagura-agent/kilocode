@@ -1,9 +1,35 @@
+import type { ProviderConfig } from "@kilocode/sdk/v2"
 import { z } from "zod"
 import { CUSTOM_PROVIDER_PACKAGE, PROVIDER_ID_PATTERN } from "./provider-model"
 
 const INVALID_PROVIDER_ID = "Invalid provider ID"
 const INVALID_ENV = "Invalid environment variable name"
 const INVALID_BASE_URL = "Base URL must start with http:// or https://"
+
+const CostSchema = z
+  .object({
+    input: z.number().finite().nonnegative().optional(),
+    output: z.number().finite().nonnegative().optional(),
+    cache_read: z.number().finite().nonnegative().optional(),
+    cache_write: z.number().finite().nonnegative().optional(),
+  })
+  .strict()
+
+const LimitSchema = z
+  .object({
+    context: z.number().int().positive().optional(),
+    input: z.number().int().positive().optional(),
+    output: z.number().int().positive().optional(),
+  })
+  .strict()
+
+const ModelSchema = z
+  .object({
+    name: z.string().trim().min(1).max(200),
+    cost: CostSchema.optional(),
+    limit: LimitSchema.optional(),
+  })
+  .strict()
 
 export const ProviderIDSchema = z.string().trim().regex(PROVIDER_ID_PATTERN, INVALID_PROVIDER_ID)
 export const EnvSchema = z
@@ -28,33 +54,51 @@ export const CustomProviderConfigSchema = z
       })
       .strict(),
     models: z
-      .record(
-        z.string().trim().min(1),
-        z
-          .object({
-            name: z.string().trim().min(1).max(200),
-          })
-          .strict(),
-      )
+      .record(z.string().trim().min(1), ModelSchema)
       .refine((value) => Object.keys(value).length > 0, "At least one model is required"),
   })
   .strict()
 
-export type SanitizedProviderConfig = {
+type SanitizedProviderModel = NonNullable<NonNullable<ProviderConfig["models"]>[string]>
+
+export type SanitizedProviderConfig = ProviderConfig & {
   npm: typeof CUSTOM_PROVIDER_PACKAGE
   name: string
-  env?: string[]
   options: {
     baseURL: string
     headers?: Record<string, string>
   }
-  models: Record<string, { name: string }>
+  models: Record<string, SanitizedProviderModel>
 }
 
 type Issue = { error: string; issue?: z.ZodIssue }
 
 function fail(error: string, issue?: z.ZodIssue): Issue {
   return issue ? { error, issue } : { error }
+}
+
+function normalizeModel(model: z.output<typeof ModelSchema>): SanitizedProviderModel {
+  const cost = model.cost
+    ? {
+        input: model.cost.input ?? 0,
+        output: model.cost.output ?? 0,
+        ...(model.cost.cache_read !== undefined ? { cache_read: model.cost.cache_read } : {}),
+        ...(model.cost.cache_write !== undefined ? { cache_write: model.cost.cache_write } : {}),
+      }
+    : undefined
+  const limit = model.limit
+    ? {
+        context: model.limit.context ?? 128_000,
+        output: model.limit.output ?? 4_096,
+        ...(model.limit.input !== undefined ? { input: model.limit.input } : {}),
+      }
+    : undefined
+
+  return {
+    name: model.name.trim(),
+    ...(cost ? { cost } : {}),
+    ...(limit ? { limit } : {}),
+  }
 }
 
 export function validateProviderID(providerID: string): { value: string } | Issue {
@@ -98,8 +142,8 @@ export function normalizeCustomProviderConfig(
       ...(headers && Object.keys(headers).length > 0 ? { headers } : {}),
     },
     models: Object.fromEntries(
-      Object.entries(config.models).map(([id, model]) => [id.trim(), { name: model.name.trim() }]),
-    ),
+      Object.entries(config.models).map(([id, model]) => [id.trim(), normalizeModel(model)]),
+    ) as Record<string, SanitizedProviderModel>,
   }
 }
 

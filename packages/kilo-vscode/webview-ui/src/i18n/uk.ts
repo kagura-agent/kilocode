@@ -755,6 +755,13 @@ export const dict = {
   "provider.custom.models.name.placeholder": "Відображувана назва",
   "provider.custom.models.remove": "Видалити модель",
   "provider.custom.models.add": "Додати модель",
+
+  "provider.custom.models.advanced.label": "Розширені параметри моделі",
+  "provider.custom.models.context.label": "Контекстне вікно",
+  "provider.custom.models.output.label": "Максимум вихідних токенів",
+  "provider.custom.models.inputPrice.label": "Ціна вводу",
+  "provider.custom.models.outputPrice.label": "Ціна виводу",
+  "provider.custom.models.price.unit": "USD / 1M токенів",
   "provider.custom.models.fetch": "Отримати моделі",
   "provider.custom.models.fetching": "Отримання\u2026",
   "provider.custom.models.fetch.error": "Не вдалося отримати моделі: {{error}}",
@@ -784,6 +791,9 @@ export const dict = {
   "provider.custom.error.baseURL.format": "Має починатися з http:// або https://",
   "provider.custom.error.required": "Обов'язкове поле",
   "provider.custom.error.duplicate": "Дублікат",
+
+  "provider.custom.error.positiveInteger": "Має бути додатним цілим числом",
+  "provider.custom.error.nonNegativeNumber": "Має бути невід'ємним числом",
   "settings.models.title": "Моделі",
   "settings.models.description": "Тут можна буде налаштовувати параметри моделей.",
   "settings.agents.title": "Агенти",

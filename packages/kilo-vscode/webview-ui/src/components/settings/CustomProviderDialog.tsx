@@ -14,9 +14,19 @@ import { useProvider } from "../../context/provider"
 import { useVSCode } from "../../context/vscode"
 import type { ExtensionMessage, ProviderConfig } from "../../types/messages"
 import { createProviderAction } from "../../utils/provider-action"
+import { CustomProviderModelFields } from "./CustomProviderModelFields"
+import {
+  DEFAULT_MODEL,
+  modelErrors,
+  modelRow,
+  validateCustomProvider,
+  type FormErrors,
+  type FormState,
+  type HeaderRow,
+  type ModelConfig,
+  type ModelRow,
+} from "./custom-provider-form"
 
-const PROVIDER_ID = /^[a-z0-9][a-z0-9-_]*$/
-const OPENAI_COMPATIBLE = "@ai-sdk/openai-compatible"
 const DEBOUNCE_MS = 500
 const SEARCH_DEBOUNCE_MS = 150
 
@@ -31,156 +41,7 @@ function fuzzy(query: string, target: string) {
   return qi === q.length
 }
 
-type Translator = ReturnType<typeof useLanguage>["t"]
-
-type ModelRow = {
-  id: string
-  name: string
-}
-
-type HeaderRow = {
-  key: string
-  value: string
-}
-
-type FormState = {
-  providerID: string
-  name: string
-  baseURL: string
-  apiKey: string
-  models: ModelRow[]
-  headers: HeaderRow[]
-  saving: boolean
-}
-
-type FormErrors = {
-  providerID: string | undefined
-  name: string | undefined
-  baseURL: string | undefined
-  models: Array<{ id?: string; name?: string }>
-  headers: Array<{ key?: string; value?: string }>
-}
-
 type FetchedModel = { id: string; name: string }
-
-type ValidateArgs = {
-  form: FormState
-  t: Translator
-  editing: boolean
-  disabledProviders: string[]
-  existingProviderIDs: Set<string>
-  /** Preserved env vars from the existing provider config (edit mode only) */
-  existingEnv?: string[]
-}
-
-function validateCustomProvider(input: ValidateArgs) {
-  const providerID = input.form.providerID.trim()
-  const name = input.form.name.trim()
-  const baseURL = input.form.baseURL.trim()
-  const apiKey = input.form.apiKey.trim()
-
-  const env = apiKey.match(/^\{env:([^}]+)\}$/)?.[1]?.trim()
-  // When editing and apiKey is empty, preserve existing env from the original config
-  const existingEnv = input.editing && !apiKey ? input.existingEnv : undefined
-  const key = apiKey && !env ? apiKey : undefined
-
-  const idError = !providerID
-    ? input.t("provider.custom.error.providerID.required")
-    : !PROVIDER_ID.test(providerID)
-      ? input.t("provider.custom.error.providerID.format")
-      : undefined
-
-  const nameError = !name ? input.t("provider.custom.error.name.required") : undefined
-  const urlError = !baseURL
-    ? input.t("provider.custom.error.baseURL.required")
-    : !/^https?:\/\//.test(baseURL)
-      ? input.t("provider.custom.error.baseURL.format")
-      : undefined
-
-  const disabled = input.disabledProviders.includes(providerID)
-  const existsError = idError
-    ? undefined
-    : input.editing
-      ? undefined
-      : input.existingProviderIDs.has(providerID) && !disabled
-        ? input.t("provider.custom.error.providerID.exists")
-        : undefined
-
-  const seenModels = new Set<string>()
-  const modelErrors = input.form.models.map((m) => {
-    const id = m.id.trim()
-    const modelIdError = !id
-      ? input.t("provider.custom.error.required")
-      : seenModels.has(id)
-        ? input.t("provider.custom.error.duplicate")
-        : (() => {
-            seenModels.add(id)
-            return undefined
-          })()
-    const modelNameError = !m.name.trim() ? input.t("provider.custom.error.required") : undefined
-    return { id: modelIdError, name: modelNameError }
-  })
-  const modelsValid = modelErrors.every((m) => !m.id && !m.name)
-  const models = Object.fromEntries(input.form.models.map((m) => [m.id.trim(), { name: m.name.trim() }]))
-
-  const seenHeaders = new Set<string>()
-  const headerErrors = input.form.headers.map((h) => {
-    const key = h.key.trim()
-    const value = h.value.trim()
-
-    if (!key && !value) return {}
-    const keyError = !key
-      ? input.t("provider.custom.error.required")
-      : seenHeaders.has(key.toLowerCase())
-        ? input.t("provider.custom.error.duplicate")
-        : (() => {
-            seenHeaders.add(key.toLowerCase())
-            return undefined
-          })()
-    const valueError = !value ? input.t("provider.custom.error.required") : undefined
-    return { key: keyError, value: valueError }
-  })
-  const headersValid = headerErrors.every((h) => !h.key && !h.value)
-  const headers = Object.fromEntries(
-    input.form.headers
-      .map((h) => ({ key: h.key.trim(), value: h.value.trim() }))
-      .filter((h) => !!h.key && !!h.value)
-      .map((h) => [h.key, h.value]),
-  )
-
-  const errors: FormErrors = {
-    providerID: idError ?? existsError,
-    name: nameError,
-    baseURL: urlError,
-    models: modelErrors,
-    headers: headerErrors,
-  }
-
-  const ok = !idError && !existsError && !nameError && !urlError && modelsValid && headersValid
-  if (!ok) return { errors }
-
-  const options = {
-    baseURL,
-    ...(Object.keys(headers).length ? { headers } : {}),
-  }
-
-  return {
-    errors,
-    result: {
-      providerID,
-      name,
-      key,
-      config: {
-        npm: OPENAI_COMPATIBLE,
-        name,
-        ...(env ? { env: [env] } : existingEnv ? { env: existingEnv } : {}),
-        options,
-        models,
-      },
-    },
-  }
-}
-
 export interface CustomProviderDialogProps {
   onBack?: () => void
   /** When set, the dialog opens in edit mode with pre-filled values. */
@@ -204,10 +65,12 @@ const CustomProviderDialog = (props: CustomProviderDialogProps) => {
 
   function initModels(): ModelRow[] {
     const cfg = props.existing?.config
-    if (!cfg?.models || typeof cfg.models !== "object") return [{ id: "", name: "" }]
+    if (!cfg?.models || typeof cfg.models !== "object") return [modelRow("", "", undefined, { open: true })]
     const entries = Object.entries(cfg.models)
-    if (entries.length === 0) return [{ id: "", name: "" }]
-    return entries.map(([id, m]) => ({ id, name: (m as { name?: string })?.name ?? id }))
+    if (entries.length === 0) return [modelRow("", "", undefined, { open: true })]
+    return entries.map(([id, m]) =>
+      modelRow(id, (m as ModelConfig | undefined)?.name ?? id, m as ModelConfig | undefined),
+    )
   }
 
   function initHeaders(): HeaderRow[] {
@@ -233,7 +96,7 @@ const CustomProviderDialog = (props: CustomProviderDialogProps) => {
     providerID: undefined,
     name: undefined,
     baseURL: undefined,
-    models: form.models.map(() => ({})),
+    models: form.models.map(() => modelErrors()),
     headers: form.headers.map(() => ({})),
   })
 
@@ -396,17 +259,18 @@ const CustomProviderDialog = (props: CustomProviderDialogProps) => {
     const models = fetchedModels()
     if (!models) return
     const sel = selected()
-    const picked = models.filter((m) => sel.has(m.id))
+    const picked = models.filter((m) => sel.has(m.id)).map((m) => modelRow(m.id, m.name, undefined, { open: true }))
     if (picked.length === 0) return
 
     // Replace the single empty row or append
-    const empty = form.models.length === 1 && !form.models[0].id.trim() && !form.models[0].name.trim()
+    const first = form.models[0]
+    const empty = form.models.length === 1 && first !== undefined && !first.id.trim() && !first.name.trim()
     const merged = empty ? picked : [...form.models, ...picked]
 
     setForm("models", merged)
     setErrors(
       "models",
-      merged.map(() => ({})),
+      merged.map(() => modelErrors()),
     )
     setFetchStatus(language.t("provider.custom.models.fetch.added", { count: String(picked.length) }))
     setFetchedModels(undefined)
@@ -429,8 +293,8 @@ const CustomProviderDialog = (props: CustomProviderDialogProps) => {
   }
 
   function addModel() {
-    setForm("models", (v) => [...v, { id: "", name: "" }])
-    setErrors("models", (v) => [...v, {}])
+    setForm("models", (v) => [...v, modelRow("", "", undefined, { open: true })])
+    setErrors("models", (v) => [...v, modelErrors()])
   }
 
   function removeModel(index: number) {
@@ -607,39 +471,15 @@ const CustomProviderDialog = (props: CustomProviderDialogProps) => {
             </div>
             <For each={form.models}>
               {(m, i) => (
-                <div style={{ display: "flex", gap: "8px", "align-items": "start" }}>
-                  <div style={{ flex: 1 }}>
-                    <TextField
-                      label={language.t("provider.custom.models.id.label")}
-                      hideLabel
-                      placeholder={language.t("provider.custom.models.id.placeholder")}
-                      value={m.id}
-                      onChange={(v) => setForm("models", i(), "id", v)}
-                      validationState={errors.models[i()]?.id ? "invalid" : undefined}
-                      error={errors.models[i()]?.id}
-                    />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <TextField
-                      label={language.t("provider.custom.models.name.label")}
-                      hideLabel
-                      placeholder={language.t("provider.custom.models.name.placeholder")}
-                      value={m.name}
-                      onChange={(v) => setForm("models", i(), "name", v)}
-                      validationState={errors.models[i()]?.name ? "invalid" : undefined}
-                      error={errors.models[i()]?.name}
-                    />
-                  </div>
-                  <IconButton
-                    type="button"
-                    icon="trash"
-                    variant="ghost"
-                    onClick={() => removeModel(i())}
-                    disabled={form.models.length <= 1}
-                    aria-label={language.t("provider.custom.models.remove")}
-                    style={{ "margin-top": "6px" }}
-                  />
-                </div>
+                <CustomProviderModelFields
+                  model={m}
+                  errors={errors.models[i()]}
+                  count={form.models.length}
+                  t={language.t}
+                  defaults={DEFAULT_MODEL}
+                  onChange={(key, value) => setForm("models", i(), key, value)}
+                  onRemove={() => removeModel(i())}
+                />
               )}
             </For>
             <Button type="button" size="small" variant="ghost" icon="plus-small" onClick={addModel}>

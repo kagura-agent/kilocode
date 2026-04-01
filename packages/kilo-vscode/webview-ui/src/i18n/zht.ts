@@ -743,6 +743,13 @@ export const dict = {
   "provider.custom.models.name.placeholder": "顯示名稱",
   "provider.custom.models.remove": "移除模型",
   "provider.custom.models.add": "新增模型",
+
+  "provider.custom.models.advanced.label": "進階模型設定",
+  "provider.custom.models.context.label": "上下文視窗",
+  "provider.custom.models.output.label": "最大輸出 Token",
+  "provider.custom.models.inputPrice.label": "輸入價格",
+  "provider.custom.models.outputPrice.label": "輸出價格",
+  "provider.custom.models.price.unit": "USD / 100萬 Token",
   "provider.custom.models.fetch": "取得模型",
   "provider.custom.models.fetching": "取得中\u2026",
   "provider.custom.models.fetch.error": "取得模型失敗：{{error}}",
@@ -772,6 +779,9 @@ export const dict = {
   "provider.custom.error.baseURL.format": "必須以 http:// 或 https:// 開頭",
   "provider.custom.error.required": "必填",
   "provider.custom.error.duplicate": "重複",
+
+  "provider.custom.error.positiveInteger": "必須為正整數",
+  "provider.custom.error.nonNegativeNumber": "必須為非負數",
   "settings.models.title": "模型",
   "settings.models.description": "可在此調整模型設定。",
   "settings.agents.title": "Agents",

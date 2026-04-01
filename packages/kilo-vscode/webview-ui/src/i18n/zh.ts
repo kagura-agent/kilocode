@@ -741,6 +741,13 @@ export const dict = {
   "provider.custom.models.name.placeholder": "显示名称",
   "provider.custom.models.remove": "移除模型",
   "provider.custom.models.add": "添加模型",
+
+  "provider.custom.models.advanced.label": "高级模型设置",
+  "provider.custom.models.context.label": "上下文窗口",
+  "provider.custom.models.output.label": "最大输出 Token",
+  "provider.custom.models.inputPrice.label": "输入价格",
+  "provider.custom.models.outputPrice.label": "输出价格",
+  "provider.custom.models.price.unit": "USD / 100万 Token",
   "provider.custom.models.fetch": "获取模型",
   "provider.custom.models.fetching": "获取中\u2026",
   "provider.custom.models.fetch.error": "获取模型失败：{{error}}",
@@ -770,6 +777,9 @@ export const dict = {
   "provider.custom.error.baseURL.format": "必须以 http:// 或 https:// 开头",
   "provider.custom.error.required": "必填",
   "provider.custom.error.duplicate": "重复",
+
+  "provider.custom.error.positiveInteger": "必须为正整数",
+  "provider.custom.error.nonNegativeNumber": "必须为非负数",
   "settings.models.title": "模型",
   "settings.models.description": "模型设置将在此处可配置。",
   "settings.agents.title": "智能体",

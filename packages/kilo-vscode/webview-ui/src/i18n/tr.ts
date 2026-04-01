@@ -754,6 +754,13 @@ export const dict = {
   "provider.custom.models.name.placeholder": "Görünen Ad",
   "provider.custom.models.remove": "Modeli kaldır",
   "provider.custom.models.add": "Model ekle",
+
+  "provider.custom.models.advanced.label": "Gelişmiş model ayarları",
+  "provider.custom.models.context.label": "Bağlam penceresi",
+  "provider.custom.models.output.label": "Maksimum çıktı tokeni",
+  "provider.custom.models.inputPrice.label": "Giriş fiyatı",
+  "provider.custom.models.outputPrice.label": "Çıkış fiyatı",
+  "provider.custom.models.price.unit": "USD / 1M token",
   "provider.custom.models.fetch": "Modelleri getir",
   "provider.custom.models.fetching": "Getiriliyor\u2026",
   "provider.custom.models.fetch.error": "Modeller getirilemedi: {{error}}",
@@ -784,6 +791,9 @@ export const dict = {
   "provider.custom.error.baseURL.format": "http:// veya https:// ile başlamalı",
   "provider.custom.error.required": "Gerekli",
   "provider.custom.error.duplicate": "Tekrar",
+
+  "provider.custom.error.positiveInteger": "Pozitif bir tam sayı olmalı",
+  "provider.custom.error.nonNegativeNumber": "Negatif olmayan bir sayı olmalı",
   "settings.models.title": "Modeller",
   "settings.models.description": "Model ayarları burada yapılandırılabilecek.",
   "settings.agents.title": "Ajanlar",

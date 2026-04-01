@@ -751,6 +751,13 @@ export const dict = {
   "provider.custom.models.name.placeholder": "Weergavenaam",
   "provider.custom.models.remove": "Model verwijderen",
   "provider.custom.models.add": "Model toevoegen",
+
+  "provider.custom.models.advanced.label": "Geavanceerde modelinstellingen",
+  "provider.custom.models.context.label": "Contextvenster",
+  "provider.custom.models.output.label": "Maximale outputtokens",
+  "provider.custom.models.inputPrice.label": "Invoerprijs",
+  "provider.custom.models.outputPrice.label": "Uitvoerprijs",
+  "provider.custom.models.price.unit": "USD / 1M tokens",
   "provider.custom.models.fetch": "Modellen ophalen",
   "provider.custom.models.fetching": "Ophalen\u2026",
   "provider.custom.models.fetch.error": "Kan modellen niet ophalen: {{error}}",
@@ -781,6 +788,9 @@ export const dict = {
   "provider.custom.error.baseURL.format": "Moet beginnen met http:// of https://",
   "provider.custom.error.required": "Vereist",
   "provider.custom.error.duplicate": "Duplicaat",
+
+  "provider.custom.error.positiveInteger": "Moet een positief geheel getal zijn",
+  "provider.custom.error.nonNegativeNumber": "Moet een niet-negatief getal zijn",
   "settings.models.title": "Modellen",
   "settings.models.description": "Model-instellingen zullen hier configureerbaar zijn.",
   "settings.agents.title": "Agents",

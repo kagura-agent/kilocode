@@ -756,6 +756,13 @@ export const dict = {
   "provider.custom.models.name.placeholder": "Visningsnavn",
   "provider.custom.models.remove": "Fjern modell",
   "provider.custom.models.add": "Legg til modell",
+
+  "provider.custom.models.advanced.label": "Avanserte modellinnstillinger",
+  "provider.custom.models.context.label": "Kontekstvindu",
+  "provider.custom.models.output.label": "Maks antall output-tokens",
+  "provider.custom.models.inputPrice.label": "Inndata-pris",
+  "provider.custom.models.outputPrice.label": "Utdatapris",
+  "provider.custom.models.price.unit": "USD / 1M tokens",
   "provider.custom.models.fetch": "Hent modeller",
   "provider.custom.models.fetching": "Henter\u2026",
   "provider.custom.models.fetch.error": "Kunne ikke hente modeller: {{error}}",
@@ -785,6 +792,9 @@ export const dict = {
   "provider.custom.error.baseURL.format": "Må starte med http:// eller https://",
   "provider.custom.error.required": "Påkrevd",
   "provider.custom.error.duplicate": "Duplikat",
+
+  "provider.custom.error.positiveInteger": "Må være et positivt heltall",
+  "provider.custom.error.nonNegativeNumber": "Må være et ikke-negativt tall",
   "settings.models.title": "Modeller",
   "settings.models.description": "Modellinnstillinger vil kunne konfigureres her.",
   "settings.agents.title": "Agenter",

@@ -746,6 +746,13 @@ export const dict = {
   "provider.custom.models.name.placeholder": "الاسم المعروض",
   "provider.custom.models.remove": "إزالة النموذج",
   "provider.custom.models.add": "إضافة نموذج",
+
+  "provider.custom.models.advanced.label": "إعدادات النموذج المتقدمة",
+  "provider.custom.models.context.label": "نافذة السياق",
+  "provider.custom.models.output.label": "الحد الأقصى لرموز الإخراج",
+  "provider.custom.models.inputPrice.label": "سعر الإدخال",
+  "provider.custom.models.outputPrice.label": "سعر الإخراج",
+  "provider.custom.models.price.unit": "دولار أمريكي / 1M رمز",
   "provider.custom.models.fetch": "جلب النماذج",
   "provider.custom.models.fetching": "جارٍ الجلب\u2026",
   "provider.custom.models.fetch.error": "فشل جلب النماذج: {{error}}",
@@ -775,6 +782,9 @@ export const dict = {
   "provider.custom.error.baseURL.format": "يجب أن يبدأ بـ http:// أو https://",
   "provider.custom.error.required": "مطلوب",
   "provider.custom.error.duplicate": "مكرر",
+
+  "provider.custom.error.positiveInteger": "يجب أن يكون عددًا صحيحًا موجبًا",
+  "provider.custom.error.nonNegativeNumber": "يجب أن يكون رقمًا غير سالب",
   "settings.models.title": "النماذج",
   "settings.models.description": "ستكون إعدادات النموذج قابلة للتكوين هنا.",
   "settings.agents.title": "الوكلاء",

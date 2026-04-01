@@ -751,6 +751,13 @@ export const dict = {
   "provider.custom.models.name.placeholder": "表示名",
   "provider.custom.models.remove": "モデルを削除",
   "provider.custom.models.add": "モデルを追加",
+
+  "provider.custom.models.advanced.label": "モデルの詳細設定",
+  "provider.custom.models.context.label": "コンテキストウィンドウ",
+  "provider.custom.models.output.label": "最大出力トークン",
+  "provider.custom.models.inputPrice.label": "入力価格",
+  "provider.custom.models.outputPrice.label": "出力価格",
+  "provider.custom.models.price.unit": "USD / 100万トークン",
   "provider.custom.models.fetch": "モデルを取得",
   "provider.custom.models.fetching": "取得中\u2026",
   "provider.custom.models.fetch.error": "モデルの取得に失敗しました: {{error}}",
@@ -780,6 +787,9 @@ export const dict = {
   "provider.custom.error.baseURL.format": "http:// または https:// で始まる必要があります",
   "provider.custom.error.required": "必須",
   "provider.custom.error.duplicate": "重複",
+
+  "provider.custom.error.positiveInteger": "正の整数である必要があります",
+  "provider.custom.error.nonNegativeNumber": "0 以上の数値である必要があります",
   "settings.models.title": "モデル",
   "settings.models.description": "モデル設定はここで構成できます。",
   "settings.agents.title": "エージェント",

@@ -753,6 +753,13 @@ export const dict = {
   "provider.custom.models.name.placeholder": "Nome de Exibição",
   "provider.custom.models.remove": "Remover modelo",
   "provider.custom.models.add": "Adicionar modelo",
+
+  "provider.custom.models.advanced.label": "Configurações avançadas do modelo",
+  "provider.custom.models.context.label": "Janela de contexto",
+  "provider.custom.models.output.label": "Máximo de tokens de saída",
+  "provider.custom.models.inputPrice.label": "Preço de entrada",
+  "provider.custom.models.outputPrice.label": "Preço de saída",
+  "provider.custom.models.price.unit": "USD / 1M tokens",
   "provider.custom.models.fetch": "Buscar modelos",
   "provider.custom.models.fetching": "Buscando\u2026",
   "provider.custom.models.fetch.error": "Falha ao buscar modelos: {{error}}",
@@ -782,6 +789,9 @@ export const dict = {
   "provider.custom.error.baseURL.format": "Deve começar com http:// ou https://",
   "provider.custom.error.required": "Obrigatório",
   "provider.custom.error.duplicate": "Duplicado",
+
+  "provider.custom.error.positiveInteger": "Deve ser um inteiro positivo",
+  "provider.custom.error.nonNegativeNumber": "Deve ser um número não negativo",
   "settings.models.title": "Modelos",
   "settings.models.description": "Configurações de modelos estarão disponíveis aqui.",
   "settings.agents.title": "Agentes",

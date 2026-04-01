@@ -5,6 +5,7 @@ import { tmpdir } from "../fixture/fixture"
 import { Instance } from "../../src/project/instance"
 import { Provider } from "../../src/provider/provider"
 import { Env } from "../../src/env"
+import { Session } from "../../src/session"
 
 test("provider loaded from env variable", async () => {
   await using tmp = await tmpdir({
@@ -1208,6 +1209,65 @@ test("model cost overrides existing cost values", async () => {
       expect(model.cost.output).toBe(888)
     },
   })
+})
+
+test("config-defined model pricing drives session usage cost", async () => {
+  await using tmp = await tmpdir()
+  const prevConfig = process.env["KILO_CONFIG_CONTENT"]
+  const prevDisable = process.env["KILO_DISABLE_PROJECT_CONFIG"]
+  process.env["KILO_CONFIG_CONTENT"] = JSON.stringify({
+    provider: {
+      anthropic: {
+        models: {
+          "claude-sonnet-4-20250514": {
+            cost: { input: 3, output: 15 },
+            limit: { context: 200_000, output: 8_192 },
+          },
+        },
+      },
+    },
+  })
+  process.env["KILO_DISABLE_PROJECT_CONFIG"] = "true"
+
+  try {
+    await Instance.provide({
+      directory: tmp.path,
+      init: async () => {
+        Env.set("ANTHROPIC_API_KEY", "test-api-key")
+      },
+      fn: async () => {
+        const providers = await Provider.list()
+        const info = providers["anthropic"]
+        expect(info).toBeDefined()
+        if (!info) throw new Error("missing anthropic provider")
+
+        const model = info.models["claude-sonnet-4-20250514"]
+        expect(model).toBeDefined()
+        if (!model) throw new Error("missing claude-sonnet-4-20250514 model")
+
+        expect(model.limit.context).toBe(200_000)
+        expect(model.limit.output).toBe(8_192)
+        expect(model.cost.input).toBe(3)
+        expect(model.cost.output).toBe(15)
+
+        const usage = Session.getUsage({
+          model,
+          usage: {
+            inputTokens: 500_000,
+            outputTokens: 100_000,
+            totalTokens: 600_000,
+          },
+        })
+
+        expect(usage.cost).toBe(3)
+      },
+    })
+  } finally {
+    if (prevConfig === undefined) delete process.env["KILO_CONFIG_CONTENT"]
+    else process.env["KILO_CONFIG_CONTENT"] = prevConfig
+    if (prevDisable === undefined) delete process.env["KILO_DISABLE_PROJECT_CONFIG"]
+    else process.env["KILO_DISABLE_PROJECT_CONFIG"] = prevDisable
+  }
 })
 
 test("completely new provider not in database can be configured", async () => {

@@ -752,6 +752,13 @@ export const dict = {
   "provider.custom.models.name.placeholder": "표시 이름",
   "provider.custom.models.remove": "모델 제거",
   "provider.custom.models.add": "모델 추가",
+
+  "provider.custom.models.advanced.label": "고급 모델 설정",
+  "provider.custom.models.context.label": "컨텍스트 창",
+  "provider.custom.models.output.label": "최대 출력 토큰",
+  "provider.custom.models.inputPrice.label": "입력 가격",
+  "provider.custom.models.outputPrice.label": "출력 가격",
+  "provider.custom.models.price.unit": "USD / 100만 토큰",
   "provider.custom.models.fetch": "모델 가져오기",
   "provider.custom.models.fetching": "가져오는 중\u2026",
   "provider.custom.models.fetch.error": "모델을 가져오지 못했습니다: {{error}}",
@@ -781,6 +788,9 @@ export const dict = {
   "provider.custom.error.baseURL.format": "http:// 또는 https://로 시작해야 합니다",
   "provider.custom.error.required": "필수",
   "provider.custom.error.duplicate": "중복",
+
+  "provider.custom.error.positiveInteger": "양의 정수여야 합니다",
+  "provider.custom.error.nonNegativeNumber": "0 이상의 숫자여야 합니다",
   "settings.models.title": "모델",
   "settings.models.description": "모델 설정은 여기서 구성할 수 있습니다.",
   "settings.agents.title": "에이전트",

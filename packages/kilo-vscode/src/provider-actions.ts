@@ -258,8 +258,12 @@ export async function saveCustomProvider(
     return
   }
 
-  const refresh = async () => {
+  const reload = async () => {
     await ctx.disposeGlobal(`custom provider save (${id})`)
+    const { data: config } = await ctx.client.config.get({ directory: ctx.workspaceDir }, { throwOnError: true })
+    const msg = { type: "configLoaded", config }
+    setCachedConfig(msg)
+    ctx.postMessage({ type: "configUpdated", config })
     await ctx.fetchAndSendProviders()
   }
 
@@ -267,7 +271,7 @@ export async function saveCustomProvider(
     const globalConfig = (await ctx.client.global.config.get({ throwOnError: true })).data ?? {}
     const disabled = globalConfig.disabled_providers ?? []
     const nextDisabled = disabled.filter((item: string) => item !== id)
-    const { data: updated } = await ctx.client.global.config.update(
+    await ctx.client.global.config.update(
       {
         config: {
           provider: { [id]: sanitized.value },
@@ -277,10 +281,6 @@ export async function saveCustomProvider(
       { throwOnError: true },
     )
 
-    const msg = { type: "configLoaded", config: updated }
-    setCachedConfig(msg)
-    ctx.postMessage({ type: "configUpdated", config: updated })
-
     try {
       if (apiKey) {
         await ctx.client.auth.set({ providerID: id, auth: { type: "api", key: apiKey } }, { throwOnError: true })
@@ -288,12 +288,12 @@ export async function saveCustomProvider(
         await ctx.client.auth.remove({ providerID: id }, { throwOnError: true })
       }
     } catch (error) {
-      await refresh()
+      await reload()
       postError(ctx, requestId, providerID, "connect", ctx.getErrorMessage(error) || "Failed to save custom provider")
       return
     }
 
-    await refresh()
+    await reload()
     ctx.postMessage({ type: "providerConnected", requestId, providerID: id })
   } catch (error) {
     postError(ctx, requestId, providerID, "connect", ctx.getErrorMessage(error) || "Failed to save custom provider")

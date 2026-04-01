@@ -749,6 +749,13 @@ export const dict = {
   "provider.custom.models.name.placeholder": "ชื่อที่แสดง",
   "provider.custom.models.remove": "ลบโมเดล",
   "provider.custom.models.add": "เพิ่มโมเดล",
+
+  "provider.custom.models.advanced.label": "การตั้งค่าโมเดลขั้นสูง",
+  "provider.custom.models.context.label": "หน้าต่างบริบท",
+  "provider.custom.models.output.label": "โทเค็นเอาต์พุตสูงสุด",
+  "provider.custom.models.inputPrice.label": "ราคาขาเข้า",
+  "provider.custom.models.outputPrice.label": "ราคาขาออก",
+  "provider.custom.models.price.unit": "USD / 1M โทเค็น",
   "provider.custom.models.fetch": "ดึงโมเดล",
   "provider.custom.models.fetching": "กำลังดึง\u2026",
   "provider.custom.models.fetch.error": "ดึงโมเดลล้มเหลว: {{error}}",
@@ -778,6 +785,9 @@ export const dict = {
   "provider.custom.error.baseURL.format": "ต้องขึ้นต้นด้วย http:// หรือ https://",
   "provider.custom.error.required": "จำเป็น",
   "provider.custom.error.duplicate": "ซ้ำ",
+
+  "provider.custom.error.positiveInteger": "ต้องเป็นจำนวนเต็มบวก",
+  "provider.custom.error.nonNegativeNumber": "ต้องเป็นจำนวนที่ไม่ติดลบ",
   "settings.models.title": "โมเดล",
   "settings.models.description": "การตั้งค่าโมเดลจะสามารถกำหนดค่าได้ที่นี่",
   "settings.agents.title": "เอเจนต์",

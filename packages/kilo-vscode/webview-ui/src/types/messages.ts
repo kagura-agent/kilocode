@@ -222,6 +222,7 @@ export interface AgentInfo {
   hidden?: boolean
   deprecated?: boolean
   color?: string
+  prompt?: string
 }
 
 // Server info
@@ -654,6 +655,7 @@ export interface AgentsLoadedMessage {
   type: "agentsLoaded"
   agents: AgentInfo[]
   defaultAgent: string
+  subagents?: AgentInfo[]
 }
 
 export interface SkillsLoadedMessage {
@@ -1152,10 +1154,6 @@ export interface DiffViewerLoadingMessage {
   loading: boolean
 }
 
-export interface ClearPendingPromptsMessage {
-  type: "clearPendingPrompts"
-}
-
 // ============================================
 // Marketplace Messages
 // ============================================
@@ -1342,7 +1340,6 @@ export type ExtensionMessage =
   | ContinueInWorktreeProgressMessage
   | WorktreeStatsLoadedMessage
   | McpStatusLoadedMessage
-  | ClearPendingPromptsMessage
 
 // ============================================
 // Messages FROM webview TO extension
@@ -1567,14 +1564,12 @@ export interface SetLanguageRequest {
 export interface QuestionReplyRequest {
   type: "questionReply"
   requestID: string
-  sessionID?: string
   answers: string[][]
 }
 
 export interface QuestionRejectRequest {
   type: "questionReject"
   requestID: string
-  sessionID?: string
 }
 
 export interface DeleteSessionRequest {

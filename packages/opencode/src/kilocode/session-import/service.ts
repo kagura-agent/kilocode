@@ -9,7 +9,6 @@ const target = (input: unknown) => input as never
 
 export namespace SessionImportService {
   export async function project(input: SessionImportType.Project): Promise<SessionImportType.Result> {
-
     // Do not resolve an empty legacy worktree, because that would fall back to the current
     // process directory and silently attach the migrated session to the wrong project.
     if (!input.worktree.trim()) {
@@ -21,7 +20,13 @@ export namespace SessionImportService {
   }
 
   export async function session(input: SessionImportType.Session): Promise<SessionImportType.Result> {
-    const row = Database.use((db) => db.select().from(SessionTable).where(eq(target(SessionTable.id), input.id)).get())
+    const row = Database.use((db) =>
+      db
+        .select()
+        .from(SessionTable)
+        .where(eq(target(SessionTable.id), input.id))
+        .get(),
+    )
     if (row) return { ok: true, id: input.id, skipped: true }
 
     Database.use((db) => {

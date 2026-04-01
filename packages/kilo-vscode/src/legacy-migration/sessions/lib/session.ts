@@ -6,7 +6,6 @@ export function createSession(
   id: string,
   item: LegacyHistoryItem | undefined,
   projectID: string,
-  dir: string,
 ): NonNullable<Session["body"]> {
   const session = makeSession()
 
@@ -16,7 +15,7 @@ export function createSession(
 
   session.slug = id
 
-  session.directory = dir
+  session.directory = item?.workspace ?? ""
 
   session.title = item?.task ?? id
 

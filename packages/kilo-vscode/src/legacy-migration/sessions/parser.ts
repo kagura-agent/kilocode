@@ -8,7 +8,6 @@ import type {
 import { getApiConversationHistory, parseFile } from "./lib/legacy-conversation"
 import { parseMessagesFromConversation } from "./lib/messages"
 import { parsePartsFromConversation } from "./lib/parts/parts"
-import { normalizeLegacyPath } from "./lib/path"
 import { createProject } from "./lib/project"
 import { createSession } from "./lib/session"
 
@@ -20,13 +19,11 @@ export interface NormalizedSession {
 }
 
 export async function parseSession(id: string, dir: string, item?: LegacyHistoryItem): Promise<NormalizedSession> {
-  const root = await normalizeLegacyPath(item?.workspace)
-  const next = item ? { ...item, workspace: root } : undefined
-  const project = createProject(next)
-  const session = createSession(id, next, project.id, root)
+  const project = createProject(item)
+  const session = createSession(id, item, project.id)
   const file = await getApiConversationHistory(id, dir)
   const conversation = parseFile(file)
-  const messages = parseMessagesFromConversation(conversation, id, root, next)
+  const messages = parseMessagesFromConversation(conversation, id, item)
   const parts = parsePartsFromConversation(conversation, id, item)
 
   return {

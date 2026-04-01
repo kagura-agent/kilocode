@@ -10,15 +10,11 @@ type Assistant = Extract<Data, { role: "assistant" }>
 export function parseMessagesFromConversation(
   conversation: LegacyApiMessage[],
   id: string,
-  dirOrItem?: string | LegacyHistoryItem,
   item?: LegacyHistoryItem,
 ): Array<NonNullable<Message["body"]>> {
-  const dir = typeof dirOrItem === "string" ? dirOrItem : (dirOrItem?.workspace ?? "")
-  const next = typeof dirOrItem === "string" ? item : dirOrItem
-
   return conversation
     .filter((entry) => entry.role === "user" || entry.role === "assistant")
-    .map((entry, index) => parseMessage(entry, index, id, dir, next))
+    .map((entry, index) => parseMessage(entry, index, id, item))
     .filter((message): message is NonNullable<Message["body"]> => Boolean(message))
 }
 
@@ -26,7 +22,6 @@ function parseMessage(
   entry: LegacyApiMessage,
   index: number,
   id: string,
-  dir: string,
   item?: LegacyHistoryItem,
 ): NonNullable<Message["body"]> | undefined {
   const created = entry.ts ?? item?.ts ?? 0
@@ -60,8 +55,8 @@ function parseMessage(
       mode: item?.mode ?? "code",
       agent: "main",
       path: {
-        cwd: dir,
-        root: dir,
+        cwd: item?.workspace ?? "",
+        root: item?.workspace ?? "",
       },
       cost: 0,
       tokens: {

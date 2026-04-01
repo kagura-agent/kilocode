@@ -39,7 +39,6 @@ import { MarketplaceService } from "./services/marketplace"
 import { resolveProjectDirectory } from "./project-directory"
 import { getBusySessionCount, seedSessionStatuses } from "./session-status"
 import { slimPart, slimParts } from "./kilo-provider/slim-metadata"
-import { matchFollowup, recordFollowup, type Followup } from "./kilo-provider/followup-session"
 // legacy-migration start
 import {
   checkAndShowMigrationWizard,
@@ -145,8 +144,6 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
   private unsubscribeLanguageChange: (() => void) | null = null
   private unsubscribeProfileChange: (() => void) | null = null
   private unsubscribeMigrationComplete: (() => void) | null = null // legacy-migration
-  private unsubscribeClearPendingPrompts: (() => void) | null = null
-  private unsubscribeDirectoryProvider: (() => void) | null = null
   private initConnectionPromise: Promise<void> | null = null
   private webviewMessageDisposable: vscode.Disposable | null = null
 
@@ -157,8 +154,6 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
   private chatAutocomplete: ChatTextAreaAutocomplete | null = null
   private projectDirectory: string | null | undefined
   private slimEditMetadata = true
-
-  private pendingFollowup: Followup | null = null
   /** Worktree diff stats poller for the sidebar badge — reuses GitStatsPoller (local stats only) */
   private statsPoller: GitStatsPoller | null = null
   private cachedStats: unknown = null
@@ -180,7 +175,6 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
   ) {
     this.projectDirectory = options?.projectDirectory
     this.slimEditMetadata = options?.slimEditMetadata ?? true
-
     TelemetryProxy.getInstance().setProvider(this)
   }
 
@@ -681,14 +675,10 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
           break
 
         case "questionReply":
-          this.noteFollowup(message.answers, message.sessionID)
-          if (!(await handleQuestionReply(this.questionCtx, message.requestID, message.answers, message.sessionID))) {
-            this.pendingFollowup = null
-          }
+          await handleQuestionReply(this.questionCtx, message.requestID, message.answers)
           break
         case "questionReject":
-          this.pendingFollowup = null
-          await handleQuestionReject(this.questionCtx, message.requestID, message.sessionID)
+          await handleQuestionReject(this.questionCtx, message.requestID)
           break
         case "requestConfig":
           this.fetchAndSendConfig().catch((e) => console.error("[Kilo New] fetchAndSendConfig failed:", e))
@@ -965,8 +955,6 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
     this.unsubscribeNotificationDismiss?.()
     this.unsubscribeLanguageChange?.()
     this.unsubscribeProfileChange?.()
-    this.unsubscribeClearPendingPrompts?.()
-    this.unsubscribeDirectoryProvider?.()
 
     try {
       const workspaceDir = this.getWorkspaceDirectory()
@@ -982,10 +970,6 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
           // message.part.updated and message.part.delta are always session-scoped; drop if session unknown.
           if (!sessionId) {
             return event.type !== "message.part.updated" && event.type !== "message.part.delta"
-          }
-
-          if (event.type === "session.created" && this.matchesPendingFollowup(event.properties.info)) {
-            return true
           }
 
           // session.status must always pass through — even for sessions not tracked by this
@@ -1048,16 +1032,6 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
         this.postMessage({ type: "migrationState", needed: false })
       })
       // legacy-migration end
-
-      // Subscribe to clear-pending-prompts broadcast (fired after config save drains prompts)
-      this.unsubscribeClearPendingPrompts = this.connectionService.onClearPendingPrompts(() => {
-        this.postMessage({ type: "clearPendingPrompts" })
-      })
-
-      // Register this provider's directories so drainPendingPrompts() covers all instances
-      this.unsubscribeDirectoryProvider = this.connectionService.registerDirectoryProvider(() => {
-        return [this.getWorkspaceDirectory(), ...this.sessionDirectories.values()]
-      })
 
       // Get current state and push to webview
       const serverInfo = this.connectionService.getServerInfo()
@@ -1545,18 +1519,22 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
 
       const { visible, defaultAgent } = filterVisibleAgents(agents)
 
+      const mapAgent = (a: (typeof agents)[number]) => ({
+        name: a.name,
+        displayName: a.displayName,
+        description: a.description,
+        mode: a.mode,
+        native: a.native,
+        color: a.color,
+        deprecated: a.deprecated,
+        prompt: a.displayPrompt ?? a.prompt,
+      })
+
       const message = {
         type: "agentsLoaded",
-        agents: visible.map((a) => ({
-          name: a.name,
-          displayName: a.displayName,
-          description: a.description,
-          mode: a.mode,
-          native: a.native,
-          color: a.color,
-          deprecated: a.deprecated,
-        })),
+        agents: visible.map(mapAgent),
         defaultAgent,
+        subagents: agents.filter((a) => a.mode === "subagent").map(mapAgent),
       }
       this.cachedAgentsMessage = message
       this.postMessage(message)
@@ -2014,11 +1992,6 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
     // races with the async config.update() write on the CLI backend).
     this.pending++
     try {
-      // Reject all pending permissions and questions across every provider
-      // so their CLI-side Promises resolve before disposeAll() wipes
-      // Instance state.  Throws on failure to abort the config save.
-      await this.connectionService.drainPendingPrompts()
-
       await this.client.global.config.update({ config: partial }, { throwOnError: true })
 
       // Re-fetch the full merged config (global + project + all layers) so the
@@ -2050,6 +2023,11 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
     }
   }
 
+  /**
+   * Handle sending a message from the webview.
+   * Uses promptAsync (fire-and-forget) — the server queues concurrent prompts
+   * internally, so the client doesn't need to block on busy sessions.
+   */
   /**
    * Ensure a session exists, creating one if needed. Returns the resolved
    * session ID and workspace directory, or undefined when the client is
@@ -2541,10 +2519,6 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
     }
 
     // Extract sessionID from the event
-    if (event.type === "session.created" && this.adoptPendingFollowup(event.properties.info)) {
-      return
-    }
-
     const sessionID = this.connectionService.resolveEventSessionId(event)
 
     // Events without sessionID (server.connected, server.heartbeat) → always forward
@@ -2803,35 +2777,6 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
     this.sessionDirectories.set(sessionId, dir)
   }
 
-  private noteFollowup(answers: string[][], sessionID?: string) {
-    const dir = this.getWorkspaceDirectory(sessionID)
-    this.pendingFollowup = recordFollowup({ answers, dir, now: Date.now() }) ?? null
-  }
-
-  private matchesPendingFollowup(session: Session) {
-    return matchFollowup({ pending: this.pendingFollowup, dir: session.directory, now: Date.now() })
-  }
-
-  private adoptPendingFollowup(session: Session) {
-    const now = Date.now()
-    const match = this.matchesPendingFollowup(session)
-    if (!match) {
-      if (
-        this.pendingFollowup &&
-        !matchFollowup({ pending: this.pendingFollowup, dir: this.pendingFollowup.dir, now })
-      ) {
-        this.pendingFollowup = null
-      }
-      return false
-    }
-
-    this.pendingFollowup = null
-    this.trackDirectory(session.id, session.directory)
-    this.registerSession(session)
-    void this.handleLoadMessages(session.id)
-    return true
-  }
-
   private getProjectDirectory(sessionId?: string): string | undefined {
     return resolveProjectDirectory(this.projectDirectory, () => this.getWorkspaceDirectory(sessionId))
   }
@@ -2920,8 +2865,6 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
     this.unsubscribeLanguageChange?.()
     this.unsubscribeProfileChange?.()
     this.unsubscribeMigrationComplete?.()
-    this.unsubscribeClearPendingPrompts?.()
-    this.unsubscribeDirectoryProvider?.()
     this.webviewMessageDisposable?.dispose()
     this.trackedSessionIds.clear()
     this.syncedChildSessions.clear()

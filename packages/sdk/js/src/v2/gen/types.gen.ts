@@ -1955,6 +1955,7 @@ export type Agent = {
   }
   variant?: string
   prompt?: string
+  displayPrompt?: string
   options: {
     [key: string]: unknown
   }

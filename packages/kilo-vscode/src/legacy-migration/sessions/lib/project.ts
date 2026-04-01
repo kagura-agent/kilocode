@@ -4,13 +4,12 @@ import { createProjectID } from "./ids"
 
 export function createProject(item?: LegacyHistoryItem): NonNullable<Project["body"]> {
   const project = makeProject()
-  const dir = item?.workspace ?? ""
 
-  project.id = createProjectID(dir)
+  project.id = createProjectID(item?.workspace)
 
-  project.worktree = dir
+  project.worktree = item?.workspace ?? ""
 
-  project.sandboxes = dir ? [dir] : []
+  project.sandboxes = item?.workspace ? [item.workspace] : []
 
   project.timeCreated = item?.ts ?? 0
 

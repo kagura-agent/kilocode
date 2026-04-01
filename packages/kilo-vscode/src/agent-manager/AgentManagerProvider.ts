@@ -19,7 +19,6 @@ import { createTerminalHost } from "./terminal-host"
 import { executeVscodeTask } from "./task-runner"
 import { forkSession } from "./fork-session"
 import { continueInWorktree } from "./continue-in-worktree"
-
 import { shouldStopDiffPolling } from "./delete-worktree"
 import { buildKeybindingMap } from "./format-keybinding"
 import { resolveVersionModels, buildInitialMessages, type CreatedVersion } from "./multi-version"
@@ -59,11 +58,11 @@ export class AgentManagerProvider implements Disposable {
   private cachedWorktreeStats: AgentManagerOutMessage | undefined
   private cachedLocalStats: AgentManagerOutMessage | undefined
   private applyingWorktreeId: string | undefined
-
   /** Session ID most recently loaded via a `loadMessages` message from the webview.
    *  Updated synchronously — unlike the session provider's currentSession which depends on
    *  an async `session.get` round-trip and can be stale during rapid tab switches. */
   private activeSessionId: string | undefined
+
   constructor(
     private readonly host: Host,
     private readonly connectionService: KiloConnectionService,

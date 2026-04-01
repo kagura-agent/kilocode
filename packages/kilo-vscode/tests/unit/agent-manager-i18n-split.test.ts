@@ -15,6 +15,7 @@ import { dict as appNo } from "../../webview-ui/src/i18n/no"
 import { dict as appBr } from "../../webview-ui/src/i18n/br"
 import { dict as appTh } from "../../webview-ui/src/i18n/th"
 import { dict as appBs } from "../../webview-ui/src/i18n/bs"
+import { dict as appUk } from "../../webview-ui/src/i18n/uk"
 import { dict as amEn } from "../../webview-ui/agent-manager/i18n/en"
 import { dict as amZh } from "../../webview-ui/agent-manager/i18n/zh"
 import { dict as amZht } from "../../webview-ui/agent-manager/i18n/zht"
@@ -31,6 +32,7 @@ import { dict as amNo } from "../../webview-ui/agent-manager/i18n/no"
 import { dict as amBr } from "../../webview-ui/agent-manager/i18n/br"
 import { dict as amTh } from "../../webview-ui/agent-manager/i18n/th"
 import { dict as amBs } from "../../webview-ui/agent-manager/i18n/bs"
+import { dict as amUk } from "../../webview-ui/agent-manager/i18n/uk"
 
 const PREFIX = "agentManager."
 
@@ -51,6 +53,7 @@ const locales = {
   br: amBr,
   th: amTh,
   bs: amBs,
+  uk: amUk,
 }
 
 const appLocales = {
@@ -70,6 +73,7 @@ const appLocales = {
   br: appBr,
   th: appTh,
   bs: appBs,
+  uk: appUk,
 }
 
 function placeholders(text: string): string[] {

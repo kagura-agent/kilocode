@@ -100,7 +100,7 @@ const ModelsTab: Component = () => {
               }
             }}
             variant="secondary"
-            size="large"
+            size="normal"
           />
         </SettingsRow>
       </Card>

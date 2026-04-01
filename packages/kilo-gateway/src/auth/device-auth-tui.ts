@@ -70,10 +70,14 @@ export async function authenticateWithDeviceAuthTUI(inputs?: Record<string, stri
   const authData = await initiateDeviceAuth()
   const { code, verificationUrl, expiresIn } = authData
 
-  // Step 2: Open browser
-  await open(verificationUrl).catch(() => {
-    // Silently fail if browser can't be opened - user can manually open URL
-  })
+  // Step 2: Open browser (skip when running inside VS Code — the extension
+  // displays the URL in the webview and the user can open it via
+  // vscode.env.openExternal, which avoids flashing a terminal window on Windows)
+  if (process.env.KILO_PLATFORM !== "vscode") {
+    await open(verificationUrl).catch(() => {
+      // Silently fail if browser can't be opened - user can manually open URL
+    })
+  }
 
   // Step 3: Return instructions and callback for TUI to handle
   return {

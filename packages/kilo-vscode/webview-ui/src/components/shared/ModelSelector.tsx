@@ -49,6 +49,8 @@ export interface ModelSelectorBaseProps {
   clearLabel?: string
   /** Include the kilo-auto/small model in the list — defaults to false */
   includeAutoSmall?: boolean
+  /** Placeholder shown on the trigger when no value is selected (e.g. default fallback model) */
+  placeholder?: string
 }
 
 export const ModelSelectorBase: Component<ModelSelectorBaseProps> = (props) => {
@@ -294,7 +296,10 @@ export const ModelSelectorBase: Component<ModelSelectorBaseProps> = (props) => {
         noProviders: language.t("dialog.model.noProviders"),
         notSet: language.t("dialog.model.notSet"),
       },
+      props.placeholder,
     )
+
+  const isPlaceholder = () => !props.value?.providerID && !!props.placeholder
 
   return (
     <PopupSelector
@@ -316,7 +321,12 @@ export const ModelSelectorBase: Component<ModelSelectorBaseProps> = (props) => {
       }}
       trigger={
         <>
-          <span class="model-selector-trigger-label">{triggerLabel()}</span>
+          <span
+            class="model-selector-trigger-label"
+            style={isPlaceholder() ? { opacity: "0.6", "font-style": "italic" } : {}}
+          >
+            {triggerLabel()}
+          </span>
           <svg class="model-selector-trigger-chevron" width="10" height="10" viewBox="0 0 16 16" fill="currentColor">
             <path d="M8 4l4 5H4l4-5z" />
           </svg>

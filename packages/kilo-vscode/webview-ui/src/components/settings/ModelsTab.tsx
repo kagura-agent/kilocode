@@ -59,8 +59,9 @@ const ModelsTab: Component = () => {
             onSelect={handleModelSelect("small_model")}
             placement="bottom-start"
             allowClear
-            clearLabel={language.t("settings.providers.notSet")}
+            clearLabel={language.t("settings.providers.smallModel.notSet")}
             includeAutoSmall
+            placeholder={language.t("settings.providers.smallModel.default")}
           />
         </SettingsRow>
       </Card>

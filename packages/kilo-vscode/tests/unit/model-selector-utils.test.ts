@@ -165,4 +165,42 @@ describe("buildTriggerLabel", () => {
     const raw = { providerID: "", modelID: "claude-3-5-sonnet" }
     expect(buildTriggerLabel(undefined, undefined, undefined, raw, false, "", true, labels)).toBe("Select model")
   })
+
+  it("returns placeholder when allowClear, no selection, and placeholder is provided", () => {
+    expect(
+      buildTriggerLabel(
+        undefined,
+        undefined,
+        undefined,
+        null,
+        true,
+        "Not set",
+        true,
+        labels,
+        "kilo-auto/small (default)",
+      ),
+    ).toBe("kilo-auto/small (default)")
+  })
+
+  it("returns clearLabel when allowClear, no selection, and no placeholder", () => {
+    expect(buildTriggerLabel(undefined, undefined, undefined, null, true, "Not set", true, labels, undefined)).toBe(
+      "Not set",
+    )
+  })
+
+  it("prefers resolved name over placeholder when value is selected", () => {
+    expect(
+      buildTriggerLabel(
+        "Claude Haiku",
+        "anthropic",
+        "Anthropic",
+        null,
+        true,
+        "Not set",
+        true,
+        labels,
+        "kilo-auto/small (default)",
+      ),
+    ).toBe("Anthropic / Claude Haiku")
+  })
 })

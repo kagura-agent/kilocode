@@ -48,6 +48,7 @@ export function buildTriggerLabel(
   clearLabel: string,
   hasProviders: boolean,
   labels: { select: string; noProviders: string; notSet: string },
+  placeholder?: string,
 ): string {
   if (resolvedName) {
     if (providerID === KILO_GATEWAY_ID) return stripSubProviderPrefix(resolvedName)
@@ -57,6 +58,6 @@ export function buildTriggerLabel(
   if (raw?.providerID && raw?.modelID) {
     return raw.providerID === KILO_GATEWAY_ID ? raw.modelID : `${raw.providerID} / ${raw.modelID}`
   }
-  if (allowClear) return clearLabel || labels.notSet
+  if (allowClear) return placeholder || clearLabel || labels.notSet
   return hasProviders ? labels.select : labels.noProviders
 }

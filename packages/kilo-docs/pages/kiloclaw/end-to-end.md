@@ -128,9 +128,13 @@ By default, KiloClaw asks for confirmation before every tool call. To let it act
 
 ## Prompt and schedule work
 
-- **How to prompt your Claw:** just tell it in plain language what you want. Be specific. If you want it to remember something across sessions, tell it to write it down in a specific file.
+### How to prompt your Claw
 
-- **Scheduling jobs:** tell your Claw when and what to do — for example:
+Just tell it in plain language what you want. Be specific. If you want it to remember something across sessions, tell it to write it down in a specific file.
+
+### Scheduling jobs
+
+Tell your Claw when and what to do — for example:
 
 > Schedule a daily cron job at 7am to summarize my emails and send me a digest.
 
@@ -138,7 +142,9 @@ By default, KiloClaw asks for confirmation before every tool call. To let it act
 Mentioning "cron job" helps it understand you want a recurring scheduled task.
 {% /callout %}
 
-- **Skills:** Reusable capabilities that extend what your Claw can do — things like triaging email, summarizing documents, or managing GitHub issues. You can install a pre-built skill by asking your Claw:
+### Skills
+
+Reusable capabilities that extend what your Claw can do — things like triaging email, summarizing documents, or managing GitHub issues. You can install a pre-built skill by asking your Claw:
 
 > Install the [skill name] skill.
 

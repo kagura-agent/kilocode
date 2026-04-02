@@ -80,7 +80,7 @@ const McpEditView: Component<Props> = (props) => {
             {language.t("settings.agentBehaviour.editMcp")} — {props.name}
           </span>
         </div>
-        {/* TODO: Re-implement MCP removal — remove button hidden */}
+        <IconButton size="small" variant="ghost" icon="close" onClick={() => props.onRemove(props.name)} />
       </div>
 
       {/* Transport info */}

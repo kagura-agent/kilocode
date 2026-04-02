@@ -1732,8 +1732,20 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
     await this.fetchAndSendAgents()
   }
 
-  private async handleRemoveMcp(_name: string): Promise<void> {
-    // TODO: Re-implement MCP removal
+  private async handleRemoveMcp(name: string): Promise<void> {
+    const workspace = this.getProjectDirectory(this.currentSession?.id)
+    const mp = this.getMarketplace()
+    const stub = { id: name, type: "mcp" as const, name, description: "", url: "", content: "" }
+
+    const project = await mp.remove(stub, "project", workspace)
+    const global = await mp.remove(stub, "global", workspace)
+
+    if (project.success || global.success) {
+      const scope = global.success ? "global" : "project"
+      await this.invalidateAfterMarketplaceChange(scope)
+    } else {
+      console.error("[Kilo New] KiloProvider: Failed to remove MCP server:", name)
+    }
   }
 
   private async fetchAndSendMcpStatus(): Promise<void> {

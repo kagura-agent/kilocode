@@ -278,8 +278,8 @@ export const SessionProvider: ParentComponent = (props) => {
     vscode.postMessage({ type: "removeMode", name })
   }
 
-  const removeMcp = (_name: string) => {
-    // TODO: Re-implement MCP removal
+  const removeMcp = (name: string) => {
+    vscode.postMessage({ type: "removeMcp", name })
   }
 
   // MCP runtime status

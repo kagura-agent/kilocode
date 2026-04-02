@@ -466,7 +466,30 @@ const AgentBehaviourTab: Component = () => {
     )
   }
 
-  // TODO: Re-implement MCP removal (confirmRemoveMcp dialog removed)
+  const confirmRemoveMcp = (name: string) => {
+    dialog.show(() => (
+      <Dialog title={language.t("settings.agentBehaviour.removeMcp.title")} fit>
+        <div class="dialog-confirm-body">
+          <span>{language.t("settings.agentBehaviour.removeMcp.confirm", { name })}</span>
+          <div class="dialog-confirm-actions">
+            <Button variant="ghost" size="large" onClick={() => dialog.close()}>
+              {language.t("common.cancel")}
+            </Button>
+            <Button
+              variant="primary"
+              size="large"
+              onClick={() => {
+                dialog.close()
+                setTimeout(() => session.removeMcp(name), 150)
+              }}
+            >
+              {language.t("settings.agentBehaviour.removeMcp.button")}
+            </Button>
+          </div>
+        </div>
+      </Dialog>
+    ))
+  }
 
   const renderMcpSubtab = () => {
     const mcpEntries = createMemo(() => Object.entries(config().mcp ?? {}))
@@ -506,8 +529,9 @@ const AgentBehaviourTab: Component = () => {
         <McpEditView
           name={editingMcp()}
           onBack={() => setEditingMcp("")}
-          onRemove={(_name) => {
-            // TODO: Re-implement MCP removal
+          onRemove={(name) => {
+            confirmRemoveMcp(name)
+            setEditingMcp("")
           }}
         />
       )
@@ -617,7 +641,15 @@ const AgentBehaviourTab: Component = () => {
                             {name}
                           </Switch>
                         </div>
-                        {/* TODO: Re-implement MCP removal — remove button hidden */}
+                        <IconButton
+                          size="small"
+                          variant="ghost"
+                          icon="close"
+                          onClick={(e: MouseEvent) => {
+                            e.stopPropagation()
+                            confirmRemoveMcp(name)
+                          }}
+                        />
                         <IconButton
                           size="small"
                           variant="ghost"

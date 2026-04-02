@@ -112,10 +112,12 @@ async function prepareCli() {
   log(`Copied ${copied}/${platforms.length} platform binaries`)
 }
 
+const gradlew = process.platform === "win32" ? "gradlew.bat" : "./gradlew"
+
 async function buildPlugin() {
   log("Building JetBrains plugin via Gradle...")
   const args = production ? ["-Pproduction=true"] : []
-  await $`./gradlew buildPlugin ${args}`.cwd(root)
+  await $`${gradlew} buildPlugin ${args}`.cwd(root)
   log("Done. Plugin archive is in build/distributions/")
 }
 

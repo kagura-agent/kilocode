@@ -738,17 +738,9 @@ export namespace MessageV2 {
                 errorText: part.state.error,
                 ...(differentModel ? {} : { callProviderMetadata: part.metadata }),
               })
-            // Handle pending/running tool calls to prevent dangling tool_use blocks
-            // Anthropic/Claude APIs require every tool_use to have a corresponding tool_result
-            if (part.state.status === "pending" || part.state.status === "running")
-              assistantMessage.parts.push({
-                type: ("tool-" + part.tool) as `tool-${string}`,
-                state: "output-error",
-                toolCallId: part.callID,
-                input: part.state.input,
-                errorText: "[Tool execution was interrupted]",
-                ...(differentModel ? {} : { callProviderMetadata: part.metadata }),
-              })
+            // Skip pending/running tool calls entirely — omitting both the tool_use
+            // and any synthesized tool_result avoids cache invalidation that would
+            // occur if we injected a dynamic "[Tool execution was interrupted]" result.
           }
           if (part.type === "reasoning") {
             assistantMessage.parts.push({

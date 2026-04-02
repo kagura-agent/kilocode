@@ -695,7 +695,7 @@ describe("session.message-v2.toModelMessage", () => {
     expect(MessageV2.toModelMessages(input, model)).toStrictEqual([])
   })
 
-  test("converts pending/running tool calls to error results to prevent dangling tool_use", () => {
+  test("skips pending/running tool calls entirely to preserve prompt caching", () => {
     const userID = "m-user"
     const assistantID = "m-assistant"
 
@@ -741,46 +741,13 @@ describe("session.message-v2.toModelMessage", () => {
 
     const result = MessageV2.toModelMessages(input, model)
 
+    // Pending/running tool parts are omitted entirely — no tool_use block and no
+    // synthesized tool_result block — so prompt caching is not invalidated.
+    // The assistant message has no parts left, so it is filtered out too.
     expect(result).toStrictEqual([
       {
         role: "user",
         content: [{ type: "text", text: "run tool" }],
-      },
-      {
-        role: "assistant",
-        content: [
-          {
-            type: "tool-call",
-            toolCallId: "call-pending",
-            toolName: "bash",
-            input: { cmd: "ls" },
-            providerExecuted: undefined,
-          },
-          {
-            type: "tool-call",
-            toolCallId: "call-running",
-            toolName: "read",
-            input: { path: "/tmp" },
-            providerExecuted: undefined,
-          },
-        ],
-      },
-      {
-        role: "tool",
-        content: [
-          {
-            type: "tool-result",
-            toolCallId: "call-pending",
-            toolName: "bash",
-            output: { type: "error-text", value: "[Tool execution was interrupted]" },
-          },
-          {
-            type: "tool-result",
-            toolCallId: "call-running",
-            toolName: "read",
-            output: { type: "error-text", value: "[Tool execution was interrupted]" },
-          },
-        ],
       },
     ])
   })

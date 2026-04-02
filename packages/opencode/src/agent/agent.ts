@@ -65,8 +65,10 @@ export namespace Agent {
     const whitelistedDirs = [Truncate.GLOB, ...skillDirs.map((dir) => path.join(dir, "*"))]
     // kilocode_change start — safe bash commands that don't need user approval.
     // only commands that cannot execute arbitrary code or subprocesses.
-    const bash: Record<string, "allow" | "ask" | "deny"> = {
-      "*": "ask",
+    // The allowlist is platform-dependent: Unix commands for Linux/macOS,
+    // Windows-native equivalents (PowerShell/cmd) for Windows.
+    const win32 = process.platform === "win32"
+    const unix: Record<string, "allow" | "ask" | "deny"> = {
       // read-only / informational
       "cat *": "allow",
       "head *": "allow",
@@ -102,22 +104,67 @@ export namespace Agent {
       "mkdir *": "allow",
       "cp *": "allow",
       "mv *": "allow",
-      // compilers (no script execution)
-      "tsc *": "allow",
-      "tsgo *": "allow",
       // archive
       "tar *": "allow",
       "unzip *": "allow",
       "gzip *": "allow",
       "gunzip *": "allow",
     }
+    const windows: Record<string, "allow" | "ask" | "deny"> = {
+      // read-only / informational (cmd + PowerShell)
+      "type *": "allow",
+      "more *": "allow",
+      "dir *": "allow",
+      "tree *": "allow",
+      "cd *": "allow",
+      "echo *": "allow",
+      "where *": "allow",
+      "whoami *": "allow",
+      "set *": "allow",
+      "date *": "allow",
+      "hostname *": "allow",
+      "systeminfo *": "allow",
+      "findstr *": "allow",
+      // PowerShell equivalents
+      "Get-Content *": "allow",
+      "Select-String *": "allow",
+      "Get-ChildItem *": "allow",
+      "Get-Location *": "allow",
+      "Write-Output *": "allow",
+      "Measure-Object *": "allow",
+      "Get-Command *": "allow",
+      "Get-Item *": "allow",
+      "Compare-Object *": "allow",
+      "Get-Date *": "allow",
+      // text processing
+      "sort *": "allow",
+      "rg *": "allow",
+      "jq *": "allow",
+      // file operations (cmd + PowerShell)
+      "copy *": "allow",
+      "move *": "allow",
+      "mkdir *": "allow",
+      "New-Item *": "allow",
+      "Copy-Item *": "allow",
+      "Move-Item *": "allow",
+      // archive (PowerShell)
+      "Expand-Archive *": "allow",
+      "Compress-Archive *": "allow",
+      "tar *": "allow",
+    }
+    const bash: Record<string, "allow" | "ask" | "deny"> = {
+      "*": "ask",
+      ...(win32 ? windows : unix),
+      // compilers (no script execution) — cross-platform
+      "tsc *": "allow",
+      "tsgo *": "allow",
+    }
     // kilocode_change end
 
     // kilocode_change start — read-only bash commands for the ask agent.
     // Unlike the default bash allowlist, unknown commands are DENIED (not "ask")
     // because the ask agent must never modify the filesystem.
-    const readOnlyBash: Record<string, "allow" | "ask" | "deny"> = {
-      "*": "deny",
+    const readOnlyUnix: Record<string, "allow" | "ask" | "deny"> = {
       // read-only / informational
       "cat *": "allow",
       "head *": "allow",
@@ -148,6 +195,41 @@ export namespace Agent {
       "cut *": "allow",
       "tr *": "allow",
       "jq *": "allow",
+    }
+    const readOnlyWindows: Record<string, "allow" | "ask" | "deny"> = {
+      // read-only / informational (cmd + PowerShell)
+      "type *": "allow",
+      "more *": "allow",
+      "dir *": "allow",
+      "tree *": "allow",
+      "cd *": "allow",
+      "echo *": "allow",
+      "where *": "allow",
+      "whoami *": "allow",
+      "set *": "allow",
+      "date *": "allow",
+      "hostname *": "allow",
+      "systeminfo *": "allow",
+      "findstr *": "allow",
+      // PowerShell equivalents
+      "Get-Content *": "allow",
+      "Select-String *": "allow",
+      "Get-ChildItem *": "allow",
+      "Get-Location *": "allow",
+      "Write-Output *": "allow",
+      "Measure-Object *": "allow",
+      "Get-Command *": "allow",
+      "Get-Item *": "allow",
+      "Compare-Object *": "allow",
+      "Get-Date *": "allow",
+      // text processing
+      "sort *": "allow",
+      "rg *": "allow",
+      "jq *": "allow",
+    }
+    const readOnlyBash: Record<string, "allow" | "ask" | "deny"> = {
+      "*": "deny",
+      ...(win32 ? readOnlyWindows : readOnlyUnix),
       // git — allowlist of read-only subcommands, deny everything else
       "git *": "deny",
       "git log *": "allow",

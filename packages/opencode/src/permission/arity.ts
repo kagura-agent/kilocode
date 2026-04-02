@@ -48,6 +48,34 @@ This dictionary is used to identify the "human-understandable command" from an i
     touch: 1, // touch file.txt
     unset: 1, // unset VAR
     which: 1, // which node
+    // Windows cmd commands
+    copy: 1, // copy source.txt dest.txt
+    del: 1, // del file.txt
+    dir: 1, // dir /b
+    findstr: 1, // findstr "pattern" file.txt
+    hostname: 1, // hostname
+    more: 1, // more file.txt
+    move: 1, // move old.txt new.txt
+    set: 1, // set PATH
+    systeminfo: 1, // systeminfo
+    type: 1, // type file.txt
+    where: 1, // where node
+    // PowerShell cmdlets
+    "Compare-Object": 1, // Compare-Object (Get-Content a.txt) (Get-Content b.txt)
+    "Compress-Archive": 1, // Compress-Archive -Path src -DestinationPath out.zip
+    "Copy-Item": 1, // Copy-Item source.txt dest.txt
+    "Expand-Archive": 1, // Expand-Archive archive.zip -DestinationPath out
+    "Get-ChildItem": 1, // Get-ChildItem -Recurse
+    "Get-Command": 1, // Get-Command node
+    "Get-Content": 1, // Get-Content file.txt
+    "Get-Date": 1, // Get-Date
+    "Get-Item": 1, // Get-Item file.txt
+    "Get-Location": 1, // Get-Location
+    "Measure-Object": 1, // Measure-Object -Line
+    "Move-Item": 1, // Move-Item old.txt new.txt
+    "New-Item": 1, // New-Item file.txt
+    "Select-String": 1, // Select-String -Pattern "foo" file.txt
+    "Write-Output": 1, // Write-Output "hello"
     aws: 3, // aws s3 ls
     az: 3, // az storage blob list
     bazel: 2, // bazel build

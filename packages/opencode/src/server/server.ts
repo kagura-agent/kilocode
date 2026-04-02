@@ -101,21 +101,22 @@ export namespace Server {
           return basicAuth({ username, password })(c, next)
         })
         .use(async (c, next) => {
-          const skipLogging = c.req.path === "/log" || c.req.path === "/telemetry/capture" // kilocode_change
-          if (!skipLogging) {
-            log.info("request", {
-              method: c.req.method,
-              path: c.req.path,
-            })
+          // kilocode_change start
+          if (c.req.path === "/log" || c.req.path === "/telemetry/capture") {
+            await next()
+            return
           }
+          // kilocode_change end
+          log.info("request", {
+            method: c.req.method,
+            path: c.req.path,
+          })
           const timer = log.time("request", {
             method: c.req.method,
             path: c.req.path,
           })
           await next()
-          if (!skipLogging) {
-            timer.stop()
-          }
+          timer.stop()
         })
         .use(
           cors({

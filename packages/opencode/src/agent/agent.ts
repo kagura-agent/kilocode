@@ -27,6 +27,7 @@ import { Plugin } from "@/plugin"
 import { Skill } from "../skill"
 
 import { Telemetry } from "@kilocode/kilo-telemetry" // kilocode_change
+import { Shell } from "@/shell/shell" // kilocode_change
 
 export namespace Agent {
   export const Info = z
@@ -65,9 +66,10 @@ export namespace Agent {
     const whitelistedDirs = [Truncate.GLOB, ...skillDirs.map((dir) => path.join(dir, "*"))]
     // kilocode_change start — safe bash commands that don't need user approval.
     // only commands that cannot execute arbitrary code or subprocesses.
-    // The allowlist is platform-dependent: Unix commands for Linux/macOS,
-    // Windows-native equivalents (PowerShell/cmd) for Windows.
-    const win32 = process.platform === "win32"
+    // The allowlist is platform-dependent: Unix commands for Linux/macOS and Windows+Git Bash,
+    // Windows-native equivalents (PowerShell/cmd) for Windows without bash.
+    const shell = Shell.acceptable()
+    const win32 = process.platform === "win32" && !path.basename(shell).toLowerCase().includes("bash")
     const unix: Record<string, "allow" | "ask" | "deny"> = {
       // read-only / informational
       "cat *": "allow",

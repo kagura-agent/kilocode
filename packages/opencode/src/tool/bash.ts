@@ -57,6 +57,26 @@ const parser = lazy(async () => {
 export const BashTool = Tool.define("bash", async () => {
   const shell = Shell.acceptable()
   log.info("bash tool using shell", { shell })
+  // kilocode_change start — platform-aware file-command list and path resolution
+  const isWindowsNative = process.platform === "win32" && !path.basename(shell).toLowerCase().includes("bash")
+  // Commands whose arguments may reference paths outside the worktree.
+  // Windows-native shell uses cmd/PowerShell names; otherwise use Unix names.
+  const fileCommands = isWindowsNative
+    ? new Set([
+        "copy",
+        "move",
+        "xcopy",
+        "robocopy",
+        "type",
+        "dir",
+        "Get-Content",
+        "Copy-Item",
+        "Move-Item",
+        "Get-ChildItem",
+        "Get-Item",
+      ])
+    : new Set(["cd", "rm", "cp", "mv", "mkdir", "touch", "chmod", "chown", "cat"])
+  // kilocode_change end
 
   return {
     description: DESCRIPTION.replaceAll("${directory}", Instance.directory)
@@ -116,15 +136,20 @@ export const BashTool = Tool.define("bash", async () => {
         }
 
         // not an exhaustive list, but covers most common cases
-        if (["cd", "rm", "cp", "mv", "mkdir", "touch", "chmod", "chown", "cat"].includes(command[0])) {
+        if (fileCommands.has(command[0])) {
           for (const arg of command.slice(1)) {
             if (arg.startsWith("-") || (command[0] === "chmod" && arg.startsWith("+"))) continue
-            const resolved = await $`realpath ${arg}`
-              .cwd(cwd)
-              .quiet()
-              .nothrow()
-              .text()
-              .then((x) => x.trim())
+            // kilocode_change start — use Node.js path resolution on Windows native shells
+            // (realpath is a Unix utility not available in cmd.exe / PowerShell)
+            const resolved = isWindowsNative
+              ? path.resolve(cwd, arg.replace(/^["']+|["']+$/g, ""))
+              : await $`realpath ${arg}`
+                  .cwd(cwd)
+                  .quiet()
+                  .nothrow()
+                  .text()
+                  .then((x) => x.trim())
+            // kilocode_change end
             log.info("resolved path", { arg, resolved })
             if (resolved) {
               const normalized =

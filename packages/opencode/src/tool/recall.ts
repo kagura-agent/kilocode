@@ -79,7 +79,9 @@ async function read(params: { sessionID?: string }, ctx: Tool.Context) {
     throw new Error("The 'sessionID' parameter is required when mode is 'read'")
   }
 
-  const session = await Session.get(params.sessionID)
+  const session = await Session.get(params.sessionID).catch(() => {
+    throw new Error(`Session "${params.sessionID}" not found. Use search mode first to find valid session IDs.`)
+  })
   const cross = session.projectID !== Instance.project.id
 
   if (cross) {
@@ -95,7 +97,7 @@ async function read(params: { sessionID?: string }, ctx: Tool.Context) {
     })
   }
 
-  const msgs = await Session.messages({ sessionID: session.id })
+  const msgs = await Session.messages({ sessionID: session.id, limit: 200 })
   const lines: string[] = [
     `# Session: ${session.title}`,
     `Project: ${session.directory}`,

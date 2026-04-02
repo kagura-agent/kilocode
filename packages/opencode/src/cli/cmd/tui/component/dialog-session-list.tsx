@@ -64,7 +64,8 @@ export function DialogSessionList() {
         const status = sync.data.session_status?.[x.id]
         const isWorking = status?.type === "busy"
         // kilocode_change start
-        const project = all && "project" in x ? (x as any).project : undefined
+        const project =
+          all && "project" in x ? (x as { project?: { name?: string; worktree?: string } | null }).project : undefined
         const suffix = project ? ` [${project.name ?? project.worktree ?? ""}]` : ""
         // kilocode_change end
         return {

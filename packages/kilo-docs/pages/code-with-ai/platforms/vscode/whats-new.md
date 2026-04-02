@@ -59,6 +59,10 @@ Each message that caused file changes shows a **diff badge** in the chat — cli
 
 The Agent Manager includes inline code review — you can leave **line-level review comments directly on the diff**, the same way you would on a pull request. Click a line, type your feedback, and hit "Send all to chat" to send every comment with its file path and line number as structured context to the agent. See the [Agent Manager](/docs/automate/agent-manager) documentation for details.
 
+### Where did orchestrator mode go?
+
+Orchestrator mode is deprecated. Agents with full tool access (Code, Plan, Debug) can now **delegate to subagents automatically** — you no longer need a dedicated orchestrator. Just pick the agent for your task and it will coordinate subagents when helpful. You can also define your own [custom subagents](/docs/customize/custom-subagents). See the [Orchestrator Mode](/docs/code-with-ai/agents/orchestrator-mode) page for the full details on what changed.
+
 ### I had custom command allowlists — where did they go?
 
 The new extension no longer uses a command allowlist. Instead, shell execution is controlled by the `bash` tool permission in **Settings → Auto Approve**. You can set it to Allow, Ask, or Deny. When set to Ask, you approve or deny each individual command invocation at runtime.

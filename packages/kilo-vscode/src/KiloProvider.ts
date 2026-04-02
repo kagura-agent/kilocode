@@ -2222,7 +2222,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
 
       const parts = files?.map((f) => ({ type: "file" as const, mime: f.mime, url: f.url }))
 
-      await this.client.session.command(
+      await this.client.session.commandAsync(
         {
           sessionID: resolved!.sid,
           directory: resolved!.dir,

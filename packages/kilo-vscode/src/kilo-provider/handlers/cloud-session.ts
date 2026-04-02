@@ -170,7 +170,7 @@ export async function handleImportAndSend(
 
     if (command) {
       const parts = files?.map((f) => ({ type: "file" as const, mime: f.mime, url: f.url }))
-      await ctx.client.session.command(
+      await ctx.client.session.commandAsync(
         {
           sessionID: session.id,
           directory: dir,

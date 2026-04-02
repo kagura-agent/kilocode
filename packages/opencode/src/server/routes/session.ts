@@ -837,6 +837,36 @@ export const SessionRoutes = lazy(() =>
       },
     )
     .post(
+      "/:sessionID/command_async",
+      describeRoute({
+        summary: "Send async command",
+        description: "Send a new command to a session asynchronously, starting execution and returning immediately.",
+        operationId: "session.command_async",
+        responses: {
+          204: {
+            description: "Command accepted",
+          },
+          ...errors(400, 404),
+        },
+      }),
+      validator(
+        "param",
+        z.object({
+          sessionID: z.string().meta({ description: "Session ID" }),
+        }),
+      ),
+      validator("json", SessionPrompt.CommandInput.omit({ sessionID: true })),
+      async (c) => {
+        c.status(204)
+        c.header("Content-Type", "application/json")
+        return stream(c, async () => {
+          const sessionID = c.req.valid("param").sessionID
+          const body = c.req.valid("json")
+          SessionPrompt.command({ ...body, sessionID })
+        })
+      },
+    )
+    .post(
       "/:sessionID/shell",
       describeRoute({
         summary: "Run shell command",

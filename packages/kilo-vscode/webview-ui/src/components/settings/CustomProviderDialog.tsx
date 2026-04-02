@@ -340,7 +340,7 @@ const CustomProviderDialog = (props: CustomProviderDialogProps) => {
       {
         type: "saveCustomProvider",
         providerID: result.providerID,
-        config: result.config,
+        config: result.config as ProviderConfig,
         apiKey: result.key,
       },
       {

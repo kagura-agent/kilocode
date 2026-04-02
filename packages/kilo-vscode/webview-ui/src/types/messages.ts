@@ -2,6 +2,7 @@
  * Types for extension <-> webview message communication
  */
 
+import type { ProviderConfig as SdkProviderConfig } from "@kilocode/sdk/v2"
 import type { ProviderAuthAuthorization, ProviderAuthMethod } from "@kilocode/sdk/v2/client"
 
 // Connection states
@@ -334,27 +335,15 @@ export interface AgentConfig {
   permission?: PermissionConfig
 }
 
+// The canonical model shape is SdkProviderConfig["models"] from @kilocode/sdk/v2.
+// We keep the webview type loose here because saved configs arrive as partial
+// objects from the merged config endpoint and the form validation layer
+// (custom-provider-form.ts) handles strict checking before save.
 export interface ProviderConfig {
   name?: string
   api_key?: string
   base_url?: string
-  models?: Record<
-    string,
-    {
-      name?: string
-      cost?: {
-        input?: number
-        output?: number
-        cache_read?: number
-        cache_write?: number
-      }
-      limit?: {
-        context?: number
-        input?: number
-        output?: number
-      }
-    }
-  >
+  models?: SdkProviderConfig["models"]
   npm?: string
   env?: string[]
   options?: Record<string, unknown>

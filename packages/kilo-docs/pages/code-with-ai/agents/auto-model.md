@@ -69,6 +69,30 @@ That's it. No configuration needed.
 Auto Balanced does not support image inputs, since Minimax M2.7 does not have vision capabilities.
 {% /callout %}
 
+## Auto Free
+
+`kilo-auto/free` routes all requests to the best available free model, making it ideal for users who want to use Kilo Code at no cost.
+
+### Mode-to-Model Mapping
+
+| Mode           | Model Used          | Best For                     |
+| -------------- | ------------------- | ---------------------------- |
+| `architect`    | Minimax M2.5 (Free) | System design, planning      |
+| `orchestrator` | Minimax M2.5 (Free) | Multi-step task coordination |
+| `ask`          | Minimax M2.5 (Free) | Questions, explanations      |
+| `plan`         | Minimax M2.5 (Free) | Planning, reasoning          |
+| `general`      | Minimax M2.5 (Free) | General assistance           |
+| `debug`        | Minimax M2.5 (Free) | Debugging and fixing issues  |
+| `code`         | Minimax M2.5 (Free) | Writing and editing code     |
+| `build`        | Minimax M2.5 (Free) | Implementation tasks         |
+| `explore`      | Minimax M2.5 (Free) | Codebase exploration         |
+
+All modes use **Minimax M2.5 (Free)**, a capable free model available to both authenticated and anonymous users.
+
+{% callout type="info" title="Rate limits" %}
+Free models are subject to rate limits. Anonymous users are limited to 200 requests per hour per IP address.
+{% /callout %}
+
 ## Benefits
 
 ### Simplified Setup

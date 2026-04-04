@@ -682,6 +682,11 @@
 
   [data-slot="message-part-todo-content"] {
     line-height: var(--line-height-normal);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+    display: inline-block;
 
     &[data-completed="completed"] {
       text-decoration: line-through;

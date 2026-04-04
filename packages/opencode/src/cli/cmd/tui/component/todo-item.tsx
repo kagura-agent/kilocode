@@ -5,6 +5,13 @@ export interface TodoItemProps {
   content: string
 }
 
+const MAX_LENGTH = 80
+
+function truncate(text: string) {
+  if (text.length <= MAX_LENGTH) return text
+  return text.slice(0, MAX_LENGTH) + "…"
+}
+
 export function TodoItem(props: TodoItemProps) {
   const { theme } = useTheme()
 
@@ -25,7 +32,7 @@ export function TodoItem(props: TodoItemProps) {
           fg: props.status === "in_progress" ? theme.warning : theme.textMuted,
         }}
       >
-        {props.content}
+        {truncate(props.content)}
       </text>
     </box>
   )

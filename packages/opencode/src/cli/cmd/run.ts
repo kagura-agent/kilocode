@@ -210,7 +210,12 @@ function todo(info: ToolProps<typeof TodoWriteTool>) {
       icon: "#",
       title: "Todos",
     },
-    info.input.todos.map((item) => `${item.status === "completed" ? "[x]" : "[ ]"} ${item.content}`).join("\n"),
+    info.input.todos
+      .map((item) => {
+        const content = item.content.length > 80 ? item.content.slice(0, 80) + "…" : item.content
+        return `${item.status === "completed" ? "[x]" : "[ ]"} ${content}`
+      })
+      .join("\n"),
   )
 }
 

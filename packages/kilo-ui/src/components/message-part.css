@@ -79,6 +79,15 @@
   }
 }
 
+/* Disable sticky file headers inside tool content — in the sidebar chat the
+   nearest scroll ancestor is the message list viewport, so sticky headers
+   float over diff lines as the user scrolls, appearing in the middle of the diff. */
+[data-component="edit-tool"] [data-component="sticky-accordion-header"],
+[data-component="write-tool"] [data-component="sticky-accordion-header"],
+[data-component="apply-patch-tool"] [data-component="sticky-accordion-header"] {
+  position: relative;
+}
+
 /* Prevent long filenames in apply-patch accordion from hiding diff changes */
 [data-component="accordion"][data-scope="apply-patch"] {
   [data-slot="apply-patch-filename"] {

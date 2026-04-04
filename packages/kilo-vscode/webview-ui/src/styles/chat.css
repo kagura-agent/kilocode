@@ -2635,6 +2635,13 @@ body.vscode-light
   width: 100%;
 }
 
+/* Disable sticky headers in turn diff summary — the scroll container is
+   the message list, not a dedicated diff panel, so sticky headers float
+   over diff content as the user scrolls. */
+.vscode-session-turn-diffs [data-component="sticky-accordion-header"] {
+  position: relative;
+}
+
 /* ============================================
    Todo tool — align checkboxes with icon in header
    ============================================ */

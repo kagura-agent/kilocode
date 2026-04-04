@@ -619,4 +619,73 @@ describe("saveAlwaysRules", () => {
       },
     })
   })
+
+  test("reply(always) without saveAlwaysRules drains cross-session pending", async () => {
+    await using tmp = await tmpdir({ git: true })
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        // Session A asks for bash permission
+        const askA = PermissionNext.ask({
+          id: "permission_cross_a",
+          sessionID: "session_a",
+          permission: "bash",
+          patterns: ["npm install"],
+          metadata: { rules: ["npm *"] },
+          always: ["npm *"],
+          ruleset: [],
+        })
+
+        // Session B asks for same permission (different session)
+        const askB = PermissionNext.ask({
+          id: "permission_cross_b",
+          sessionID: "session_b",
+          permission: "bash",
+          patterns: ["npm test"],
+          metadata: {},
+          always: [],
+          ruleset: [],
+        })
+
+        // Reply "always" directly (no saveAlwaysRules) — should still drain B
+        await PermissionNext.reply({ requestID: "permission_cross_a", reply: "always" })
+        await expect(askA).resolves.toBeUndefined()
+        await expect(askB).resolves.toBeUndefined()
+      },
+    })
+  })
+
+  test("saveAlwaysRules + reply(always) does not duplicate rules in approved set", async () => {
+    await using tmp = await tmpdir({ git: true })
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const askA = PermissionNext.ask({
+          id: "permission_dup",
+          sessionID: "session_a",
+          permission: "bash",
+          patterns: ["npm install"],
+          metadata: { rules: ["npm *"] },
+          always: ["npm *"],
+          ruleset: [],
+        })
+
+        // Call saveAlwaysRules first, then reply("always") — the typical VS Code extension flow
+        await PermissionNext.saveAlwaysRules({ requestID: "permission_dup", approvedAlways: ["npm *"] })
+        await PermissionNext.reply({ requestID: "permission_dup", reply: "always" })
+        await expect(askA).resolves.toBeUndefined()
+
+        // Verify the rule is approved exactly once by checking a new request is auto-allowed
+        const result = await PermissionNext.ask({
+          sessionID: "session_a",
+          permission: "bash",
+          patterns: ["npm test"],
+          metadata: {},
+          always: [],
+          ruleset: [],
+        })
+        expect(result).toBeUndefined()
+      },
+    })
+  })
 })

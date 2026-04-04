@@ -14,6 +14,7 @@ export async function drainCovered(
     {
       info: PermissionNext.Request
       ruleset: PermissionNext.Ruleset
+      saved: boolean
       resolve: () => void
       reject: (e: any) => void
     }

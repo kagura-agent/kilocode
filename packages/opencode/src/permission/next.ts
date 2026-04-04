@@ -171,6 +171,7 @@ export namespace PermissionNext {
       {
         info: Request
         ruleset: Ruleset // kilocode_change
+        saved: boolean // kilocode_change — true after saveAlwaysRules persisted rules for this request
         resolve: () => void
         reject: (e: any) => void
       }
@@ -213,6 +214,7 @@ export namespace PermissionNext {
             s.pending[id] = {
               info,
               ruleset, // kilocode_change
+              saved: false, // kilocode_change
               resolve,
               reject,
             }
@@ -254,6 +256,7 @@ export namespace PermissionNext {
         if (deniedSet.has(pattern)) newRules.push({ permission, pattern, action: "deny" })
       }
       s.approved.push(...newRules)
+      existing.saved = true // kilocode_change — mark so reply("always") skips duplicate persistence
 
       if (newRules.length > 0) {
         await Config.updateGlobal({ permission: toConfig(newRules) }, { dispose: false })
@@ -310,44 +313,38 @@ export namespace PermissionNext {
         }
         // kilocode_change end
 
-        for (const pattern of existing.info.always) {
-          s.approved.push({
-            permission: existing.info.permission,
-            pattern,
-            action: "allow",
-          })
+        // kilocode_change start — skip duplicate persistence when saveAlwaysRules already handled it
+        if (!existing.saved) {
+          for (const pattern of existing.info.always) {
+            s.approved.push({
+              permission: existing.info.permission,
+              pattern,
+              action: "allow",
+            })
+          }
         }
+        // kilocode_change end
 
         existing.resolve()
 
-        const sessionID = existing.info.sessionID
-        for (const [id, pending] of Object.entries(s.pending)) {
-          if (pending.info.sessionID !== sessionID) continue
-          const ok = pending.info.patterns.every(
-            (pattern) => evaluate(pending.info.permission, pattern, pending.ruleset, s.approved).action === "allow", // kilocode_change — include original ruleset
-          )
-          if (!ok) continue
-          delete s.pending[id]
-          Bus.publish(Event.Replied, {
-            sessionID: pending.info.sessionID,
-            requestID: pending.info.id,
-            reply: "always",
-          })
-          pending.resolve()
-        }
+        // kilocode_change start — drain ALL sessions, not just the current one
+        await drainCovered(s.pending, s.approved, evaluate, Event, DeniedError)
+        // kilocode_change end
 
         // TODO: we don't save the permission ruleset to disk yet until there's
         // UI to manage it
         // db().insert(PermissionTable).values({ projectID: Instance.project.id, data: s.approved })
         //   .onConflictDoUpdate({ target: PermissionTable.projectID, set: { data: s.approved } }).run()
-        // kilocode_change start - persist always rules to global config
-        const alwaysRules: Ruleset = existing.info.always.map((pattern) => ({
-          permission: existing.info.permission,
-          pattern,
-          action: "allow" as const,
-        }))
-        if (alwaysRules.length > 0) {
-          await Config.updateGlobal({ permission: toConfig(alwaysRules) }, { dispose: false })
+        // kilocode_change start - persist always rules to global config (skip if saveAlwaysRules already did it)
+        if (!existing.saved) {
+          const alwaysRules: Ruleset = existing.info.always.map((pattern) => ({
+            permission: existing.info.permission,
+            pattern,
+            action: "allow" as const,
+          }))
+          if (alwaysRules.length > 0) {
+            await Config.updateGlobal({ permission: toConfig(alwaysRules) }, { dispose: false })
+          }
         }
         // kilocode_change end
         return

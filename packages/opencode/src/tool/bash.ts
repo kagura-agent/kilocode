@@ -96,8 +96,11 @@ export const BashTool = Tool.define("bash", async () => {
       for (const node of tree.rootNode.descendantsOfType("command")) {
         if (!node) continue
 
-        // Get full command text including redirects if present
-        let commandText = node.parent?.type === "redirected_statement" ? node.parent.text : node.text
+        // kilocode_change start — use the command text without redirect operators for permission patterns.
+        // This ensures "npm test 2>&1" and "npm test" are treated identically for permission matching.
+        // The redirect portion (2>&1, >, >>, etc.) is an I/O concern, not a security boundary.
+        const commandText = node.text
+        // kilocode_change end
 
         const command = []
         for (let i = 0; i < node.childCount; i++) {

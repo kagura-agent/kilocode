@@ -5,7 +5,7 @@
 import type { ProviderAuthAuthorization, ProviderAuthMethod } from "@kilocode/sdk/v2/client"
 
 // Connection states
-export type ConnectionState = "connecting" | "connected" | "disconnected" | "error"
+export type ConnectionState = "connecting" | "connected" | "disconnected" | "error" | "rate-limited"
 
 // Session status (simplified from backend)
 export type SessionStatus = "idle" | "busy" | "retry"

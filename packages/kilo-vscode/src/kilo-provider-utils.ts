@@ -93,7 +93,7 @@ export function filterVisibleAgents(agents: Agent[]): { visible: Agent[]; defaul
  */
 export interface SessionRefreshContext {
   pendingSessionRefresh: boolean
-  connectionState: "connecting" | "connected" | "disconnected" | "error"
+  connectionState: "connecting" | "connected" | "disconnected" | "error" | "rate-limited"
   listSessions: ((dir: string) => Promise<Session[]>) | null
   sessionDirectories: Map<string, string>
   workspaceDirectory: string

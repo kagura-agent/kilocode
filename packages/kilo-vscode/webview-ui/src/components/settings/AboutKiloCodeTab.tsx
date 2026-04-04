@@ -113,6 +113,7 @@ const AboutKiloCodeTab: Component<AboutKiloCodeTabProps> = (props) => {
       case "connected":
         return "var(--vscode-testing-iconPassed, #89d185)"
       case "connecting":
+      case "rate-limited":
         return "var(--vscode-testing-iconQueued, #cca700)"
       case "disconnected":
         return "var(--vscode-testing-iconFailed, #f14c4c)"
@@ -127,6 +128,8 @@ const AboutKiloCodeTab: Component<AboutKiloCodeTabProps> = (props) => {
         return language.t("settings.aboutKiloCode.status.connected")
       case "connecting":
         return language.t("settings.aboutKiloCode.status.connecting")
+      case "rate-limited":
+        return "Rate limited — retrying..."
       case "disconnected":
         return language.t("settings.aboutKiloCode.status.disconnected")
       case "error":

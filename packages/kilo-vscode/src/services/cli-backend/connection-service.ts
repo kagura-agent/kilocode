@@ -4,8 +4,9 @@ import { createKiloClient, type KiloClient, type Event } from "@kilocode/sdk/v2/
 import { SdkSSEAdapter } from "./sdk-sse-adapter"
 import type { ServerConfig } from "./types"
 import { resolveEventSessionId as resolveEventSessionIdPure } from "./connection-utils"
+import { withBackoff, type BackoffOptions } from "./rate-limit-backoff"
 
-export type ConnectionState = "connecting" | "connected" | "disconnected" | "error"
+export type ConnectionState = "connecting" | "connected" | "disconnected" | "error" | "rate-limited"
 type SSEEventListener = (event: Event) => void
 type StateListener = (state: ConnectionState) => void
 type SSEEventFilter = (event: Event) => boolean
@@ -346,6 +347,27 @@ export class KiloConnectionService {
   }
 
   /**
+   * Execute an async operation with exponential backoff on retriable errors (429, 5xx).
+   * Logs retry attempts to the console for visibility.
+   *
+   * @example
+   *   const { data } = await connectionService.fetchWithBackoff(
+   *     () => client.session.list({ directory }),
+   *   )
+   */
+  async fetchWithBackoff<T>(fn: () => Promise<T>, options?: BackoffOptions): Promise<T> {
+    return withBackoff(fn, {
+      onRetry: (attempt, delay, error) => {
+        console.warn(
+          `[Kilo New] ConnectionService: ⏳ Retry attempt ${attempt} in ${delay}ms:`,
+          error instanceof Error ? error.message : error,
+        )
+      },
+      ...options,
+    })
+  }
+
+  /**
    * Clean up everything: kill server, close SSE, clear listeners.
    */
   dispose(): void {
@@ -481,6 +503,13 @@ export class KiloConnectionService {
         resolveConnected?.()
         resolveConnected = null
         rejectConnected = null
+        return
+      }
+
+      // "rate-limited" is a transient state — the SSE adapter is backing off
+      // and will reconnect automatically. Don't reject the connect promise;
+      // if we already connected once, the outer loop handles recovery.
+      if (sseState === "rate-limited") {
         return
       }
 

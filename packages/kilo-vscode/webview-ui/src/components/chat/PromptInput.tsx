@@ -255,6 +255,8 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
     switch (server.connectionState()) {
       case "connecting":
         return language.t("prompt.placeholder.connecting")
+      case "rate-limited":
+        return "Rate limited — retrying with backoff..."
       case "error":
         return language.t("prompt.placeholder.error")
       default:

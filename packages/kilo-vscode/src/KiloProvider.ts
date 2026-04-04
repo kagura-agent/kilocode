@@ -96,7 +96,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
   private currentSession: Session | null = null
   /** Remembers the last selected session so /new can stay in the same worktree after clearSession. */
   private contextSessionID: string | undefined
-  private connectionState: "connecting" | "connected" | "disconnected" | "error" = "connecting"
+  private connectionState: "connecting" | "connected" | "disconnected" | "error" | "rate-limited" = "connecting"
   private loginAttempt = 0
   private isWebviewReady = false
   private readonly extensionVersion =

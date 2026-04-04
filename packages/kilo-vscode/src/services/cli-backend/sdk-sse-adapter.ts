@@ -1,8 +1,9 @@
 import type { KiloClient, GlobalEvent, Event } from "@kilocode/sdk/v2/client"
+import { RateLimitBackoff, isRateLimited } from "./rate-limit-backoff"
 
 export type SSEEventHandler = (event: Event) => void
 export type SSEErrorHandler = (error: Error) => void
-export type SSEStateHandler = (state: "connecting" | "connected" | "disconnected") => void
+export type SSEStateHandler = (state: "connecting" | "connected" | "disconnected" | "rate-limited") => void
 
 /**
  * SSE adapter that consumes the SDK's `client.global.event()` AsyncGenerator
@@ -34,6 +35,9 @@ export class SdkSSEAdapter {
   private abortController: AbortController | null = null
   private attemptController: AbortController | null = null
   private heartbeatTimer: ReturnType<typeof setTimeout> | null = null
+  private readonly backoff = new RateLimitBackoff()
+  /** Stores the last SSE error for rate-limit detection in the reconnect path */
+  private lastError: Error | null = null
 
   // 15s matches packages/app/src/context/global-sdk.tsx — server sends heartbeats
   // every 10s, so this gives a 5s grace window before forcing a reconnect.
@@ -158,11 +162,18 @@ export class SdkSSEAdapter {
               return
             }
             console.error("[Kilo New] SSE: ❌ SDK SSE error callback:", error)
-            this.notifyError(error instanceof Error ? error : new Error(String(error)))
+            const err = error instanceof Error ? error : new Error(String(error))
+            this.lastError = err
+            if (isRateLimited(err)) {
+              console.warn("[Kilo New] SSE: ⚠️ Rate limited (429) detected from SSE error callback")
+            }
+            this.notifyError(err)
           },
         })
 
         console.log("[Kilo New] SSE: ✅ Stream opened successfully")
+        this.backoff.reset()
+        this.lastError = null
         this.notifyState("connected")
         this.resetHeartbeat(attempt)
 
@@ -186,7 +197,8 @@ export class SdkSSEAdapter {
         const aborted = signal.aborted || (error instanceof DOMException && error.name === "AbortError")
         if (!aborted) {
           console.error("[Kilo New] SSE: ❌ Stream error:", error)
-          this.notifyError(error instanceof Error ? error : new Error(String(error)))
+          this.lastError = error instanceof Error ? error : new Error(String(error))
+          this.notifyError(this.lastError)
         }
       } finally {
         signal.removeEventListener("abort", onAbort)
@@ -198,9 +210,20 @@ export class SdkSSEAdapter {
         break
       }
 
-      console.log(`[Kilo New] SSE: 🔄 Reconnecting in ${SdkSSEAdapter.RECONNECT_DELAY_MS}ms...`)
-      this.notifyState("connecting")
-      await new Promise((resolve) => setTimeout(resolve, SdkSSEAdapter.RECONNECT_DELAY_MS))
+      // Use exponential backoff when rate-limited (429), otherwise use the
+      // default fixed reconnect delay.
+      const rateLimitDelay = this.lastError ? this.backoff.failure(this.lastError) : 0
+      const delay = rateLimitDelay > 0 ? rateLimitDelay : SdkSSEAdapter.RECONNECT_DELAY_MS
+
+      if (rateLimitDelay > 0) {
+        console.log(`[Kilo New] SSE: ⏳ Rate limited — backing off ${delay}ms (attempt ${this.backoff.count})`)
+        this.notifyState("rate-limited")
+      } else {
+        console.log(`[Kilo New] SSE: 🔄 Reconnecting in ${delay}ms...`)
+        this.notifyState("connecting")
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, delay))
     }
 
     this.notifyState("disconnected")
@@ -248,7 +271,7 @@ export class SdkSSEAdapter {
     }
   }
 
-  private notifyState(state: "connecting" | "connected" | "disconnected"): void {
+  private notifyState(state: "connecting" | "connected" | "disconnected" | "rate-limited"): void {
     for (const handler of this.stateHandlers) {
       try {
         handler(state)

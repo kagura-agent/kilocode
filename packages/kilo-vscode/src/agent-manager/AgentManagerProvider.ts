@@ -1805,7 +1805,7 @@ export class AgentManagerProvider implements Disposable {
       if (this.diffSessionId !== sessionId) return
       this.diffInterval = setInterval(() => {
         void this.pollDiff(sessionId)
-      }, 2500)
+      }, 5000)
     })
   }
 

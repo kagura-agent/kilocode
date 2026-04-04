@@ -181,7 +181,7 @@ export class DiffViewerProvider implements vscode.Disposable {
       if (!this.panel) return
       this.diffInterval = setInterval(() => {
         void this.pollDiff()
-      }, 2500)
+      }, 5000)
     })
   }
 

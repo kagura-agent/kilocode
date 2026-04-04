@@ -61,7 +61,7 @@ export class GitStatsPoller {
   private skipWorktreeIds = new Set<string>()
 
   constructor(private readonly options: GitStatsPollerOptions) {
-    this.intervalMs = options.intervalMs ?? 5000
+    this.intervalMs = options.intervalMs ?? 10_000
     this.git = options.git
   }
 

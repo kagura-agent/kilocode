@@ -2964,6 +2964,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
         this.postMessage(msg)
       },
       log: () => {},
+      intervalMs: 15_000,
     })
     this.statsPoller.setEnabled(true)
   }

@@ -61,7 +61,7 @@ export class GitStatsPoller {
   private skipWorktreeIds = new Set<string>()
 
   constructor(private readonly options: GitStatsPollerOptions) {
-    this.intervalMs = options.intervalMs ?? 5000
+    this.intervalMs = options.intervalMs ?? 15000
     this.git = options.git
   }
 
@@ -246,9 +246,11 @@ export class GitStatsPoller {
       const branch = await this.git.currentBranch(root)
       if (!branch || branch === "HEAD") return
 
-      const tracking = await this.git.resolveTrackingBranch(root, branch)
+      const [tracking, remote] = await Promise.all([
+        this.git.resolveTrackingBranch(root, branch),
+        this.git.resolveRemote(root, branch).catch(() => undefined),
+      ])
       const base = tracking ?? (await this.git.resolveDefaultBranch(root, branch))
-      const remote = await this.git.resolveRemote(root, branch).catch(() => undefined)
 
       let files: number
       let additions: number

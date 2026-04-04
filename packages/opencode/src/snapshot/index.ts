@@ -207,46 +207,78 @@ export namespace Snapshot {
       status.set(file, kind)
     }
 
-    for await (const line of $`git -c core.autocrlf=false -c core.longpaths=true -c core.symlinks=true -c core.quotepath=false --git-dir ${git} --work-tree ${Instance.worktree} diff --no-ext-diff --no-renames --numstat ${from} ${to} -- .`
-      .quiet()
-      .cwd(Instance.directory)
-      .nothrow()
-      .lines()) {
+    // kilocode_change start - collect entries first, then batch file content fetches
+    const numstat =
+      await $`git -c core.autocrlf=false -c core.longpaths=true -c core.symlinks=true -c core.quotepath=false --git-dir ${git} --work-tree ${Instance.worktree} diff --no-ext-diff --no-renames --numstat ${from} ${to} -- .`
+        .quiet()
+        .cwd(Instance.directory)
+        .nothrow()
+        .text()
+
+    const entries: { additions: string; deletions: string; file: string }[] = []
+    for (const line of numstat.trim().split("\n")) {
       if (!line) continue
       const [additions, deletions, file] = line.split("\t")
-      const isBinaryFile = additions === "-" && deletions === "-"
-      // kilocode_change start
-      const oversized =
-        !isBinaryFile &&
-        ((parseInt(await $`git --git-dir ${git} cat-file -s ${from}:${file}`.quiet().nothrow().text()) || 0) >
-          MAX_DIFF_SIZE ||
-          (parseInt(await $`git --git-dir ${git} cat-file -s ${to}:${file}`.quiet().nothrow().text()) || 0) >
-            MAX_DIFF_SIZE)
-      const skip = isBinaryFile || oversized
-      // kilocode_change end
-      const before = skip
-        ? ""
-        : await $`git -c core.autocrlf=false -c core.longpaths=true -c core.symlinks=true --git-dir ${git} --work-tree ${Instance.worktree} show ${from}:${file}`
+      if (!file) continue
+      entries.push({ additions: additions!, deletions: deletions!, file })
+    }
+
+    // Batch size check: run all cat-file size checks in parallel
+    const sizes = await Promise.all(
+      entries.map(async (entry) => {
+        if (entry.additions === "-" && entry.deletions === "-") return { binary: true, oversized: false }
+        const [fromSize, toSize] = await Promise.all([
+          $`git --git-dir ${git} cat-file -s ${from}:${entry.file}`
             .quiet()
             .nothrow()
             .text()
-      const after = skip
-        ? ""
-        : await $`git -c core.autocrlf=false -c core.longpaths=true -c core.symlinks=true --git-dir ${git} --work-tree ${Instance.worktree} show ${to}:${file}`
+            .then((t) => parseInt(t) || 0),
+          $`git --git-dir ${git} cat-file -s ${to}:${entry.file}`
             .quiet()
             .nothrow()
             .text()
-      const added = isBinaryFile ? 0 : parseInt(additions)
-      const deleted = isBinaryFile ? 0 : parseInt(deletions)
+            .then((t) => parseInt(t) || 0),
+        ])
+        return { binary: false, oversized: fromSize > MAX_DIFF_SIZE || toSize > MAX_DIFF_SIZE }
+      }),
+    )
+
+    // Batch content fetch: run all show commands in parallel
+    const contents = await Promise.all(
+      entries.map(async (entry, i) => {
+        const { binary, oversized } = sizes[i]!
+        const skip = binary || oversized
+        if (skip) return { before: "", after: "" }
+        const [before, after] = await Promise.all([
+          $`git -c core.autocrlf=false -c core.longpaths=true -c core.symlinks=true --git-dir ${git} --work-tree ${Instance.worktree} show ${from}:${entry.file}`
+            .quiet()
+            .nothrow()
+            .text(),
+          $`git -c core.autocrlf=false -c core.longpaths=true -c core.symlinks=true --git-dir ${git} --work-tree ${Instance.worktree} show ${to}:${entry.file}`
+            .quiet()
+            .nothrow()
+            .text(),
+        ])
+        return { before, after }
+      }),
+    )
+
+    for (let i = 0; i < entries.length; i++) {
+      const entry = entries[i]!
+      const { binary } = sizes[i]!
+      const { before, after } = contents[i]!
+      const added = binary ? 0 : parseInt(entry.additions)
+      const deleted = binary ? 0 : parseInt(entry.deletions)
       result.push({
-        file,
+        file: entry.file,
         before,
         after,
         additions: Number.isFinite(added) ? added : 0,
         deletions: Number.isFinite(deleted) ? deleted : 0,
-        status: status.get(file) ?? "modified",
+        status: status.get(entry.file) ?? "modified",
       })
     }
+    // kilocode_change end
     return result
   }
 

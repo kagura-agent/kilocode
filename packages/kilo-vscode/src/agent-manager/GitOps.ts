@@ -186,20 +186,28 @@ export class GitOps {
     if (!untracked) return tracked
 
     const paths = untracked.split("\n").filter((line) => line.trim())
-    const counts = await Promise.all(
-      paths.map(async (p) => {
-        try {
-          const full = nodePath.resolve(cwd, p)
-          const stat = await fs.stat(full)
-          if (stat.size > 1_000_000) return 0
-          const content = await fs.readFile(full, "utf-8")
-          return content.split("\n").length
-        } catch (err) {
-          this.log(`Failed to read untracked file ${p}:`, err)
-          return 0
-        }
-      }),
-    )
+
+    // Limit concurrency to avoid spawning too many parallel file reads
+    const limit = 10
+    const counts: number[] = new Array(paths.length).fill(0)
+    for (let i = 0; i < paths.length; i += limit) {
+      const batch = paths.slice(i, i + limit)
+      const results = await Promise.all(
+        batch.map(async (p) => {
+          try {
+            const full = nodePath.resolve(cwd, p)
+            const stat = await fs.stat(full)
+            if (stat.size > 1_000_000) return 0
+            const content = await fs.readFile(full, "utf-8")
+            return content.split("\n").length
+          } catch (err) {
+            this.log(`Failed to read untracked file ${p}:`, err)
+            return 0
+          }
+        }),
+      )
+      for (let j = 0; j < results.length; j++) counts[i + j] = results[j]
+    }
 
     return {
       files: tracked.files + paths.length,

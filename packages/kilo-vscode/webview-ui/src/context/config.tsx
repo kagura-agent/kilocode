@@ -73,18 +73,29 @@ export const ConfigProvider: ParentComponent = (props) => {
 
   // Request config immediately; if the extension's httpClient is not yet ready,
   // the extensionDataReady signal will arrive once initialization completes and
-  // we retry once at that point if data still hasn't loaded.
+  // we retry once at that point. A 3s fallback covers edge cases where the signal
+  // is delayed (e.g. one fetcher is slow and blocks the Promise.all).
   vscode.postMessage({ type: "requestConfig" })
+
+  const fallback = setTimeout(() => {
+    if (loading()) {
+      vscode.postMessage({ type: "requestConfig" })
+    }
+  }, 3000)
 
   const unsubReady = vscode.onMessage((message: ExtensionMessage) => {
     if (message.type !== "extensionDataReady") return
     unsubReady()
+    clearTimeout(fallback)
     if (loading()) {
       vscode.postMessage({ type: "requestConfig" })
     }
   })
 
-  onCleanup(unsubReady)
+  onCleanup(() => {
+    unsubReady()
+    clearTimeout(fallback)
+  })
 
   function updateConfig(partial: Partial<Config>) {
     // Optimistically update local state with deep merge + null stripping

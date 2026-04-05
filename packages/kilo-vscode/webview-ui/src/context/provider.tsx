@@ -66,18 +66,29 @@ export const ProviderProvider: ParentComponent = (props) => {
 
   // Request providers immediately; if the extension's httpClient is not yet ready,
   // the extensionDataReady signal will arrive once initialization completes and
-  // we retry once at that point if data still hasn't loaded.
+  // we retry once at that point. A 3s fallback covers edge cases where the signal
+  // is delayed (e.g. one fetcher is slow and blocks the Promise.all).
   vscode.postMessage({ type: "requestProviders" })
+
+  const fallback = setTimeout(() => {
+    if (Object.keys(providers()).length === 0) {
+      vscode.postMessage({ type: "requestProviders" })
+    }
+  }, 3000)
 
   const unsubReady = vscode.onMessage((message: ExtensionMessage) => {
     if (message.type !== "extensionDataReady") return
     unsubReady()
+    clearTimeout(fallback)
     if (Object.keys(providers()).length === 0) {
       vscode.postMessage({ type: "requestProviders" })
     }
   })
 
-  onCleanup(unsubReady)
+  onCleanup(() => {
+    unsubReady()
+    clearTimeout(fallback)
+  })
 
   const value: ProviderContextValue = {
     providers,

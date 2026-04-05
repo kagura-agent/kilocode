@@ -512,11 +512,19 @@ export const SessionProvider: ParentComponent = (props) => {
   })
 
   // Request MCP status immediately; retry once on extensionDataReady if still missing.
+  // A 3s fallback covers edge cases where the signal is delayed (e.g. one fetcher
+  // is slow and blocks the Promise.all in initializeConnection).
   vscode.postMessage({ type: "requestMcpStatus" })
+
+  const fallback = setTimeout(() => {
+    if (agents().length === 0) vscode.postMessage({ type: "requestAgents" })
+    if (Object.keys(mcpStatus()).length === 0) vscode.postMessage({ type: "requestMcpStatus" })
+  }, 3000)
 
   const unsubDataReady = vscode.onMessage((message: ExtensionMessage) => {
     if (message.type !== "extensionDataReady") return
     unsubDataReady()
+    clearTimeout(fallback)
     if (agents().length === 0) vscode.postMessage({ type: "requestAgents" })
     if (Object.keys(mcpStatus()).length === 0) vscode.postMessage({ type: "requestMcpStatus" })
   })
@@ -526,6 +534,7 @@ export const SessionProvider: ParentComponent = (props) => {
     unsubSkills()
     unsubMcpStatus()
     unsubDataReady()
+    clearTimeout(fallback)
   })
 
   // Variant (thinking effort) selection — keyed by "providerID/modelID"

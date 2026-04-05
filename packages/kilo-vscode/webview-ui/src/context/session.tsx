@@ -482,23 +482,10 @@ export const SessionProvider: ParentComponent = (props) => {
     )
   })
 
-  // Request agents in case the initial push was missed.
-  // Retry a few times because the extension's httpClient may
-  // not be ready yet when the first request arrives.
-  let agentRetries = 0
-  const agentMaxRetries = 5
-  const agentRetryMs = 500
-
+  // Request agents immediately; if the extension's httpClient is not yet ready,
+  // the extensionDataReady signal will arrive once initialization completes and
+  // we retry once at that point if data still hasn't loaded.
   vscode.postMessage({ type: "requestAgents" })
-
-  const agentRetryTimer = setInterval(() => {
-    agentRetries++
-    if (agents().length > 0 || agentRetries >= agentMaxRetries) {
-      clearInterval(agentRetryTimer)
-      return
-    }
-    vscode.postMessage({ type: "requestAgents" })
-  }, agentRetryMs)
 
   // Skills loaded from the CLI backend
   const unsubSkills = vscode.onMessage((message: ExtensionMessage) => {
@@ -524,24 +511,21 @@ export const SessionProvider: ParentComponent = (props) => {
     }
   })
 
-  // Request MCP status on init with retry (same pattern as agents)
-  let mcpRetries = 0
+  // Request MCP status immediately; retry once on extensionDataReady if still missing.
   vscode.postMessage({ type: "requestMcpStatus" })
-  const mcpRetryTimer = setInterval(() => {
-    mcpRetries++
-    if (Object.keys(mcpStatus()).length > 0 || mcpRetries >= 5) {
-      clearInterval(mcpRetryTimer)
-      return
-    }
-    vscode.postMessage({ type: "requestMcpStatus" })
-  }, 500)
+
+  const unsubDataReady = vscode.onMessage((message: ExtensionMessage) => {
+    if (message.type !== "extensionDataReady") return
+    unsubDataReady()
+    if (agents().length === 0) vscode.postMessage({ type: "requestAgents" })
+    if (Object.keys(mcpStatus()).length === 0) vscode.postMessage({ type: "requestMcpStatus" })
+  })
 
   onCleanup(() => {
     unsubAgents()
     unsubSkills()
     unsubMcpStatus()
-    clearInterval(agentRetryTimer)
-    clearInterval(mcpRetryTimer)
+    unsubDataReady()
   })
 
   // Variant (thinking effort) selection — keyed by "providerID/modelID"

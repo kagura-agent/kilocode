@@ -1025,14 +1025,20 @@ export namespace Provider {
       }
     }
 
-    for (const [providerID, fn] of Object.entries(CUSTOM_LOADERS)) {
-      if (disabled.has(providerID)) continue
-      const data = database[providerID]
-      if (!data) {
-        log.error("Provider does not exist in model list " + providerID)
-        continue
+    const loaderEntries = Object.entries(CUSTOM_LOADERS).filter(([id]) => {
+      if (disabled.has(id)) return false
+      if (!database[id]) {
+        log.error("Provider does not exist in model list " + id)
+        return false
       }
-      const result = await fn(data)
+      return true
+    })
+    const loaded = await Promise.allSettled(
+      loaderEntries.map(async ([id, fn]) => ({ id, result: await fn(database[id]) })),
+    )
+    for (const item of loaded) {
+      if (item.status === "rejected") continue
+      const { id: providerID, result } = item.value
       if (result && (result.autoload || providers[providerID])) {
         if (result.getModel) modelLoaders[providerID] = result.getModel
         const opts = result.options ?? {}

@@ -64,25 +64,20 @@ export const ProviderProvider: ParentComponent = (props) => {
 
   onCleanup(unsubscribe)
 
-  // Request providers in case the initial push was missed.
-  // Retry a few times because the extension's httpClient may
-  // not be ready yet when the first request arrives.
-  let retries = 0
-  const maxRetries = 5
-  const retryMs = 500
-
+  // Request providers immediately; if the extension's httpClient is not yet ready,
+  // the extensionDataReady signal will arrive once initialization completes and
+  // we retry once at that point if data still hasn't loaded.
   vscode.postMessage({ type: "requestProviders" })
 
-  const retryTimer = setInterval(() => {
-    retries++
-    if (Object.keys(providers()).length > 0 || retries >= maxRetries) {
-      clearInterval(retryTimer)
-      return
+  const unsubReady = vscode.onMessage((message: ExtensionMessage) => {
+    if (message.type !== "extensionDataReady") return
+    unsubReady()
+    if (Object.keys(providers()).length === 0) {
+      vscode.postMessage({ type: "requestProviders" })
     }
-    vscode.postMessage({ type: "requestProviders" })
-  }, retryMs)
+  })
 
-  onCleanup(() => clearInterval(retryTimer))
+  onCleanup(unsubReady)
 
   const value: ProviderContextValue = {
     providers,

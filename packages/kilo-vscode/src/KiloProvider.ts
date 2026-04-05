@@ -1131,6 +1131,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
         this.seedSessionStatusMap(),
       ])
       this.sendNotificationSettings()
+      this.postMessage({ type: "extensionDataReady" })
 
       // Start polling worktree diff stats for the sidebar badge
       this.startStatsPolling()

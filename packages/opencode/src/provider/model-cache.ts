@@ -21,11 +21,11 @@ export namespace ModelCache {
   const inFlightRefresh = new Map<string, Promise<Record<string, any>>>()
 
   /**
-   * Get cached models if available and not expired
+   * Get cached models if available (returns stale entries too, caller decides)
    * @param providerID - Provider identifier (e.g., "kilo")
-   * @returns Cached models or undefined if cache miss or expired
+   * @returns Cached entry with stale flag, or undefined on cache miss
    */
-  export function get(providerID: string): Record<string, any> | undefined {
+  export function get(providerID: string): { models: Record<string, any>; stale: boolean } | undefined {
     const cached = cache.get(providerID)
 
     if (!cached) {
@@ -33,33 +33,37 @@ export namespace ModelCache {
       return undefined
     }
 
-    const now = Date.now()
-    const age = now - cached.timestamp
+    const age = Date.now() - cached.timestamp
 
     if (age > TTL) {
-      log.debug("cache expired", { providerID, age })
-      cache.delete(providerID)
-      return undefined
+      log.debug("cache stale", { providerID, age })
+      return { models: cached.models, stale: true }
     }
 
     log.debug("cache hit", { providerID, age })
-    return cached.models
+    return { models: cached.models, stale: false }
   }
 
   /**
-   * Fetch models with cache-first approach
+   * Fetch models with cache-first + stale-while-revalidate approach.
+   * If cached data exists but is stale, it is returned immediately while
+   * a background refresh is kicked off to update the cache.
    * @param providerID - Provider identifier
    * @param options - Provider options
    * @returns Models from cache or freshly fetched
    */
   export async function fetch(providerID: string, options?: any): Promise<Record<string, any>> {
-    // Check cache first
-    const cached = get(providerID)
-    if (cached) {
-      return cached
+    const entry = get(providerID)
+
+    if (entry) {
+      if (!entry.stale) return entry.models
+      // Stale — return immediately and revalidate in background
+      log.info("returning stale models, revalidating in background", { providerID })
+      refresh(providerID, options).catch(() => {})
+      return entry.models
     }
 
-    // Cache miss - fetch models
+    // Cold cache miss — must block on fetch
     log.info("fetching models", { providerID })
 
     try {
@@ -68,7 +72,6 @@ export namespace ModelCache {
 
       const models = await fetchModels(providerID, mergedOptions)
 
-      // Store in cache
       cache.set(providerID, {
         models,
         timestamp: Date.now(),

@@ -71,25 +71,20 @@ export const ConfigProvider: ParentComponent = (props) => {
 
   onCleanup(unsubscribe)
 
-  // Request config in case the initial push was missed.
-  // Retry a few times because the extension's httpClient may
-  // not be ready yet when the first request arrives.
-  let retries = 0
-  const maxRetries = 5
-  const retryMs = 500
-
+  // Request config immediately; if the extension's httpClient is not yet ready,
+  // the extensionDataReady signal will arrive once initialization completes and
+  // we retry once at that point if data still hasn't loaded.
   vscode.postMessage({ type: "requestConfig" })
 
-  const retryTimer = setInterval(() => {
-    retries++
-    if (!loading() || retries >= maxRetries) {
-      clearInterval(retryTimer)
-      return
+  const unsubReady = vscode.onMessage((message: ExtensionMessage) => {
+    if (message.type !== "extensionDataReady") return
+    unsubReady()
+    if (loading()) {
+      vscode.postMessage({ type: "requestConfig" })
     }
-    vscode.postMessage({ type: "requestConfig" })
-  }, retryMs)
+  })
 
-  onCleanup(() => clearInterval(retryTimer))
+  onCleanup(unsubReady)
 
   function updateConfig(partial: Partial<Config>) {
     // Optimistically update local state with deep merge + null stripping

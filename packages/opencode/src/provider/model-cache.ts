@@ -8,7 +8,9 @@ import { Log } from "../util/log"
 export namespace ModelCache {
   const log = Log.create({ service: "model-cache" })
 
-  // Cache structure
+  // Cache structure — keyed by "providerID:optionsFingerprint" so that
+  // config changes (org ID, base URL, etc.) automatically cause a cache miss
+  // rather than serving the previous model set until TTL expiry.
   const cache = new Map<
     string,
     {
@@ -21,26 +23,42 @@ export namespace ModelCache {
   const inFlightRefresh = new Map<string, Promise<Record<string, any>>>()
 
   /**
-   * Get cached models if available (returns stale entries too, caller decides)
-   * @param providerID - Provider identifier (e.g., "kilo")
+   * Stable fingerprint of the options that affect which models are returned.
+   * Only includes fields that change the model set (org ID, base URL).
+   * Keeps the key short and deterministic without a full JSON sort.
+   */
+  function fingerprint(providerID: string, options?: any): string {
+    if (!options) return providerID
+    const parts: string[] = [providerID]
+    if (options.kilocodeOrganizationId) parts.push(`org:${options.kilocodeOrganizationId}`)
+    if (options.baseURL) parts.push(`url:${options.baseURL}`)
+    return parts.join("|")
+  }
+
+  /**
+   * Get cached models for a provider + options combination.
+   * Returns stale entries too (caller decides what to do with them).
+   * @param providerID - Provider identifier
+   * @param options - Same options passed to fetch/refresh
    * @returns Cached entry with stale flag, or undefined on cache miss
    */
-  export function get(providerID: string): { models: Record<string, any>; stale: boolean } | undefined {
-    const cached = cache.get(providerID)
+  export function get(providerID: string, options?: any): { models: Record<string, any>; stale: boolean } | undefined {
+    const key = fingerprint(providerID, options)
+    const cached = cache.get(key)
 
     if (!cached) {
-      log.debug("cache miss", { providerID })
+      log.debug("cache miss", { key })
       return undefined
     }
 
     const age = Date.now() - cached.timestamp
 
     if (age > TTL) {
-      log.debug("cache stale", { providerID, age })
+      log.debug("cache stale", { key, age })
       return { models: cached.models, stale: true }
     }
 
-    log.debug("cache hit", { providerID, age })
+    log.debug("cache hit", { key, age })
     return { models: cached.models, stale: false }
   }
 
@@ -49,22 +67,23 @@ export namespace ModelCache {
    * If cached data exists but is stale, it is returned immediately while
    * a background refresh is kicked off to update the cache.
    * @param providerID - Provider identifier
-   * @param options - Provider options
+   * @param options - Provider options (org ID, base URL, etc.)
    * @returns Models from cache or freshly fetched
    */
   export async function fetch(providerID: string, options?: any): Promise<Record<string, any>> {
-    const entry = get(providerID)
+    const key = fingerprint(providerID, options)
+    const entry = get(providerID, options)
 
     if (entry) {
       if (!entry.stale) return entry.models
       // Stale — return immediately and revalidate in background
-      log.info("returning stale models, revalidating in background", { providerID })
+      log.info("returning stale models, revalidating in background", { key })
       refresh(providerID, options).catch(() => {})
       return entry.models
     }
 
     // Cold cache miss — must block on fetch
-    log.info("fetching models", { providerID })
+    log.info("fetching models", { key })
 
     try {
       const authOptions = await getAuthOptions(providerID)
@@ -72,15 +91,15 @@ export namespace ModelCache {
 
       const models = await fetchModels(providerID, mergedOptions)
 
-      cache.set(providerID, {
+      cache.set(key, {
         models,
         timestamp: Date.now(),
       })
 
-      log.info("models fetched and cached", { providerID, count: Object.keys(models).length })
+      log.info("models fetched and cached", { key, count: Object.keys(models).length })
       return models
     } catch (error) {
-      log.error("failed to fetch models", { providerID, error })
+      log.error("failed to fetch models", { key, error })
       return {}
     }
   }
@@ -93,16 +112,18 @@ export namespace ModelCache {
    * @returns Freshly fetched models
    */
   export async function refresh(providerID: string, options?: any): Promise<Record<string, any>> {
-    // Check if refresh already in progress
-    const existing = inFlightRefresh.get(providerID)
+    const key = fingerprint(providerID, options)
+
+    // Check if refresh already in progress for this exact key
+    const existing = inFlightRefresh.get(key)
     if (existing) {
-      log.debug("refresh already in progress, returning existing promise", { providerID })
+      log.debug("refresh already in progress, returning existing promise", { key })
       return existing
     }
 
     // Create new refresh promise
     const refreshPromise = (async () => {
-      log.info("refreshing models", { providerID })
+      log.info("refreshing models", { key })
 
       try {
         const authOptions = await getAuthOptions(providerID)
@@ -110,21 +131,19 @@ export namespace ModelCache {
 
         const models = await fetchModels(providerID, mergedOptions)
 
-        // Update cache with new models
-        cache.set(providerID, {
+        cache.set(key, {
           models,
           timestamp: Date.now(),
         })
 
-        log.info("models refreshed", { providerID, count: Object.keys(models).length })
+        log.info("models refreshed", { key, count: Object.keys(models).length })
         return models
       } catch (error) {
-        log.error("failed to refresh models", { providerID, error })
+        log.error("failed to refresh models", { key, error })
 
-        // Return existing cache or empty object
-        const cached = cache.get(providerID)
+        const cached = cache.get(key)
         if (cached) {
-          log.debug("returning stale cache after refresh failure", { providerID })
+          log.debug("returning stale cache after refresh failure", { key })
           return cached.models
         }
 
@@ -132,25 +151,31 @@ export namespace ModelCache {
       }
     })()
 
-    // Track in-flight refresh
-    inFlightRefresh.set(providerID, refreshPromise)
+    inFlightRefresh.set(key, refreshPromise)
 
     try {
       return await refreshPromise
     } finally {
-      // Clean up in-flight tracking
-      inFlightRefresh.delete(providerID)
+      inFlightRefresh.delete(key)
     }
   }
 
   /**
-   * Clear cached models for a provider
+   * Clear all cached entries for a provider (all option variants).
+   * Called on auth changes — wipes every fingerprinted key for the providerID.
    * @param providerID - Provider identifier
    */
   export function clear(providerID: string): void {
-    const deleted = cache.delete(providerID)
-    if (deleted) {
-      log.info("cache cleared", { providerID })
+    const prefix = providerID + "|"
+    let count = 0
+    for (const key of cache.keys()) {
+      if (key === providerID || key.startsWith(prefix)) {
+        cache.delete(key)
+        count++
+      }
+    }
+    if (count > 0) {
+      log.info("cache cleared", { providerID, count })
     } else {
       log.debug("no cache to clear", { providerID })
     }

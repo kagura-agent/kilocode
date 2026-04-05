@@ -144,6 +144,10 @@ export type ProgressCallback = (
  * Pass `cachedSettings` (from a prior detectLegacyData call) to avoid re-reading
  * globalState. Provider profiles, MCP servers, and custom modes are always re-read
  * from SecretStorage/disk to ensure the data is current at migration time.
+ *
+ * When `signal` is provided, the migration checks for abort between each item.
+ * Already-completed items are preserved — callers can resume by passing the
+ * remaining selections.
  */
 export async function migrate(
   context: vscode.ExtensionContext,
@@ -151,6 +155,7 @@ export async function migrate(
   selections: MigrationSelections,
   onProgress: ProgressCallback,
   cachedSettings?: LegacySettings,
+  signal?: AbortSignal,
 ): Promise<MigrationResultItem[]> {
   const profiles = await readLegacyProviderProfiles(context)
   const mcpSettings = await readLegacyMcpSettings(context)
@@ -162,6 +167,7 @@ export async function migrate(
 
   // Migrate provider API keys
   for (const profileName of selections.providers) {
+    if (signal?.aborted) return results
     const settings = profiles?.apiConfigs[profileName]
     if (!settings) {
       results.push({ item: profileName, category: "provider", status: "error", message: "Profile not found" })
@@ -175,6 +181,7 @@ export async function migrate(
 
   // Migrate MCP servers
   if (selections.mcpServers.length > 0 && mcpSettings) {
+    if (signal?.aborted) return results
     const mcpConfig: Record<string, McpLocalConfig | McpRemoteConfig> = {}
     for (const name of selections.mcpServers) {
       const server = mcpSettings.mcpServers[name]
@@ -204,6 +211,7 @@ export async function migrate(
   }
 
   // Migrate custom modes as agents
+  if (signal?.aborted) return results
   if (selections.customModes.length > 0) {
     const agentConfig: Record<string, AgentConfig> = {}
     // Build a lookup of detected modes by slug so we can resolve nativeSlug
@@ -258,6 +266,7 @@ export async function migrate(
 
   if (selections.sessions?.length) {
     for (const id of selections.sessions) {
+      if (signal?.aborted) return results
       onProgress(id, "migrating")
       const result = await migrateSession(id, context, client)
       const reason = result.ok ? "Session migrated" : result.message
@@ -272,6 +281,7 @@ export async function migrate(
   }
 
   // Migrate default model
+  if (signal?.aborted) return results
   if (selections.defaultModel && profiles) {
     const activeName = profiles.currentApiConfigName
     const active = profiles.apiConfigs[activeName]
@@ -284,6 +294,7 @@ export async function migrate(
   }
 
   // Migrate auto-approval settings (granular, each selected item is independent)
+  if (signal?.aborted) return results
   const apSel = selections.settings.autoApproval
   if (
     apSel.commandRules ||
@@ -298,6 +309,7 @@ export async function migrate(
   }
 
   // Migrate language setting
+  if (signal?.aborted) return results
   if (selections.settings.language && legacySettings.language) {
     onProgress("Language preference", "migrating")
     const result = await migrateLanguage(legacySettings.language)
@@ -306,6 +318,7 @@ export async function migrate(
   }
 
   // Migrate autocomplete settings
+  if (signal?.aborted) return results
   if (selections.settings.autocomplete && legacySettings.autocomplete) {
     onProgress("Autocomplete settings", "migrating")
     const result = await migrateAutocomplete(legacySettings.autocomplete)

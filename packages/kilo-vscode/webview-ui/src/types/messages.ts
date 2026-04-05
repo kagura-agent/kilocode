@@ -1091,6 +1091,11 @@ export interface LegacyMigrationCompleteMessage {
   results: MigrationResultItem[]
 }
 
+export interface LegacyMigrationPausedMessage {
+  type: "legacyMigrationPaused"
+  results: MigrationResultItem[]
+}
+
 export interface RequestLegacyMigrationDataMessage {
   type: "requestLegacyMigrationData"
 }
@@ -1118,6 +1123,10 @@ export interface StartLegacyMigrationMessage {
       autocomplete: boolean
     }
   }
+}
+
+export interface PauseLegacyMigrationMessage {
+  type: "pauseLegacyMigration"
 }
 
 export interface SkipLegacyMigrationMessage {
@@ -1331,6 +1340,7 @@ export type ExtensionMessage =
   | LegacyMigrationDataMessage
   | LegacyMigrationProgressMessage
   | LegacyMigrationCompleteMessage
+  | LegacyMigrationPausedMessage
   // legacy-migration end
   | EnhancePromptResultMessage
   | EnhancePromptErrorMessage
@@ -2161,6 +2171,7 @@ export type WebviewMessage =
   // legacy-migration start
   | RequestLegacyMigrationDataMessage
   | StartLegacyMigrationMessage
+  | PauseLegacyMigrationMessage
   | SkipLegacyMigrationMessage
   | ClearLegacyDataMessage
   // legacy-migration end

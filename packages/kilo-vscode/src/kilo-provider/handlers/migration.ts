@@ -31,6 +31,8 @@ export interface MigrationContext {
   refreshSessions(): void
   cachedLegacyData: LegacyMigrationData | null
   migrationCheckInFlight: boolean
+  /** AbortController for the current migration run — set when migration starts, cleared on completion. */
+  migrationAbort: AbortController | null
   disposeGlobal(): Promise<void>
   broadcastComplete(): void
 }
@@ -103,6 +105,10 @@ export async function handleStartLegacyMigration(
   selections: MigrationSelections,
 ): Promise<void> {
   if (!ctx.extensionContext || !ctx.client) return
+
+  const abort = new AbortController()
+  ctx.migrationAbort = abort
+
   try {
     const results = await MigrationService.migrate(
       ctx.extensionContext as Parameters<typeof MigrationService.migrate>[0],
@@ -112,7 +118,16 @@ export async function handleStartLegacyMigration(
         ctx.postMessage({ type: "legacyMigrationProgress", item, status, message })
       },
       ctx.cachedLegacyData?.settings,
+      abort.signal,
     )
+
+    ctx.migrationAbort = null
+
+    // If aborted (paused), send partial results so the webview can show what completed
+    if (abort.signal.aborted) {
+      ctx.postMessage({ type: "legacyMigrationPaused", results })
+      return
+    }
 
     const failed = results.some((r) => r.status === "error")
     const success = results.some((r) => r.status === "success")
@@ -131,6 +146,7 @@ export async function handleStartLegacyMigration(
 
     ctx.postMessage({ type: "legacyMigrationComplete", results })
   } catch (error) {
+    ctx.migrationAbort = null
     console.error("[Kilo New] KiloProvider: ❌ Migration failed", error)
     ctx.postMessage({
       type: "legacyMigrationComplete",
@@ -143,6 +159,13 @@ export async function handleStartLegacyMigration(
         },
       ],
     })
+  }
+}
+
+/** Pause the in-progress migration. The migrate function will return partial results. */
+export function handlePauseLegacyMigration(ctx: MigrationContext): void {
+  if (ctx.migrationAbort) {
+    ctx.migrationAbort.abort()
   }
 }
 

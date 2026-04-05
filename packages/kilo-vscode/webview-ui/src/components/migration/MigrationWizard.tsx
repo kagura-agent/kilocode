@@ -21,6 +21,7 @@ import type {
   LegacyMigrationDataMessage,
   LegacyMigrationProgressMessage,
   LegacyMigrationCompleteMessage,
+  LegacyMigrationPausedMessage,
 } from "../../types/messages"
 import "./migration.css"
 
@@ -155,7 +156,7 @@ const WarningSvg = (): JSX.Element => (
 // ---------------------------------------------------------------------------
 
 type Screen = "whats-new" | "migrate"
-type MigratePhase = "selecting" | "migrating" | "error" | "done"
+type MigratePhase = "selecting" | "migrating" | "paused" | "error" | "done"
 
 interface ProgressEntry {
   item: string
@@ -259,6 +260,12 @@ const MigrationWizard: Component<MigrationWizardProps> = (props) => {
           }
           return existing >= 0 ? prev.map((e, i) => (i === existing ? entry : e)) : [...prev, entry]
         })
+      }
+
+      if (msg?.type === "legacyMigrationPaused") {
+        const paused = msg as LegacyMigrationPausedMessage
+        setResults(paused.results)
+        setPhase("paused")
       }
 
       if (msg?.type === "legacyMigrationComplete") {
@@ -375,6 +382,80 @@ const MigrationWizard: Component<MigrationWizardProps> = (props) => {
           autoApproval,
           language: migrateLanguage(),
           autocomplete: migrateAutocomplete(),
+        },
+      },
+    })
+  }
+
+  const handlePause = () => {
+    vscode.postMessage({ type: "pauseLegacyMigration" })
+  }
+
+  const handleResume = () => {
+    // Compute remaining selections by removing already-completed items
+    const completed = new Set(
+      results()
+        .filter((r) => r.status === "success" || r.status === "warning")
+        .map((r) => r.item),
+    )
+
+    const remaining = progressEntries().filter(
+      (e) => !completed.has(e.item) && e.status !== "success" && e.status !== "warning",
+    )
+    // Reset pending status for remaining entries
+    setProgressEntries((prev) =>
+      prev.map((e) =>
+        completed.has(e.item) || e.status === "success" || e.status === "warning"
+          ? e
+          : { ...e, status: "pending" as const },
+      ),
+    )
+
+    const providerNames = remaining.filter((e) => e.group === "providers").map((e) => e.item)
+    const mcpNames = remaining.filter((e) => e.group === "mcpServers").map((e) => e.item)
+    const modesSlugs = remaining
+      .filter((e) => e.group === "customModes")
+      .map((e) => {
+        const mode = customModes().find((m) => m.name === e.item)
+        return mode?.slug ?? e.item
+      })
+    const sessionIds = remaining.filter((e) => e.group === "sessions").map((e) => e.item)
+    const wantsModel = remaining.some((e) => e.group === "defaultModel")
+    const wantsAutoApproval = remaining.some((e) => e.group === "autoApproval")
+    const wantsLanguage = remaining.some((e) => e.group === "language")
+    const wantsAutocomplete = remaining.some((e) => e.group === "autocomplete")
+
+    const autoApproval: MigrationAutoApprovalSelections = wantsAutoApproval
+      ? {
+          commandRules: remaining.some((e) => e.item === "Command rules"),
+          readPermission: remaining.some((e) => e.item === "Read permission"),
+          writePermission: remaining.some((e) => e.item === "Write permission"),
+          executePermission: remaining.some((e) => e.item === "Execute permission"),
+          mcpPermission: remaining.some((e) => e.item === "MCP permission"),
+          taskPermission: remaining.some((e) => e.item === "Task permission"),
+        }
+      : {
+          commandRules: false,
+          readPermission: false,
+          writePermission: false,
+          executePermission: false,
+          mcpPermission: false,
+          taskPermission: false,
+        }
+
+    setPhase("migrating")
+    vscode.postMessage({
+      type: "startLegacyMigration",
+      selections: {
+        providers: providerNames,
+        mcpServers: mcpNames,
+        customModes: modesSlugs,
+        sessions: sessionIds,
+        defaultModel: wantsModel,
+        settings: {
+          autoApproval,
+          language: wantsLanguage,
+          autocomplete: wantsAutocomplete,
         },
       },
     })
@@ -853,8 +934,23 @@ const MigrationWizard: Component<MigrationWizardProps> = (props) => {
                 </button>
               </Show>
               <Show when={phase() === "migrating"}>
+                <button type="button" class="migration-wizard__btn migration-wizard__btn--ghost" onClick={handlePause}>
+                  {language.t("migration.migrate.pause")}
+                </button>
                 <button type="button" class="migration-wizard__btn migration-wizard__btn--primary" disabled>
                   {language.t("migration.migrate.button")}
+                </button>
+              </Show>
+              <Show when={phase() === "paused"}>
+                <button type="button" class="migration-wizard__btn migration-wizard__btn--ghost" onClick={handleSkip}>
+                  {language.t("migration.migrate.skip")}
+                </button>
+                <button
+                  type="button"
+                  class="migration-wizard__btn migration-wizard__btn--primary"
+                  onClick={handleResume}
+                >
+                  {language.t("migration.migrate.resume")}
                 </button>
               </Show>
               <Show when={phase() === "error"}>

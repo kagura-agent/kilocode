@@ -45,6 +45,7 @@ import {
   checkAndShowMigrationWizard,
   handleRequestLegacyMigrationData,
   handleStartLegacyMigration,
+  handlePauseLegacyMigration,
   handleSkipLegacyMigration,
   handleClearLegacyData,
   type MigrationContext,
@@ -142,6 +143,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
   private cachedLegacyData: import("./legacy-migration/legacy-types").LegacyMigrationData | null = null // legacy-migration
   /** Guard to prevent checkAndShowMigrationWizard running concurrently. */ // legacy-migration
   private migrationCheckInFlight = false // legacy-migration
+  private migrationAbort: AbortController | null = null // legacy-migration
   private unsubscribeNotificationDismiss: (() => void) | null = null
   private unsubscribeLanguageChange: (() => void) | null = null
   private unsubscribeProfileChange: (() => void) | null = null
@@ -887,6 +889,9 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
           break
         case "startLegacyMigration":
           void handleStartLegacyMigration(this.migrationCtx, message.selections)
+          break
+        case "pauseLegacyMigration":
+          handlePauseLegacyMigration(this.migrationCtx)
           break
         case "skipLegacyMigration":
           void handleSkipLegacyMigration(this.migrationCtx)
@@ -2927,6 +2932,12 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
       },
       set migrationCheckInFlight(val) {
         self.migrationCheckInFlight = val
+      },
+      get migrationAbort() {
+        return self.migrationAbort
+      },
+      set migrationAbort(val) {
+        self.migrationAbort = val
       },
       refreshSessions: () => this.refreshSessions(),
       disposeGlobal: () => this.disposeGlobal(),

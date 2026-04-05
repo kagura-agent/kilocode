@@ -90,13 +90,6 @@ export type EventLspUpdated = {
   }
 }
 
-export type EventFileEdited = {
-  type: "file.edited"
-  properties: {
-    file: string
-  }
-}
-
 export type OutputFormatText = {
   type: "text"
 }
@@ -214,6 +207,14 @@ export type ApiError = {
   }
 }
 
+export type PermissionError = {
+  name: "PermissionError"
+  data: {
+    message: string
+    path?: string
+  }
+}
+
 export type AssistantMessage = {
   id: string
   sessionID: string
@@ -230,6 +231,7 @@ export type AssistantMessage = {
     | StructuredOutputError
     | ContextOverflowError
     | ApiError
+    | PermissionError
   parentID: string
   modelID: string
   providerID: string
@@ -559,6 +561,13 @@ export type EventMessagePartRemoved = {
     sessionID: string
     messageID: string
     partID: string
+  }
+}
+
+export type EventFileEdited = {
+  type: "file.edited"
+  properties: {
+    file: string
   }
 }
 
@@ -901,6 +910,7 @@ export type EventSessionError = {
       | StructuredOutputError
       | ContextOverflowError
       | ApiError
+      | PermissionError
   }
 }
 
@@ -1004,12 +1014,12 @@ export type Event =
   | EventGlobalConfigUpdated
   | EventLspClientDiagnostics
   | EventLspUpdated
-  | EventFileEdited
   | EventMessageUpdated
   | EventMessageRemoved
   | EventMessagePartUpdated
   | EventMessagePartDelta
   | EventMessagePartRemoved
+  | EventFileEdited
   | EventPermissionAsked
   | EventPermissionReplied
   | EventSessionStatus

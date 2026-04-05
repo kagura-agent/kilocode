@@ -1274,12 +1274,18 @@ export namespace SessionPrompt {
                   .catch((error) => {
                     log.error("failed to read file", { error })
                     const message = error instanceof Error ? error.message : error.toString()
+                    // kilocode_change start
+                    const published = MessageV2.isPermissionError(error)
+                      ? new MessageV2.PermissionError({
+                          message: `OS permission error: ${error.message}. Your operating system denied access to a file or resource.`,
+                          path: error.path ?? filepath,
+                        }).toObject()
+                      : new NamedError.Unknown({ message }).toObject()
                     Bus.publish(Session.Event.Error, {
                       sessionID: input.sessionID,
-                      error: new NamedError.Unknown({
-                        message,
-                      }).toObject(),
+                      error: published,
                     })
+                    // kilocode_change end
                     pieces.push({
                       messageID: info.id,
                       sessionID: input.sessionID,

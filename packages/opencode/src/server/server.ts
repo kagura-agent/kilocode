@@ -10,6 +10,7 @@ import { basicAuth } from "hono/basic-auth"
 import z from "zod"
 import { Provider } from "../provider/provider"
 import { NamedError } from "@opencode-ai/util/error"
+import { MessageV2 } from "../session/message-v2" // kilocode_change
 import { LSP } from "../lsp"
 import { Format } from "../format"
 import { TuiRoutes } from "./routes/tui"
@@ -86,6 +87,18 @@ export namespace Server {
             return c.json(err.toObject(), { status })
           }
           if (err instanceof HTTPException) return err.getResponse()
+          // kilocode_change start
+          const errno = err as NodeJS.ErrnoException
+          if (errno.code === "EPERM" || errno.code === "EACCES") {
+            return c.json(
+              new MessageV2.PermissionError({
+                message: `OS permission error: ${errno.message}. Your operating system denied access to a file or resource.`,
+                path: errno.path,
+              }).toObject(),
+              { status: 500 },
+            )
+          }
+          // kilocode_change end
           const message = err instanceof Error && err.stack ? err.stack : err.toString()
           return c.json(new NamedError.Unknown({ message }).toObject(), {
             status: 500,

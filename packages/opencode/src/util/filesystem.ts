@@ -22,7 +22,13 @@ export namespace Filesystem {
   }
 
   export function stat(p: string): ReturnType<typeof statSync> | undefined {
-    return statSync(p, { throwIfNoEntry: false }) ?? undefined
+    // kilocode_change start
+    try {
+      return statSync(p, { throwIfNoEntry: false }) ?? undefined
+    } catch (e) {
+      rethrowWithPath(e, p)
+    }
+    // kilocode_change end
   }
 
   export async function size(p: string): Promise<number> {
@@ -31,25 +37,38 @@ export namespace Filesystem {
   }
 
   export async function readText(p: string): Promise<string> {
-    return readFile(p, "utf-8")
+    return readFile(p, "utf-8").catch((e) => rethrowWithPath(e, p)) // kilocode_change
   }
 
   export async function readJson<T = any>(p: string): Promise<T> {
-    return JSON.parse(await readFile(p, "utf-8"))
+    return JSON.parse(await readFile(p, "utf-8").catch((e) => rethrowWithPath(e, p))) // kilocode_change
   }
 
   export async function readBytes(p: string): Promise<Buffer> {
-    return readFile(p)
+    return readFile(p).catch((e) => rethrowWithPath(e, p)) // kilocode_change
   }
 
   export async function readArrayBuffer(p: string): Promise<ArrayBuffer> {
-    const buf = await readFile(p)
+    const buf = await readFile(p).catch((e) => rethrowWithPath(e, p)) // kilocode_change
     return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer
   }
 
   function isEnoent(e: unknown): e is { code: "ENOENT" } {
     return typeof e === "object" && e !== null && "code" in e && (e as { code: string }).code === "ENOENT"
   }
+
+  // kilocode_change start
+  /** Ensure EPERM/EACCES errors carry the file path for better diagnostics. */
+  function rethrowWithPath(e: unknown, filepath: string): never {
+    if (e instanceof Error) {
+      const errno = e as NodeJS.ErrnoException
+      if ((errno.code === "EPERM" || errno.code === "EACCES") && !errno.path) {
+        errno.path = filepath
+      }
+    }
+    throw e
+  }
+  // kilocode_change end
 
   export async function write(p: string, content: string | Buffer | Uint8Array, mode?: number): Promise<void> {
     try {
@@ -68,7 +87,7 @@ export namespace Filesystem {
         }
         return
       }
-      throw e
+      rethrowWithPath(e, p) // kilocode_change
     }
   }
 
@@ -83,15 +102,15 @@ export namespace Filesystem {
   ): Promise<void> {
     const dir = dirname(p)
     if (!existsSync(dir)) {
-      await mkdir(dir, { recursive: true })
+      await mkdir(dir, { recursive: true }).catch((e) => rethrowWithPath(e, dir)) // kilocode_change
     }
 
     const nodeStream = stream instanceof ReadableStream ? Readable.fromWeb(stream as any) : stream
-    const writeStream = createWriteStream(p)
-    await pipeline(nodeStream, writeStream)
+    const ws = createWriteStream(p) // kilocode_change - renamed to avoid shadowing
+    await pipeline(nodeStream, ws).catch((e) => rethrowWithPath(e, p)) // kilocode_change
 
     if (mode) {
-      await chmod(p, mode)
+      await chmod(p, mode).catch((e) => rethrowWithPath(e, p)) // kilocode_change
     }
   }
 

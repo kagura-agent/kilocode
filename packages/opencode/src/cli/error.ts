@@ -1,6 +1,7 @@
 import { ConfigMarkdown } from "@/config/markdown"
 import { Config } from "../config/config"
 import { MCP } from "../mcp"
+import { MessageV2 } from "../session/message-v2" // kilocode_change
 import { Provider } from "../provider/provider"
 import { UI } from "./ui"
 
@@ -38,6 +39,14 @@ export function FormatError(input: unknown) {
     ].join("\n")
 
   if (UI.CancelledError.isInstance(input)) return ""
+
+  // kilocode_change start
+  if (MessageV2.PermissionError.isInstance(input)) {
+    const lines = [input.data.message]
+    if (input.data.path) lines.push(`Path: ${input.data.path}`)
+    return lines.join("\n")
+  }
+  // kilocode_change end
 }
 
 export function FormatUnknownError(input: unknown): string {

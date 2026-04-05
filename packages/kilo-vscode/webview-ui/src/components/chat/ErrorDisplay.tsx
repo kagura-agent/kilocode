@@ -21,6 +21,13 @@ export const ErrorDisplay: Component<ErrorDisplayProps> = (props) => {
   const { t } = useLanguage()
   const parsed = createMemo(() => parseAssistantError(props.error))
 
+  const isPermission = createMemo(() => props.error.name === "PermissionError")
+  const permissionPath = createMemo(() => {
+    if (!isPermission()) return undefined
+    const data = props.error.data as { path?: string }
+    return data?.path
+  })
+
   const errorText = createMemo(() => {
     const msg = props.error.data?.message
     if (typeof msg === "string") return unwrapError(msg)
@@ -45,6 +52,19 @@ export const ErrorDisplay: Component<ErrorDisplayProps> = (props) => {
         </Card>
       }
     >
+      <Match when={isPermission()}>
+        <Card variant="error" class="error-card">
+          <strong>OS Permission Error</strong>
+          <br />
+          {errorText()}
+          {permissionPath() && (
+            <>
+              <br />
+              <code>Path: {permissionPath()}</code>
+            </>
+          )}
+        </Card>
+      </Match>
       <Match when={isUnauthorizedPaidModelError(parsed())}>
         <div data-component="auth-prompt">
           <div data-slot="auth-prompt-header">

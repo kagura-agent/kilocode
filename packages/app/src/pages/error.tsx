@@ -134,6 +134,11 @@ function formatInitError(error: InitError, t: Translator): string {
 
       return [line, ...issues].join("\n")
     }
+    case "PermissionError": {
+      const lines = [typeof data.message === "string" ? data.message : t("error.chain.unknown")]
+      if (typeof data.path === "string") lines.push(`Path: ${data.path}`)
+      return lines.join("\n")
+    }
     case "UnknownError":
       return typeof data.message === "string" ? data.message : safeJson(data)
     default:

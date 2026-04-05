@@ -54,6 +54,16 @@ export namespace MessageV2 {
     z.object({ message: z.string(), responseBody: z.string().optional() }),
   )
 
+  // kilocode_change start
+  export const PermissionError = NamedError.create(
+    "PermissionError",
+    z.object({
+      message: z.string(),
+      path: z.string().optional(),
+    }),
+  )
+  // kilocode_change end
+
   export const OutputFormatText = z
     .object({
       type: z.literal("text"),
@@ -418,6 +428,7 @@ export namespace MessageV2 {
         StructuredOutputError.Schema,
         ContextOverflowError.Schema,
         APIError.Schema,
+        PermissionError.Schema, // kilocode_change
       ])
       .optional(),
     parentID: z.string(),
@@ -896,6 +907,15 @@ export namespace MessageV2 {
     return result
   }
 
+  // kilocode_change start
+  const PERMISSION_CODES = new Set(["EPERM", "EACCES"])
+  export function isPermissionError(e: unknown): e is NodeJS.ErrnoException {
+    if (!(e instanceof Error)) return false
+    const code = (e as NodeJS.ErrnoException).code
+    return typeof code === "string" && PERMISSION_CODES.has(code)
+  }
+  // kilocode_change end
+
   export function fromError(e: unknown, ctx: { providerID: string }) {
     switch (true) {
       case e instanceof DOMException && e.name === "AbortError":
@@ -954,6 +974,16 @@ export namespace MessageV2 {
           },
           { cause: e },
         ).toObject()
+      // kilocode_change start
+      case isPermissionError(e):
+        return new MessageV2.PermissionError(
+          {
+            message: `OS permission error: ${(e as NodeJS.ErrnoException).message}. Your operating system denied access to a file or resource.`,
+            path: (e as NodeJS.ErrnoException).path,
+          },
+          { cause: e },
+        ).toObject()
+      // kilocode_change end
       case e instanceof Error:
         return new NamedError.Unknown({ message: e.toString() }, { cause: e }).toObject()
       default:

@@ -21,6 +21,8 @@ export namespace ModelCache {
 
   const TTL = 5 * 60 * 1000 // 5 minutes
   const inFlightRefresh = new Map<string, Promise<Record<string, any>>>()
+  // Set of keys whose in-flight refresh has been cancelled by clear()
+  const cancelled = new Set<string>()
 
   /**
    * Stable fingerprint of the options that affect which models are returned.
@@ -121,6 +123,9 @@ export namespace ModelCache {
       return existing
     }
 
+    // Track cancellation for this key before starting the async work
+    cancelled.delete(key)
+
     // Create new refresh promise
     const refreshPromise = (async () => {
       log.info("refreshing models", { key })
@@ -131,12 +136,18 @@ export namespace ModelCache {
 
         const models = await fetchModels(providerID, mergedOptions)
 
-        cache.set(key, {
-          models,
-          timestamp: Date.now(),
-        })
+        // Only write back if this refresh was not cancelled by clear()
+        if (!cancelled.has(key)) {
+          cache.set(key, {
+            models,
+            timestamp: Date.now(),
+          })
+          log.info("models refreshed", { key, count: Object.keys(models).length })
+        } else {
+          log.info("refresh cancelled by clear(), discarding result", { key })
+          cancelled.delete(key)
+        }
 
-        log.info("models refreshed", { key, count: Object.keys(models).length })
         return models
       } catch (error) {
         log.error("failed to refresh models", { key, error })
@@ -172,6 +183,14 @@ export namespace ModelCache {
       if (key === providerID || key.startsWith(prefix)) {
         cache.delete(key)
         count++
+      }
+    }
+    // Also cancel any in-flight refreshes for this provider so that a stale
+    // refresh completing after the clear cannot write old models back into cache.
+    for (const key of inFlightRefresh.keys()) {
+      if (key === providerID || key.startsWith(prefix)) {
+        cancelled.add(key)
+        inFlightRefresh.delete(key)
       }
     }
     if (count > 0) {

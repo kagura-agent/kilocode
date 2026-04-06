@@ -187,7 +187,7 @@ If the mode itself is global (not workspace-specific), any custom instructions y
 
 #### Mode-Specific Instructions from Files
 
-For version-controlled mode instructions, use the mode rules file paths documented in [Custom Modes](/docs/customize/custom-modes#mode-specific-instructions-via-filesdirectories):
+For version-controlled mode instructions, use the mode rules file paths documented in [Custom Agents](/docs/customize/custom-agents#mode-specific-instructions-via-filesdirectories):
 
 - Preferred: `.kilo/rules-{mode-slug}/` (directory)
 - Fallback: `.kilocoderules-{mode-slug}` (single file)
@@ -201,7 +201,7 @@ Only `.kilocoderules-{mode-slug}` is recognized as the legacy fallback. Older na
 
 ## Related Features
 
-- [Custom Modes](/docs/customize/custom-modes)
+- [Custom Agents](/docs/customize/custom-agents)
 - [Custom Rules](/docs/customize/custom-rules)
 - [Settings Management](/docs/getting-started/settings)
 - [Auto-Approval Settings](/docs/getting-started/settings/auto-approving-actions)

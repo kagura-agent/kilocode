@@ -260,4 +260,4 @@ The VSCode extension and CLI do not include a built-in Review agent. Code review
 
 ## Custom Agents
 
-Create your own specialized assistants by defining tool access, file permissions, and behavior instructions. Custom agents help enforce team standards or create purpose-specific assistants. See [Custom Modes documentation](/docs/customize/custom-modes) for setup instructions.
+Create your own specialized assistants by defining tool access, file permissions, and behavior instructions. Custom agents help enforce team standards or create purpose-specific assistants. See [Custom Agents documentation](/docs/customize/custom-agents) for setup instructions.

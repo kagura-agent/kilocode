@@ -132,7 +132,7 @@ Clicking the **Import** button allows you to load settings from a previously exp
 
 Clicking the **Reset** button completely clears all Kilo Code configuration data and returns the extension to its default state. This is a destructive action intended for troubleshooting or starting fresh.
 
-- **Warning:** This action is **irreversible**. It permanently deletes all API configurations (including keys stored in secret storage), custom modes, global settings, and task history.
+- **Warning:** This action is **irreversible**. It permanently deletes all API configurations (including keys stored in secret storage), custom agents, global settings, and task history.
 
 - **Process:**
   1.  Click the red **Reset** button.
@@ -142,7 +142,7 @@ Clicking the **Reset** button completely clears all Kilo Code configuration data
 - **What is Reset:**
   - **API Provider Profiles:** All configurations are deleted from settings and secret storage.
   - **Global Settings:** All preferences (UI, modes, approvals, browser, etc.) are reset to defaults.
-  - **Custom Modes:** All user-defined modes are deleted.
+  - **Custom Agents:** All user-defined agents are deleted.
   - **Secret Storage:** All API keys and other secrets managed by Kilo Code are cleared.
   - **Task History:** The current task stack is cleared.
 
@@ -212,7 +212,7 @@ When enabled, Kilo Code will remind the model about the details of its current m
 
 **When to enable:**
 
-- Working with custom modes that have specific role definitions
+- Working with custom agents that have specific role definitions
 - You need stricter adherence to custom instructions
 - The model is deviating from the intended mode behavior
 
@@ -220,7 +220,7 @@ When enabled, Kilo Code will remind the model about the details of its current m
 
 **Default:** Disabled
 
-Learn more about [Custom Modes](/docs/customize/custom-modes) and how Power Steering can improve mode behavior.
+Learn more about [Custom Agents](/docs/customize/custom-agents) and how Power Steering can improve agent behavior.
 
 ### File Read Auto-Truncate Threshold
 

@@ -440,7 +440,7 @@ If your custom rules aren't being properly followed:
 
 ## Related Features
 
-- [Custom Modes](/docs/customize/custom-modes)
+- [Custom Agents](/docs/customize/custom-agents)
 - [Custom Instructions](/docs/customize/custom-instructions)
 - [Settings Management](/docs/getting-started/settings)
 - [Auto-Approval Settings](/docs/getting-started/settings/auto-approving-actions)

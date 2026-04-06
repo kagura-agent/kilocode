@@ -23,9 +23,9 @@ Many developers combine both approaches: autocomplete for quick completions whil
 Kilo Code simplifies AI configuration while adding powerful new capabilities:
 
 - **Simple format**: Plain Markdown files—no YAML frontmatter or GUI configuration required
-- **Mode-specific rules**: Different rules for different workflows (Code, Debug, Ask, custom modes)
+- **Mode-specific rules**: Different rules for different workflows (Code, Debug, Ask, custom agents)
 - **Better version control**: All configuration lives in your repository as readable Markdown
-- **More control**: Custom modes let you define specialized workflows with their own rules and permissions
+- **More control**: Custom agents let you define specialized workflows with their own rules and permissions
 
 ## Quick Migration Guide
 
@@ -38,13 +38,13 @@ Choose your current tool:
 
 ### What's Different in Kilo Code
 
-| Cursor                                      | Kilo Code                                 | Key Difference                              |
-| ------------------------------------------- | ----------------------------------------- | ------------------------------------------- |
-| `.cursor/rules/*.mdc` with YAML frontmatter | `.kilocode/rules/*.md` plain Markdown     | No YAML metadata required                   |
-| `alwaysApply: true/false` metadata          | File location determines scope            | Scope controlled by directory structure     |
-| `globs: ["*.ts"]` for file patterns         | Mode-specific directories or custom modes | File patterns handled via custom modes      |
-| `description` for AI activation             | Clear file names and organization         | Relies on explicit file organization        |
-| Global rules in UI settings                 | `~/.kilocode/rules/*.md` files            | Global rules stored as files in home folder |
+| Cursor                                      | Kilo Code                                  | Key Difference                              |
+| ------------------------------------------- | ------------------------------------------ | ------------------------------------------- |
+| `.cursor/rules/*.mdc` with YAML frontmatter | `.kilocode/rules/*.md` plain Markdown      | No YAML metadata required                   |
+| `alwaysApply: true/false` metadata          | File location determines scope             | Scope controlled by directory structure     |
+| `globs: ["*.ts"]` for file patterns         | Mode-specific directories or custom agents | File patterns handled via custom agents     |
+| `description` for AI activation             | Clear file names and organization          | Relies on explicit file organization        |
+| Global rules in UI settings                 | `~/.kilocode/rules/*.md` files             | Global rules stored as files in home folder |
 
 ### Migration Steps
 
@@ -132,7 +132,7 @@ mkdir -p .kilocode/rules-code
 # Save TypeScript-specific rules here
 ```
 
-**Kilo Code approach (Option 2 - Custom mode):**
+**Kilo Code approach (Option 2 - Custom agent):**
 
 ```yaml
 # .kilocodemodes (at project root)
@@ -223,7 +223,7 @@ Windsurf configures activation through the GUI. In Kilo Code, file organization 
 | Windsurf GUI Mode        | Kilo Code Equivalent                                        |
 | ------------------------ | ----------------------------------------------------------- |
 | **Always On**            | Place in `.kilocode/rules/` (default)                       |
-| **Glob** (file patterns) | Mode-specific directory or custom mode                      |
+| **Glob** (file patterns) | Mode-specific directory or custom agent                     |
 | **Model Decision**       | Clear file names by concern (e.g., `testing-guidelines.md`) |
 | **Manual**               | Organize with descriptive names                             |
 
@@ -270,7 +270,7 @@ This is Kilo Code's unique feature that replaces both Cursor's `globs` and Winds
 .kilocode/rules-code/         # Only in Code mode
 .kilocode/rules-debug/        # Only in Debug mode
 .kilocode/rules-ask/          # Only in Ask mode
-.kilocode/rules-{custom}/     # Only in your custom mode
+.kilocode/rules-{custom}/     # Only in your custom agent
 ```
 
 ### Real-World Example
@@ -300,7 +300,7 @@ cat > .kilocode/rules-test/testing-standards.md << 'EOF'
 - Maintain >80% coverage
 EOF
 
-# 3. Define the mode (optional - creates a custom mode)
+# 3. Define the mode (optional - creates a custom agent)
 # Add to .kilocode/config.yaml:
 # modes:
 #   - slug: test
@@ -347,7 +347,7 @@ ls -la ~/.kilocode/rules/    # Global rules
 
 Cursor's `globs`, `alwaysApply`, and `description` don't transfer automatically. Solutions:
 
-- **For file patterns:** Use mode-specific directories or custom modes
+- **For file patterns:** Use mode-specific directories or custom agents
 - **For always-on rules:** Place in `.kilocode/rules/`
 - **For context-specific rules:** Use clear file names and organization
 
@@ -402,9 +402,9 @@ Many developers use both approaches together:
 
 There's no "right" workflow—use whatever helps you code faster
 
-## Advanced: Creating Custom Modes
+## Advanced: Creating Custom Agents
 
-For complex workflows, define custom modes with their own rules and permissions:
+For complex workflows, define custom agents with their own rules and permissions:
 
 ```yaml
 # .kilocodemodes (at project root)
@@ -437,7 +437,7 @@ mkdir -p .kilocode/rules-docs
 ## Next Steps
 
 - [Learn about Custom Rules](/docs/customize/custom-rules)
-- [Explore Custom Modes](/docs/customize/custom-modes)
+- [Explore Custom Agents](/docs/customize/custom-agents)
 - [Set up Custom Instructions](/docs/customize/custom-instructions)
 - [Join our Discord](https://kilo.ai/discord) for migration support
 

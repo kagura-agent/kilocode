@@ -1,22 +1,22 @@
 ---
-title: "Custom Modes"
-description: "Create and configure custom modes in Kilo Code"
+title: "Custom Agents"
+description: "Create and configure custom agents in Kilo Code"
 ---
 
-# Custom Modes
+# Custom Agents
 
-Kilo Code allows you to create **custom modes** (also called **agents**) to tailor Kilo's behavior to specific tasks or workflows. Custom modes can be either **global** (available across all projects) or **project-specific** (defined within a single project).
+Kilo Code allows you to create **custom agents** to tailor Kilo's behavior to specific tasks or workflows. Custom agents can be either **global** (available across all projects) or **project-specific** (defined within a single project).
 
 {% callout type="info" %}
-The current VS Code extension (built on the Kilo CLI) uses **agent Markdown files** to define custom modes. The legacy extension used `custom_modes.yaml` / `.kilocodemodes`. See the tabs below for the relevant approach.
+The current VS Code extension (built on the Kilo CLI) uses **agent Markdown files** to define custom agents. The legacy extension used `custom_modes.yaml` / `.kilocodemodes`. See the tabs below for the relevant approach.
 {% /callout %}
 
-## Why Use Custom Modes?
+## Why Use Custom Agents?
 
-- **Specialization:** Create modes optimized for specific tasks, like "Documentation Writer," "Test Engineer," or "Refactoring Expert"
-- **Safety:** Restrict a mode's access to sensitive files or commands. For example, a "Review Mode" could be limited to read-only operations
-- **Experimentation:** Safely experiment with different prompts and configurations without affecting other modes
-- **Team Collaboration:** Share custom modes with your team to standardize workflows
+- **Specialization:** Create agents optimized for specific tasks, like "Documentation Writer," "Test Engineer," or "Refactoring Expert"
+- **Safety:** Restrict an agent's access to sensitive files or commands. For example, a "Review" agent could be limited to read-only operations
+- **Experimentation:** Safely experiment with different prompts and configurations without affecting other agents
+- **Team Collaboration:** Share custom agents with your team to standardize workflows
 
 {% tabs %}
 {% tab label="VSCode" %}
@@ -877,7 +877,7 @@ customModes:
 {% /tab %}
 {% /tabs %}
 
-## Understanding Regex in Custom Modes
+## Understanding Regex in Custom Agents
 
 {% tabs %}
 {% tab label="VSCode" %}
@@ -1259,4 +1259,4 @@ customModes:
 
 ## Community Gallery
 
-Ready to explore more? Check out the [Show and Tell](https://github.com/Kilo-Org/kilocode/discussions/categories/show-and-tell) to discover and share custom modes and agents created by the community!
+Ready to explore more? Check out the [Show and Tell](https://github.com/Kilo-Org/kilocode/discussions/categories/show-and-tell) to discover and share custom agents created by the community!

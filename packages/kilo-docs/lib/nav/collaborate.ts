@@ -22,8 +22,8 @@ export const CollaborateNav: NavSection[] = [
         children: "Team Management",
       },
       {
-        href: "/collaborate/teams/custom-modes-org",
-        children: "Custom Modes (Org)",
+        href: "/collaborate/teams/custom-agents-org",
+        children: "Custom Agents (Org)",
       },
       { href: "/collaborate/teams/billing", children: "Billing" },
       { href: "/collaborate/teams/analytics", children: "Analytics" },

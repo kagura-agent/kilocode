@@ -13,7 +13,19 @@ module.exports = [
   },
   {
     source: "/docs/features/custom-modes",
-    destination: "/docs/customize/custom-modes",
+    destination: "/docs/customize/custom-agents",
+    basePath: false,
+    permanent: true,
+  },
+  {
+    source: "/docs/customize/custom-modes",
+    destination: "/docs/customize/custom-agents",
+    basePath: false,
+    permanent: true,
+  },
+  {
+    source: "/docs/collaborate/teams/custom-modes-org",
+    destination: "/docs/collaborate/teams/custom-agents-org",
     basePath: false,
     permanent: true,
   },

@@ -372,7 +372,7 @@ To disable a built-in agent entirely:
 
 ## Related
 
-- [Custom Modes](/docs/customize/custom-modes) — Create specialized primary agents with tool restrictions
+- [Custom Agents](/docs/customize/custom-agents) — Create specialized primary agents with tool restrictions
 - [Custom Rules](/docs/customize/custom-rules) — Define rules that apply to specific file types or situations
 - [Orchestrator Mode](/docs/code-with-ai/agents/orchestrator-mode) — Legacy mode for task delegation (now built into all agents)
 - [Task Tool](/docs/automate/tools/new-task) — The tool used to invoke subagents

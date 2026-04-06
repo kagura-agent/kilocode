@@ -9,7 +9,7 @@ description: "Contribute to Kilo Code"
 **New versions of the VS Code extension and CLI are being developed in [Kilo-Org/kilocode](https://github.com/Kilo-Org/kilocode)** (extension at `packages/kilo-vscode`, CLI at `packages/opencode`). If you're looking to contribute to the extension or CLI, please head over to that repository.
 {% /callout %}
 
-Kilo Code is an open-source project that welcomes contributions from developers of all skill levels. This guide will help you get started with contributing to Kilo Code, whether you're fixing bugs, adding features, improving documentation, or sharing custom modes.
+Kilo Code is an open-source project that welcomes contributions from developers of all skill levels. This guide will help you get started with contributing to Kilo Code, whether you're fixing bugs, adding features, improving documentation, or sharing custom agents.
 
 ## Ways to Contribute
 
@@ -17,7 +17,7 @@ There are many ways to contribute to Kilo Code:
 
 1. **Code Contributions**: Implement new features or fix bugs
 2. **Documentation**: Improve existing docs or create new guides
-3. **Marketplace Contributions**: Create and share custom modes, skills, and MCP servers via the [Kilo Marketplace](https://github.com/Kilo-Org/kilo-marketplace)
+3. **Marketplace Contributions**: Create and share custom agents, skills, and MCP servers via the [Kilo Marketplace](https://github.com/Kilo-Org/kilo-marketplace)
 4. **Bug Reports**: Report issues you encounter
 5. **Feature Requests**: Suggest new features or improvements
 6. **Community Support**: Help other users in the community
@@ -123,7 +123,7 @@ The [Kilo Marketplace](https://github.com/Kilo-Org/kilo-marketplace) is a commun
 
 To contribute:
 
-1. Follow the documentation for [Custom Modes](/docs/customize/custom-modes), [Skills](/docs/customize/skills), or [MCP Servers](/docs/automate/mcp/overview) to create your resource
+1. Follow the documentation for [Custom Agents](/docs/customize/custom-agents), [Skills](/docs/customize/skills), or [MCP Servers](/docs/automate/mcp/overview) to create your resource
 
 2. Test your contribution thoroughly
 

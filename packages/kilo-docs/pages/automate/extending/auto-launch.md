@@ -53,7 +53,7 @@ This happens seamlessly in the background, requiring no manual intervention.
   - `"ask"` - Questions and explanations
   - `"debug"` - Problem diagnosis and troubleshooting
   - `"test"` - Testing-focused workflows
-  - Custom mode slugs (if you have [custom modes](/docs/customize/custom-modes))
+  - Custom agent slugs (if you have [custom agents](/docs/customize/custom-agents))
 
 ## Example Configurations
 
@@ -152,5 +152,5 @@ This file should be at the root of your workspace (the same level as your main p
 ### Mode Not Switching
 
 1. Verify the mode name is valid (code, architect, ask, debug, test)
-2. For custom modes, use the exact mode slug from your configuration
+2. For custom agents, use the exact agent slug from your configuration
 3. Mode names are case-sensitive and should be lowercase

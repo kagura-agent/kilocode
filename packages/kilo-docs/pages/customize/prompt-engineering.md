@@ -38,7 +38,7 @@ It's often helpful to guide Kilo Code through a "think-then-do" process:
 You can provide custom instructions to further tailor Kilo Code's behavior. There are two types of custom instructions:
 
 - **Global Custom Instructions:** Apply to all modes.
-- **Mode-Specific Custom Instructions:** Apply only to a specific mode (e.g., Code, Architect, Ask, Debug, or a custom mode).
+- **Mode-Specific Custom Instructions:** Apply only to a specific mode (e.g., Code, Architect, Ask, Debug, or a custom agent).
 
 Custom instructions are added to the system prompt, providing persistent guidance to the AI model. You can use these to:
 

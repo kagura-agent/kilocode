@@ -46,5 +46,5 @@ Here is the list of all events included in the Kilo Code audit logs:
 - Organization: Create, Settings Change, Purchase Credits
 - Organization Member: Remove, Change Role
 - User: Login, Logout, Accept Invite, Send Invite, Revoke Invite
-- [Custom Modes](/docs/collaborate/teams/custom-modes-org): Create, Update, Delete
+- [Custom Agents](/docs/collaborate/teams/custom-agents-org): Create, Update, Delete
 - [SSO](/docs/collaborate/enterprise/sso) (Enterprise Only): Auto Provision, Set Domain, Remove Domain

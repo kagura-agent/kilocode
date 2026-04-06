@@ -27,7 +27,7 @@ This tool requests a mode change when the current task would be better handled b
 - Requires user approval for all mode changes
 - Enforces tool group restrictions specific to each mode
 - Seamlessly adapts tool availability based on the selected mode
-- Works with both standard and custom modes
+- Works with both standard and custom agents
 - Displays the mode switch and reasoning in the UI
 - Uses XML-style formatting for parameter specification
 - Handles file type restrictions specific to certain modes
@@ -93,14 +93,14 @@ The core modes provide these specialized capabilities:
 - **Ask Mode**: Optimized for answering questions and providing information
 - **Debug Mode**: Equipped for systematic problem diagnosis and resolution
 
-## Custom Modes
+## Custom Agents
 
-Beyond the core modes, the system supports custom project-specific modes:
+Beyond the core modes, the system supports custom project-specific agents:
 
-- Custom modes can be defined with specific tool groups enabled
+- Custom agents can be defined with specific tool groups enabled
 - They can specify custom role definitions and instructions
-- The system checks custom modes first before falling back to core modes
-- Custom mode definitions take precedence over core modes with the same slug
+- The system checks custom agents first before falling back to core modes
+- Custom agent definitions take precedence over core modes with the same slug
 
 ## File Restrictions
 

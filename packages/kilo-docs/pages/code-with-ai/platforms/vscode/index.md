@@ -53,7 +53,7 @@ The extension shares its configuration with the CLI. Settings in `~/.config/kilo
 - **[Autocomplete](/docs/code-with-ai/features/autocomplete)** — Inline code completions as you type
 - **[Code Actions](/docs/code-with-ai/features/code-actions)** — Explain, fix, and improve code from the editor context menu
 - **[Agents](/docs/code-with-ai/agents/using-agents)** — Code, Ask, Architect, Debug, Orchestrator, and Review modes
-- **[Custom Modes](/docs/customize/custom-modes)** — Define custom modes with `.kilocodemodes` YAML files
+- **[Custom Agents](/docs/customize/custom-agents)** — Define custom agents with `.kilocodemodes` YAML files
 - **[MCP](/docs/automate/mcp/overview)** — Connect to MCP servers for extended capabilities
 - **[Agent Manager](/docs/automate/agent-manager)** — Multi-session orchestration with git worktree isolation
 - **[Git Commit Generation](/docs/code-with-ai/features/git-commit-generation)** — AI-powered commit messages from the Source Control panel

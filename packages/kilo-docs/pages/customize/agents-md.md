@@ -221,7 +221,7 @@ AGENTS.md support is **enabled by default**. To disable it, edit `settings.json`
 ## Related Features
 
 - **[Custom Rules](/docs/customize/custom-rules)** - Kilo Code-specific rules with more control
-- **[Custom Modes](/docs/customize/custom-modes)** - Specialized workflows with specific permissions
+- **[Custom Agents](/docs/customize/custom-agents)** - Specialized workflows with specific permissions
 - **[Custom Instructions](/docs/customize/custom-instructions)** - Personal preferences across all projects
 - **[Migrating from Cursor or Windsurf](/docs/getting-started/migrating)** - Migration guide for other tools
 

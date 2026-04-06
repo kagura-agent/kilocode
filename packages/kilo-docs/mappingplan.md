@@ -46,7 +46,7 @@
 | Codebase Indexing                   | `features/codebase-indexing`                                               |
 | Large Projects                      | `advanced-usage/large-projects`                                            |
 | **Customization** (subheader)       |                                                                            |
-| Custom Modes                        | `agent-behavior/custom-modes`                                              |
+| Custom Agents                       | `agent-behavior/custom-modes`                                              |
 | Custom Rules                        | `agent-behavior/custom-rules`                                              |
 | Custom Instructions                 | `agent-behavior/custom-instructions`                                       |
 | agents.md                           | `agent-behavior/agents-md`                                                 |
@@ -68,7 +68,7 @@
 | Getting Started with Teams            | `plans/getting-started`                             |
 | Dashboard                             | `plans/dashboard`                                   |
 | Team Management                       | `plans/team-management`                             |
-| Custom Modes (Org)                    | `plans/custom-modes`                                |
+| Custom Agents (Org)                   | `plans/custom-modes`                                |
 | Billing                               | `plans/billing`                                     |
 | Analytics                             | `plans/analytics`                                   |
 | **AI Adoption Dashboard** (subheader) |                                                     |

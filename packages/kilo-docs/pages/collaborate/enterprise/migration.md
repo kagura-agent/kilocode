@@ -103,7 +103,7 @@ Switch to **Kilo Teams** or **Kilo Enterprise** from other AI coding tools and e
 - **Advanced team management** - Roles, permissions, and analytics
 - **Transparent pricing** - See exact costs for every request
 - **Provider flexibility** - Switch providers or use your own API keys
-- **Extensive customization** - Custom modes and team policies
+- **Extensive customization** - Custom agents and team policies
 - **Enterprise-level governance** _(Enterprise only)_ - Model filtering, audit logging, and compliance support
 
 ### Migration Strategy
@@ -249,7 +249,7 @@ Kilo Code also supports mode-specific rules (`.kilocode/rules-{mode}/`), which C
 
 **Week 2: Advanced Features**
 
-- Custom modes and specialized workflows
+- Custom agents and specialized workflows
 - Advanced tools and automation
 - Team collaboration features
 - Usage optimization strategies

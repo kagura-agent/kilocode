@@ -147,29 +147,49 @@ export namespace ModelsDev {
     const enabled = config.enabled_providers ? new Set(config.enabled_providers) : null
     const kiloAllowed = (!enabled || enabled.has("kilo")) && !disabled.has("kilo")
 
-    if (kiloAllowed && !providers["kilo"]) {
+    // Build fetch options for both providers, then fetch in parallel
+    const needKilo = kiloAllowed && !providers["kilo"]
+    const needApertis = !providers["apertis"]
+
+    // Prepare kilo fetch options (requires Auth.get for org ID)
+    let kiloFetchOptions: Record<string, any> | undefined
+    let kiloOrgId: string | undefined
+    if (needKilo) {
       const kiloOptions = config.provider?.kilo?.options
       // kilocode_change start - resolve org ID from auth (OAuth accountId) not just config
       const kiloAuth = await Auth.get("kilo")
-      const kiloOrgId =
-        kiloOptions?.kilocodeOrganizationId ?? (kiloAuth?.type === "oauth" ? kiloAuth.accountId : undefined)
+      kiloOrgId = kiloOptions?.kilocodeOrganizationId ?? (kiloAuth?.type === "oauth" ? kiloAuth.accountId : undefined)
       // kilocode_change end
-      const normalizedBaseURL = normalizeKiloBaseURL(kiloOptions?.baseURL, kiloOrgId)
-      const kiloFetchOptions = {
-        ...(normalizedBaseURL ? { baseURL: normalizedBaseURL } : {}),
+      const normalized = normalizeKiloBaseURL(kiloOptions?.baseURL, kiloOrgId)
+      kiloFetchOptions = {
+        ...(normalized ? { baseURL: normalized } : {}),
         ...(kiloOrgId ? { kilocodeOrganizationId: kiloOrgId } : {}),
       }
-      const defaultBaseURL = kiloOrgId
+    }
+
+    // Prepare apertis fetch options (reuse config from above)
+    const apertisConfig = config.provider?.apertis?.options
+    const apertisBaseURL = apertisConfig?.baseURL ?? "https://api.apertis.ai/v1"
+    const apertisFetchOptions = {
+      ...(apertisConfig?.baseURL ? { baseURL: apertisConfig.baseURL } : {}),
+    }
+
+    // Fire both model fetches concurrently
+    const [kiloModels, apertisModels] = await Promise.all([
+      needKilo ? ModelCache.fetch("kilo", kiloFetchOptions).catch(() => ({})) : Promise.resolve(undefined),
+      needApertis ? ModelCache.fetch("apertis", apertisFetchOptions).catch(() => ({})) : Promise.resolve(undefined),
+    ])
+
+    if (needKilo && kiloModels !== undefined) {
+      const base = kiloOrgId
         ? `https://api.kilo.ai/api/organizations/${kiloOrgId}`
         : "https://api.kilo.ai/api/openrouter"
-      const providerBaseURL = normalizedBaseURL ?? defaultBaseURL
-      const ensureTrailingSlash = (value: string): string => (value.endsWith("/") ? value : `${value}/`)
-      const kiloModels = await ModelCache.fetch("kilo", kiloFetchOptions).catch(() => ({}))
+      const trailing = (v: string): string => (v.endsWith("/") ? v : `${v}/`)
       providers["kilo"] = {
         id: "kilo",
         name: "Kilo Gateway",
         env: ["KILO_API_KEY"],
-        api: ensureTrailingSlash(KILO_OPENROUTER_BASE),
+        api: trailing(KILO_OPENROUTER_BASE),
         npm: "@kilocode/kilo-gateway",
         models: kiloModels,
       }
@@ -178,15 +198,7 @@ export namespace ModelsDev {
       }
     }
 
-    // Inject Apertis provider with dynamic model fetching
-    if (!providers["apertis"]) {
-      const apertisConfigObj = await Config.get()
-      const apertisConfig = apertisConfigObj.provider?.apertis?.options
-      const apertisBaseURL = apertisConfig?.baseURL ?? "https://api.apertis.ai/v1"
-      const apertisFetchOptions = {
-        ...(apertisConfig?.baseURL ? { baseURL: apertisConfig.baseURL } : {}),
-      }
-      const apertisModels = await ModelCache.fetch("apertis", apertisFetchOptions).catch(() => ({}))
+    if (needApertis && apertisModels !== undefined) {
       providers["apertis"] = {
         id: "apertis",
         name: "Apertis",

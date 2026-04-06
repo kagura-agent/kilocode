@@ -18,7 +18,8 @@ export namespace ModelCache {
   >()
 
   const TTL = 5 * 60 * 1000 // 5 minutes
-  const inFlightRefresh = new Map<string, Promise<Record<string, any>>>()
+  const STALE_TTL = 30 * 60 * 1000 // 30 minutes — max age for stale-while-revalidate
+  const inFlight = new Map<string, Promise<Record<string, any>>>()
 
   /**
    * Get cached models if available and not expired
@@ -53,32 +54,52 @@ export namespace ModelCache {
    * @returns Models from cache or freshly fetched
    */
   export async function fetch(providerID: string, options?: any): Promise<Record<string, any>> {
-    // Check cache first
-    const cached = get(providerID)
-    if (cached) {
-      return cached
+    // Check cache — return immediately if fresh, or stale-while-revalidate
+    // if expired within the grace window. Note: we read `cache` directly
+    // instead of using `get()` which deletes expired entries.
+    const entry = cache.get(providerID)
+    if (entry) {
+      const age = Date.now() - entry.timestamp
+      if (age <= TTL) {
+        log.debug("cache hit", { providerID, age })
+        return entry.models
+      }
+      if (age <= STALE_TTL) {
+        log.debug("returning stale cache, refreshing in background", { providerID, age })
+        refresh(providerID, options).catch(() => {})
+        return entry.models
+      }
+      // Too stale — discard
+      cache.delete(providerID)
     }
 
-    // Cache miss - fetch models
-    log.info("fetching models", { providerID })
+    // Full cache miss — blocking fetch with request dedup
+    const pending = inFlight.get(providerID)
+    if (pending) {
+      log.debug("fetch already in flight, coalescing", { providerID })
+      return pending
+    }
 
+    const promise = (async () => {
+      log.info("fetching models", { providerID })
+      try {
+        const auth = await getAuthOptions(providerID)
+        const merged = { ...auth, ...options }
+        const models = await fetchModels(providerID, merged)
+        cache.set(providerID, { models, timestamp: Date.now() })
+        log.info("models fetched and cached", { providerID, count: Object.keys(models).length })
+        return models
+      } catch (error) {
+        log.error("failed to fetch models", { providerID, error })
+        return {}
+      }
+    })()
+
+    inFlight.set(providerID, promise)
     try {
-      const authOptions = await getAuthOptions(providerID)
-      const mergedOptions = { ...authOptions, ...options }
-
-      const models = await fetchModels(providerID, mergedOptions)
-
-      // Store in cache
-      cache.set(providerID, {
-        models,
-        timestamp: Date.now(),
-      })
-
-      log.info("models fetched and cached", { providerID, count: Object.keys(models).length })
-      return models
-    } catch (error) {
-      log.error("failed to fetch models", { providerID, error })
-      return {}
+      return await promise
+    } finally {
+      inFlight.delete(providerID)
     }
   }
 
@@ -91,7 +112,7 @@ export namespace ModelCache {
    */
   export async function refresh(providerID: string, options?: any): Promise<Record<string, any>> {
     // Check if refresh already in progress
-    const existing = inFlightRefresh.get(providerID)
+    const existing = inFlight.get(providerID)
     if (existing) {
       log.debug("refresh already in progress, returning existing promise", { providerID })
       return existing
@@ -130,13 +151,13 @@ export namespace ModelCache {
     })()
 
     // Track in-flight refresh
-    inFlightRefresh.set(providerID, refreshPromise)
+    inFlight.set(providerID, refreshPromise)
 
     try {
       return await refreshPromise
     } finally {
       // Clean up in-flight tracking
-      inFlightRefresh.delete(providerID)
+      inFlight.delete(providerID)
     }
   }
 

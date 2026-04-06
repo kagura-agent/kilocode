@@ -1191,6 +1191,10 @@ export interface ClearPendingPromptsMessage {
   type: "clearPendingPrompts"
 }
 
+export interface ExtensionDataReadyMessage {
+  type: "extensionDataReady"
+}
+
 // ============================================
 // Marketplace Messages
 // ============================================
@@ -1381,6 +1385,7 @@ export type ExtensionMessage =
   | WorktreeStatsLoadedMessage
   | McpStatusLoadedMessage
   | ClearPendingPromptsMessage
+  | ExtensionDataReadyMessage
 
 // ============================================
 // Messages FROM webview TO extension

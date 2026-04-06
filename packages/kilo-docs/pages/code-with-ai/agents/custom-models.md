@@ -91,6 +91,43 @@ All fields are optional. When a model ID matches one already in the built-in cat
 | `provider`    | `object`  | Override `{ npm?, api? }` — the AI SDK package or base API URL for this model |
 | `variants`    | `object`  | Named variant configurations (e.g., different reasoning efforts)              |
 
+### Token Limits (`limit`)
+
+The `limit` object controls how Kilo manages the model's context window and output length. These values are specified in **tokens**.
+
+| Sub-field | Type     | Required | Description                                                                                                                                                                                        |
+| --------- | -------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `context` | `number` | No      | The model's total context window size (e.g., `131072` for a 128K model). Used to determine when conversation history should be compacted to stay within the window.                                |
+| `output`  | `number` |  No      | The maximum number of tokens the model can generate in a single response. Sent to the provider as `max_tokens` or equivalent. Capped at 32,000 by default.                                         |
+| `input`   | `number` | No       | An optional stricter input limit. Some providers enforce an input token ceiling that is lower than the full context window. When set, compaction triggers against this value instead of `context`. |
+
+```jsonc
+"limit": {
+  "context": 131072,
+  "output": 16384
+}
+```
+
+#### How limits are resolved
+
+Kilo resolves token limits in this order:
+
+1. **Your config** — values you set under `provider.<id>.models.<model>.limit`
+2. **Built-in catalog** — Kilo ships a snapshot of [models.dev](https://models.dev) and refreshes it hourly. If your model ID matches a known model, catalog values are used as defaults.
+3. **Fallback** — if neither source provides a value, `context` and `output` default to `0`.
+
+#### What happens when limits are `0`
+
+If you use a custom or local model and don't specify limits — and the model isn't in the built-in catalog — both `context` and `output` resolve to `0`. This has meaningful side effects:
+
+- **Compaction is disabled.** Kilo uses `context` to detect when the conversation exceeds the model's window and needs to be summarized. With `context: 0`, overflow detection is skipped and conversations will grow unbounded until the provider rejects the request.
+- **Output falls back to 32,000 tokens.** When `output` is `0`, Kilo uses its internal default of 32,000 tokens (configurable via the `KILO_EXPERIMENTAL_OUTPUT_TOKEN_MAX` environment variable).
+- **No context usage tracking.** Usage metrics that depend on knowing the context size are skipped.
+
+{% callout type="warning" %}
+For custom and local models, always set `limit.context` and `limit.output` to match the model's actual capabilities. Without these values, automatic context management is disabled.
+{% /callout %}
+
 ## Examples
 
 ### Local model with LM Studio
@@ -313,5 +350,6 @@ Control which models appear in the model picker for a provider using allowlists 
 **Model errors or unexpected behavior:**
 
 - Set `tool_call: true` if you need the model to use tools (file editing, terminal, etc.)
-- Set `limit.context` and `limit.output` to match the model's actual capabilities
+- Set `limit.context` and `limit.output` to match the model's actual capabilities — see [Token Limits](#token-limits-limit) above for details and defaults
+- If conversations seem to grow without being compacted, your `limit.context` is likely `0` (unset)
 - For local models, ensure your inference server is running and accessible at the configured URL

@@ -3,6 +3,7 @@ import { fetchKiloModels } from "@kilocode/kilo-gateway"
 import { Config } from "../config/config"
 import { Auth } from "../auth"
 import { Env } from "../env"
+import { Hash } from "../util/hash"
 import { Log } from "../util/log"
 
 export namespace ModelCache {
@@ -21,16 +22,25 @@ export namespace ModelCache {
   const STALE_TTL = 30 * 60 * 1000 // 30 minutes — max age for stale-while-revalidate
   const inFlight = new Map<string, Promise<Record<string, any>>>()
 
+  function key(providerID: string, options?: Record<string, unknown>): string {
+    const list = Object.entries(options ?? {})
+      .filter(([, value]) => value !== undefined && value !== null)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([item, value]) => [item, typeof value === "string" ? value : JSON.stringify(value)])
+    return `${providerID}:${Hash.fast(JSON.stringify(list))}`
+  }
+
   /**
    * Get cached models if available and not expired
    * @param providerID - Provider identifier (e.g., "kilo")
    * @returns Cached models or undefined if cache miss or expired
    */
-  export function get(providerID: string): Record<string, any> | undefined {
-    const cached = cache.get(providerID)
+  export function get(providerID: string, options?: Record<string, unknown>): Record<string, any> | undefined {
+    const id = key(providerID, options)
+    const cached = cache.get(id)
 
     if (!cached) {
-      log.debug("cache miss", { providerID })
+      log.debug("cache miss", { providerID, key: id })
       return undefined
     }
 
@@ -38,12 +48,12 @@ export namespace ModelCache {
     const age = now - cached.timestamp
 
     if (age > TTL) {
-      log.debug("cache expired", { providerID, age })
-      cache.delete(providerID)
+      log.debug("cache expired", { providerID, key: id, age })
+      cache.delete(id)
       return undefined
     }
 
-    log.debug("cache hit", { providerID, age })
+    log.debug("cache hit", { providerID, key: id, age })
     return cached.models
   }
 
@@ -54,52 +64,54 @@ export namespace ModelCache {
    * @returns Models from cache or freshly fetched
    */
   export async function fetch(providerID: string, options?: any): Promise<Record<string, any>> {
+    const auth = await getAuthOptions(providerID)
+    const merged = { ...auth, ...options }
+    const id = key(providerID, merged)
+
     // Check cache — return immediately if fresh, or stale-while-revalidate
     // if expired within the grace window. Note: we read `cache` directly
     // instead of using `get()` which deletes expired entries.
-    const entry = cache.get(providerID)
+    const entry = cache.get(id)
     if (entry) {
       const age = Date.now() - entry.timestamp
       if (age <= TTL) {
-        log.debug("cache hit", { providerID, age })
+        log.debug("cache hit", { providerID, key: id, age })
         return entry.models
       }
       if (age <= STALE_TTL) {
-        log.debug("returning stale cache, refreshing in background", { providerID, age })
+        log.debug("returning stale cache, refreshing in background", { providerID, key: id, age })
         refresh(providerID, options).catch(() => {})
         return entry.models
       }
       // Too stale — discard
-      cache.delete(providerID)
+      cache.delete(id)
     }
 
     // Full cache miss — blocking fetch with request dedup
-    const pending = inFlight.get(providerID)
+    const pending = inFlight.get(id)
     if (pending) {
-      log.debug("fetch already in flight, coalescing", { providerID })
+      log.debug("fetch already in flight, coalescing", { providerID, key: id })
       return pending
     }
 
     const promise = (async () => {
-      log.info("fetching models", { providerID })
+      log.info("fetching models", { providerID, key: id })
       try {
-        const auth = await getAuthOptions(providerID)
-        const merged = { ...auth, ...options }
         const models = await fetchModels(providerID, merged)
-        cache.set(providerID, { models, timestamp: Date.now() })
-        log.info("models fetched and cached", { providerID, count: Object.keys(models).length })
+        cache.set(id, { models, timestamp: Date.now() })
+        log.info("models fetched and cached", { providerID, key: id, count: Object.keys(models).length })
         return models
       } catch (error) {
-        log.error("failed to fetch models", { providerID, error })
+        log.error("failed to fetch models", { providerID, key: id, error })
         return {}
       }
     })()
 
-    inFlight.set(providerID, promise)
+    inFlight.set(id, promise)
     try {
       return await promise
     } finally {
-      inFlight.delete(providerID)
+      inFlight.delete(id)
     }
   }
 
@@ -111,38 +123,39 @@ export namespace ModelCache {
    * @returns Freshly fetched models
    */
   export async function refresh(providerID: string, options?: any): Promise<Record<string, any>> {
+    const auth = await getAuthOptions(providerID)
+    const merged = { ...auth, ...options }
+    const id = key(providerID, merged)
+
     // Check if refresh already in progress
-    const existing = inFlight.get(providerID)
+    const existing = inFlight.get(id)
     if (existing) {
-      log.debug("refresh already in progress, returning existing promise", { providerID })
+      log.debug("refresh already in progress, returning existing promise", { providerID, key: id })
       return existing
     }
 
     // Create new refresh promise
     const refreshPromise = (async () => {
-      log.info("refreshing models", { providerID })
+      log.info("refreshing models", { providerID, key: id })
 
       try {
-        const authOptions = await getAuthOptions(providerID)
-        const mergedOptions = { ...authOptions, ...options }
-
-        const models = await fetchModels(providerID, mergedOptions)
+        const models = await fetchModels(providerID, merged)
 
         // Update cache with new models
-        cache.set(providerID, {
+        cache.set(id, {
           models,
           timestamp: Date.now(),
         })
 
-        log.info("models refreshed", { providerID, count: Object.keys(models).length })
+        log.info("models refreshed", { providerID, key: id, count: Object.keys(models).length })
         return models
       } catch (error) {
-        log.error("failed to refresh models", { providerID, error })
+        log.error("failed to refresh models", { providerID, key: id, error })
 
         // Return existing cache or empty object
-        const cached = cache.get(providerID)
+        const cached = cache.get(id)
         if (cached) {
-          log.debug("returning stale cache after refresh failure", { providerID })
+          log.debug("returning stale cache after refresh failure", { providerID, key: id })
           return cached.models
         }
 
@@ -151,13 +164,13 @@ export namespace ModelCache {
     })()
 
     // Track in-flight refresh
-    inFlight.set(providerID, refreshPromise)
+    inFlight.set(id, refreshPromise)
 
     try {
       return await refreshPromise
     } finally {
       // Clean up in-flight tracking
-      inFlight.delete(providerID)
+      inFlight.delete(id)
     }
   }
 
@@ -166,12 +179,32 @@ export namespace ModelCache {
    * @param providerID - Provider identifier
    */
   export function clear(providerID: string): void {
-    const deleted = cache.delete(providerID)
-    if (deleted) {
-      log.info("cache cleared", { providerID })
-    } else {
-      log.debug("no cache to clear", { providerID })
+    const prefix = `${providerID}:`
+    const keys = new Set<string>()
+
+    for (const item of cache.keys()) {
+      if (item.startsWith(prefix)) {
+        keys.add(item)
+      }
     }
+
+    for (const item of inFlight.keys()) {
+      if (item.startsWith(prefix)) {
+        keys.add(item)
+      }
+    }
+
+    for (const item of keys) {
+      cache.delete(item)
+      inFlight.delete(item)
+    }
+
+    if (keys.size > 0) {
+      log.info("cache cleared", { providerID, count: keys.size })
+      return
+    }
+
+    log.debug("no cache to clear", { providerID })
   }
 
   /**

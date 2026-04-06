@@ -4,7 +4,8 @@
  * Selection is now per-session — see session.tsx.
  */
 
-import { createContext, useContext, createSignal, createMemo, onCleanup, ParentComponent, Accessor } from "solid-js"
+import { createContext, useContext, createSignal, createMemo, onCleanup } from "solid-js"
+import type { ParentComponent, Accessor } from "solid-js"
 import { useVSCode } from "./vscode"
 import type { Provider, ProviderModel, ModelSelection, ExtensionMessage, ProviderAuthState } from "../types/messages"
 import type { ProviderAuthMethod } from "@kilocode/sdk/v2/client"
@@ -18,17 +19,20 @@ interface ProviderContextValue {
   connected: Accessor<string[]>
   defaults: Accessor<Record<string, string>>
   defaultSelection: Accessor<ModelSelection>
+  loadedAt: Accessor<number>
   models: Accessor<EnrichedModel[]>
   findModel: (selection: ModelSelection | null) => EnrichedModel | undefined
   authMethods: Accessor<Record<string, ProviderAuthMethod[]>>
   authStates: Accessor<Record<string, ProviderAuthState>>
   isModelValid: (selection: ModelSelection | null) => boolean
+  ensureFresh: () => void
 }
 
 export const ProviderContext = createContext<ProviderContextValue>()
 
 export const ProviderProvider: ParentComponent = (props) => {
   const vscode = useVSCode()
+  const ttl = 5 * 60 * 1000
 
   const [providers, setProviders] = createSignal<Record<string, Provider>>({})
   const [connected, setConnected] = createSignal<string[]>([])
@@ -36,8 +40,20 @@ export const ProviderProvider: ParentComponent = (props) => {
   const [defaultSelection, setDefaultSelection] = createSignal<ModelSelection>(KILO_AUTO)
   const [authMethods, setAuthMethods] = createSignal<Record<string, ProviderAuthMethod[]>>({})
   const [authStates, setAuthStates] = createSignal<Record<string, ProviderAuthState>>({})
+  const [loadedAt, setLoadedAt] = createSignal(0)
 
   const models = createMemo<EnrichedModel[]>(() => flattenModels(providers()))
+
+  function refresh() {
+    vscode.postMessage({ type: "requestProviders" })
+  }
+
+  function ensureFresh() {
+    const age = Date.now() - loadedAt()
+    if (loadedAt() === 0 || age > ttl) {
+      refresh()
+    }
+  }
 
   function findModel(selection: ModelSelection | null): EnrichedModel | undefined {
     return _findModel(models(), selection)
@@ -60,6 +76,7 @@ export const ProviderProvider: ParentComponent = (props) => {
     setDefaultSelection(message.defaultSelection)
     setAuthMethods(message.authMethods)
     setAuthStates(message.authStates)
+    setLoadedAt(Date.now())
   })
 
   onCleanup(unsubscribe)
@@ -67,7 +84,7 @@ export const ProviderProvider: ParentComponent = (props) => {
   // Request providers immediately; if the extension's httpClient is not yet ready,
   // extensionDataReady will fire once initialization completes and we retry once.
   // A fallback timer covers cases where the signal is delayed behind startup work.
-  vscode.postMessage({ type: "requestProviders" })
+  refresh()
 
   const fallback = setTimeout(() => {
     if (Object.keys(providers()).length === 0) {
@@ -94,11 +111,13 @@ export const ProviderProvider: ParentComponent = (props) => {
     connected,
     defaults,
     defaultSelection,
+    loadedAt,
     models,
     findModel,
     authMethods,
     authStates,
     isModelValid,
+    ensureFresh,
   }
 
   return <ProviderContext.Provider value={value}>{props.children}</ProviderContext.Provider>

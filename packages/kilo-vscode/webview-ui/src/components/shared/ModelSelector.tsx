@@ -88,7 +88,7 @@ export interface ModelSelectorBaseProps {
 }
 
 export const ModelSelectorBase: Component<ModelSelectorBaseProps> = (props) => {
-  const { connected, models, findModel } = useProvider()
+  const { connected, models, findModel, ensureFresh } = useProvider()
   const language = useLanguage()
   // Session context is optional — ModelSelectorBase is also used in Settings
   // where SessionProvider may not be mounted.
@@ -354,9 +354,18 @@ export const ModelSelectorBase: Component<ModelSelectorBaseProps> = (props) => {
   })
 
   // Listen for slash command trigger
-  const onTrigger = () => setOpen(true)
+  const onTrigger = () => {
+    ensureFresh()
+    setOpen(true)
+  }
   window.addEventListener("openModelPicker", onTrigger)
   onCleanup(() => window.removeEventListener("openModelPicker", onTrigger))
+
+  createEffect(() => {
+    if (open()) {
+      ensureFresh()
+    }
+  })
 
   function pick(model: EnrichedModel) {
     props.onSelect(model.providerID, model.id)

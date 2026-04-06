@@ -13,6 +13,7 @@ import { AiSdkProvider, ModelsDev, Prompt } from "./models" // kilocode_change
 import { Auth } from "../auth"
 import { Env } from "../env"
 import { Instance } from "../project/instance"
+import { State } from "../project/state"
 import { Flag } from "../flag/flag"
 import { iife } from "@/util/iife"
 import { Global } from "../global"
@@ -51,6 +52,7 @@ import { DEFAULT_HEADERS } from "@/kilocode/const" // kilocode_change
 
 export namespace Provider {
   const log = Log.create({ service: "provider" })
+  const TTL = 5 * 60 * 1000
 
   function isGpt5OrLater(modelID: string): boolean {
     const match = /^gpt-(\d+)/.exec(modelID)
@@ -812,7 +814,7 @@ export namespace Provider {
     }
   }
 
-  const state = Instance.state(async () => {
+  async function load() {
     using _ = log.time("state")
     const config = await Config.get()
     const modelsDev = await ModelsDev.get()
@@ -1092,15 +1094,43 @@ export namespace Provider {
     }
 
     return {
+      loadedAt: Date.now(),
       models: languages,
       providers,
       sdk,
       modelLoaders,
     }
-  })
+  }
+
+  type Data = Awaited<ReturnType<typeof load>>
+  const state = Instance.state(load)
+  const inflight = new Map<string, Promise<Data>>()
+
+  async function current(): Promise<Data> {
+    const data = await state()
+    const age = Date.now() - data.loadedAt
+    if (age <= TTL) return data
+
+    const dir = Instance.directory
+    const pending = inflight.get(dir)
+    if (pending) return pending
+
+    log.info("refreshing stale provider state", { age, directory: dir })
+    const task = (async () => {
+      State.resetEntry(dir, load)
+      return state()
+    })()
+
+    inflight.set(dir, task)
+    try {
+      return await task
+    } finally {
+      if (inflight.get(dir) === task) inflight.delete(dir)
+    }
+  }
 
   export async function list() {
-    return state().then((state) => state.providers)
+    return current().then((state) => state.providers)
   }
 
   async function getSDK(model: Model) {
@@ -1108,8 +1138,11 @@ export namespace Provider {
       using _ = log.time("getSDK", {
         providerID: model.providerID,
       })
-      const s = await state()
+      const s = await current()
       const provider = s.providers[model.providerID]
+      if (!provider) {
+        throw new ModelNotFoundError({ providerID: model.providerID, modelID: model.id })
+      }
       const options = { ...provider.options }
 
       if (model.providerID === "google-vertex" && !model.api.npm.includes("@ai-sdk/openai-compatible")) {
@@ -1209,11 +1242,11 @@ export namespace Provider {
   }
 
   export async function getProvider(providerID: string) {
-    return state().then((s) => s.providers[providerID])
+    return current().then((s) => s.providers[providerID])
   }
 
   export async function getModel(providerID: string, modelID: string) {
-    const s = await state()
+    const s = await current()
     const provider = s.providers[providerID]
     if (!provider) {
       const availableProviders = Object.keys(s.providers)
@@ -1233,11 +1266,14 @@ export namespace Provider {
   }
 
   export async function getLanguage(model: Model): Promise<LanguageModelV2> {
-    const s = await state()
+    const s = await current()
     const key = `${model.providerID}/${model.id}`
     if (s.models.has(key)) return s.models.get(key)!
 
     const provider = s.providers[model.providerID]
+    if (!provider) {
+      throw new ModelNotFoundError({ providerID: model.providerID, modelID: model.id })
+    }
     const sdk = await getSDK(model)
 
     try {
@@ -1260,7 +1296,7 @@ export namespace Provider {
   }
 
   export async function closest(providerID: string, query: string[]) {
-    const s = await state()
+    const s = await current()
     const provider = s.providers[providerID]
     if (!provider) return undefined
     for (const item of query) {
@@ -1282,7 +1318,7 @@ export namespace Provider {
       return getModel(parsed.providerID, parsed.modelID)
     }
 
-    const provider = await state().then((state) => state.providers[providerID])
+    const provider = await current().then((state) => state.providers[providerID])
     if (provider) {
       let priority = [
         "claude-haiku-4-5",
@@ -1335,7 +1371,7 @@ export namespace Provider {
 
     // kilocode_change start
     // Check if kilo provider is available before using it
-    const kiloProvider = await state().then((state) => state.providers["kilo"])
+    const kiloProvider = await current().then((state) => state.providers["kilo"])
     if (kiloProvider && kiloProvider.models["kilo-auto/small"]) {
       return getModel("kilo", "kilo-auto/small")
     }

@@ -59,6 +59,7 @@ class KiloConnectionService(private val cs: CoroutineScope) : Disposable {
     val events: SharedFlow<SseEvent> = _events.asSharedFlow()
 
     private var client: OkHttpClient? = null
+    private var api: KiloClient? = null
     private var port = 0
     private var password = ""
 
@@ -108,6 +109,7 @@ class KiloConnectionService(private val cs: CoroutineScope) : Disposable {
             }
             .callTimeout(HEALTH_TIMEOUT_MS, TimeUnit.MILLISECONDS)
             .build()
+        api = client?.let { KiloClient.create(port, it) }
 
         startSse()
         startHeartbeatWatcher()
@@ -215,12 +217,9 @@ class KiloConnectionService(private val cs: CoroutineScope) : Disposable {
     }
 
     private fun checkHealth(): Boolean {
-        val http = client ?: return false
+        val api = api ?: return false
         return try {
-            val req = Request.Builder()
-                .url("http://127.0.0.1:$port/global/health")
-                .build()
-            http.newCall(req).execute().use { it.isSuccessful }
+            api.health()
         } catch (e: Exception) {
             LOG.info("Health check exception: ${e.message}")
             false
@@ -242,6 +241,7 @@ class KiloConnectionService(private val cs: CoroutineScope) : Disposable {
             http.dispatcher.executorService.shutdown()
             http.connectionPool.evictAll()
         }
+        api = null
         client = null
     }
 

@@ -13,6 +13,7 @@ plugins {
     alias(libs.plugins.kotlin) apply false
     alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.compose.compiler) apply false
+    alias(libs.plugins.openapi.generator) apply false
 }
 
 subprojects {
@@ -56,5 +57,4 @@ tasks.named<JavaExec>("runIde") {
         listOf("-Dnosplash=true")
     }
 }
-
 

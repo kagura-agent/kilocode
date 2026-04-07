@@ -26,6 +26,10 @@ export interface Worktree {
   groupId?: string
   /** User-provided display name for the worktree. */
   label?: string
+  /** Cached PR number for instant badge display on reload. */
+  prNumber?: number
+  /** Cached PR URL for instant badge display on reload. */
+  prUrl?: string
 }
 
 /**
@@ -168,6 +172,15 @@ export class WorktreeStateManager {
     if (!wt) return
     wt.label = label || undefined
     this.log(`Updated worktree ${id} label to "${label}"`)
+    void this.save()
+  }
+
+  updateWorktreePR(id: string, prNumber?: number, prUrl?: string): void {
+    const wt = this.worktrees.get(id)
+    if (!wt) return
+    if (wt.prNumber === prNumber && wt.prUrl === prUrl) return
+    wt.prNumber = prNumber
+    wt.prUrl = prUrl
     void this.save()
   }
 

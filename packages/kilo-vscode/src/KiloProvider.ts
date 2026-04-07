@@ -336,8 +336,10 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
     // Handle messages from webview (shared handler)
     this.setupWebviewMessageHandler(webviewView.webview)
 
-    // Pause stats polling when sidebar is hidden, resume when visible
+    // Track sidebar visibility for keybinding when-clauses and stats polling
+    vscode.commands.executeCommand("setContext", "kilo-code.new.sidebarVisible", webviewView.visible)
     webviewView.onDidChangeVisibility(() => {
+      vscode.commands.executeCommand("setContext", "kilo-code.new.sidebarVisible", webviewView.visible)
       this.statsPoller?.setEnabled(webviewView.visible)
     })
 
@@ -797,6 +799,9 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
         case "requestNotificationSettings":
           this.sendNotificationSettings()
           break
+        case "requestTimelineSetting":
+          this.sendTimelineSetting()
+          break
         case "requestNotifications":
           this.fetchAndSendNotifications().catch((e) =>
             console.error("[Kilo New] fetchAndSendNotifications failed:", e),
@@ -1136,6 +1141,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
         this.seedSessionStatusMap(),
       ])
       this.sendNotificationSettings()
+      this.sendTimelineSetting()
       this.postMessage({ type: "extensionDataReady" })
 
       // Start polling worktree diff stats for the sidebar badge
@@ -2043,6 +2049,14 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
     })
   }
 
+  private sendTimelineSetting(): void {
+    const config = vscode.workspace.getConfiguration("kilo-code.new")
+    this.postMessage({
+      type: "timelineSettingLoaded",
+      visible: config.get<boolean>("showTaskTimeline", true),
+    })
+  }
+
   /** Returns the number of sessions currently in "busy" state. */
   private getBusySessionCount(): number {
     return getBusySessionCount(this.sessionStatusMap)
@@ -2547,6 +2561,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
     this.sendAutocompleteSettings()
     this.sendBrowserSettings()
     this.sendNotificationSettings()
+    this.sendTimelineSetting()
 
     // Re-send globalState items to the webview
     this.postMessage({ type: "variantsLoaded", variants: {} })

@@ -745,6 +745,11 @@ export interface NotificationSettingsLoadedMessage {
   }
 }
 
+export interface TimelineSettingLoadedMessage {
+  type: "timelineSettingLoaded"
+  visible: boolean
+}
+
 export interface NotificationsLoadedMessage {
   type: "notificationsLoaded"
   notifications: KilocodeNotification[]
@@ -1329,6 +1334,7 @@ export type ExtensionMessage =
   | ConfigUpdatedMessage
   | GlobalConfigLoadedMessage
   | NotificationSettingsLoadedMessage
+  | TimelineSettingLoadedMessage
   | NotificationsLoadedMessage
   | AgentManagerSessionMetaMessage
   | AgentManagerRepoInfoMessage
@@ -1669,6 +1675,10 @@ export interface UpdateSettingRequest {
   type: "updateSetting"
   key: string
   value: unknown
+}
+
+export interface RequestTimelineSettingMessage {
+  type: "requestTimelineSetting"
 }
 
 export interface RequestBrowserSettingsMessage {
@@ -2143,6 +2153,7 @@ export type WebviewMessage =
   | RequestFileSearchMessage
   | ChatCompletionAcceptedMessage
   | UpdateSettingRequest
+  | RequestTimelineSettingMessage
   | RequestBrowserSettingsMessage
   | RequestClaudeCompatSettingMessage
   | RequestConfigMessage

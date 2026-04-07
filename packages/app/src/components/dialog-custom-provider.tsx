@@ -28,6 +28,11 @@ type HeaderRow = {
   value: string
 }
 
+type ExtraBodyRow = {
+  key: string
+  value: string
+}
+
 type FormState = {
   providerID: string
   name: string
@@ -35,6 +40,7 @@ type FormState = {
   apiKey: string
   models: ModelRow[]
   headers: HeaderRow[]
+  extraBody: ExtraBodyRow[]
   saving: boolean
 }
 
@@ -44,6 +50,7 @@ type FormErrors = {
   baseURL: string | undefined
   models: Array<{ id?: string; name?: string }>
   headers: Array<{ key?: string; value?: string }>
+  extraBody: Array<{ key?: string; value?: string }>
 }
 
 type ValidateArgs = {
@@ -124,20 +131,47 @@ function validateCustomProvider(input: ValidateArgs) {
       .map((h) => [h.key, h.value]),
   )
 
+  const seenExtraBodyKeys = new Set<string>()
+  const extraBodyErrors = input.form.extraBody.map((e) => {
+    const key = e.key.trim()
+    const value = e.value.trim()
+
+    if (!key && !value) return {}
+    const keyError = !key
+      ? input.t("provider.custom.error.required")
+      : seenExtraBodyKeys.has(key.toLowerCase())
+        ? input.t("provider.custom.error.duplicate")
+        : (() => {
+            seenExtraBodyKeys.add(key.toLowerCase())
+            return undefined
+          })()
+    const valueError = !value ? input.t("provider.custom.error.required") : undefined
+    return { key: keyError, value: valueError }
+  })
+  const extraBodyValid = extraBodyErrors.every((e) => !e.key && !e.value)
+  const extraBody = Object.fromEntries(
+    input.form.extraBody
+      .map((e) => ({ key: e.key.trim(), value: e.value.trim() }))
+      .filter((e) => !!e.key && !!e.value)
+      .map((e) => [e.key, e.value]),
+  )
+
   const errors: FormErrors = {
     providerID: idError ?? existsError,
     name: nameError,
     baseURL: urlError,
     models: modelErrors,
     headers: headerErrors,
+    extraBody: extraBodyErrors,
   }
 
-  const ok = !idError && !existsError && !nameError && !urlError && modelsValid && headersValid
+  const ok = !idError && !existsError && !nameError && !urlError && modelsValid && headersValid && extraBodyValid
   if (!ok) return { errors }
 
   const options = {
     baseURL,
     ...(Object.keys(headers).length ? { headers } : {}),
+    ...(Object.keys(extraBody).length ? { extraBody } : {}),
   }
 
   return {
@@ -174,6 +208,7 @@ export function DialogCustomProvider(props: Props) {
     apiKey: "",
     models: [{ id: "", name: "" }],
     headers: [{ key: "", value: "" }],
+    extraBody: [{ key: "", value: "" }],
     saving: false,
   })
 
@@ -183,6 +218,7 @@ export function DialogCustomProvider(props: Props) {
     baseURL: undefined,
     models: [{}],
     headers: [{}],
+    extraBody: [{}],
   })
 
   const goBack = () => {
@@ -213,6 +249,17 @@ export function DialogCustomProvider(props: Props) {
     if (form.headers.length <= 1) return
     setForm("headers", (v) => v.filter((_, i) => i !== index))
     setErrors("headers", (v) => v.filter((_, i) => i !== index))
+  }
+
+  const addExtraBody = () => {
+    setForm("extraBody", (v) => [...v, { key: "", value: "" }])
+    setErrors("extraBody", (v) => [...v, {}])
+  }
+
+  const removeExtraBody = (index: number) => {
+    if (form.extraBody.length <= 1) return
+    setForm("extraBody", (v) => v.filter((_, i) => i !== index))
+    setErrors("extraBody", (v) => v.filter((_, i) => i !== index))
   }
 
   const validate = () => {
@@ -419,6 +466,58 @@ export function DialogCustomProvider(props: Props) {
             </For>
             <Button type="button" size="small" variant="ghost" icon="plus-small" onClick={addHeader} class="self-start">
               {language.t("provider.custom.headers.add")}
+            </Button>
+          </div>
+
+          <div class="flex flex-col gap-3">
+            <label class="text-12-medium text-text-weak">{language.t("provider.custom.extraBody.label")}</label>
+            <p class="text-12-regular text-text-weak">{language.t("provider.custom.extraBody.description")}</p>
+            <For each={form.extraBody}>
+              {(e, i) => (
+                <div class="flex gap-2 items-start">
+                  <div class="flex-1">
+                    <TextField
+                      label={language.t("provider.custom.extraBody.key.label")}
+                      hideLabel
+                      placeholder={language.t("provider.custom.extraBody.key.placeholder")}
+                      value={e.key}
+                      onChange={(v) => setForm("extraBody", i(), "key", v)}
+                      validationState={errors.extraBody[i()]?.key ? "invalid" : undefined}
+                      error={errors.extraBody[i()]?.key}
+                    />
+                  </div>
+                  <div class="flex-1">
+                    <TextField
+                      label={language.t("provider.custom.extraBody.value.label")}
+                      hideLabel
+                      placeholder={language.t("provider.custom.extraBody.value.placeholder")}
+                      value={e.value}
+                      onChange={(v) => setForm("extraBody", i(), "value", v)}
+                      validationState={errors.extraBody[i()]?.value ? "invalid" : undefined}
+                      error={errors.extraBody[i()]?.value}
+                    />
+                  </div>
+                  <IconButton
+                    type="button"
+                    icon="trash"
+                    variant="ghost"
+                    class="mt-1.5"
+                    onClick={() => removeExtraBody(i())}
+                    disabled={form.extraBody.length <= 1}
+                    aria-label={language.t("provider.custom.extraBody.remove")}
+                  />
+                </div>
+              )}
+            </For>
+            <Button
+              type="button"
+              size="small"
+              variant="ghost"
+              icon="plus-small"
+              onClick={addExtraBody}
+              class="self-start"
+            >
+              {language.t("provider.custom.extraBody.add")}
             </Button>
           </div>
 

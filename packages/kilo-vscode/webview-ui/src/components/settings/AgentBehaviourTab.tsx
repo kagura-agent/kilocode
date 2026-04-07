@@ -249,8 +249,7 @@ const AgentBehaviourTab: Component = () => {
         setImportError(language.t(errorKey(result.error)))
         return
       }
-      const existing = config().agent ?? {}
-      updateConfig({ agent: { ...existing, [result.name]: result.config } })
+      updateConfig({ agent: { [result.name]: result.config } })
       setImportError("")
     }
     reader.readAsText(file)

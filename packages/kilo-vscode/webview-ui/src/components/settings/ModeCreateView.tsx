@@ -50,14 +50,13 @@ const ModeCreateView: Component<Props> = (props) => {
       setError(msg)
       return
     }
-    const existing = config().agent ?? {}
     const partial: Partial<AgentConfig> = {
       mode: "primary",
       description: description().trim() || undefined,
       prompt: prompt().trim() || undefined,
     }
     updateConfig({
-      agent: { ...existing, [slug]: { ...(existing[slug] ?? {}), ...partial } },
+      agent: { [slug]: partial },
     })
     reset()
     props.onBack()

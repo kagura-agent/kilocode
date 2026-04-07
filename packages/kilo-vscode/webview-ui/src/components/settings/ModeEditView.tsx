@@ -32,12 +32,9 @@ const ModeEditView: Component<Props> = (props) => {
   const cfg = createMemo<AgentConfig>(() => config().agent?.[props.name] ?? {})
 
   const update = (partial: Partial<AgentConfig>) => {
-    const existing = config().agent ?? {}
-    const current = existing[props.name] ?? {}
     updateConfig({
       agent: {
-        ...existing,
-        [props.name]: { ...current, ...partial },
+        [props.name]: partial,
       },
     })
   }

@@ -25,10 +25,8 @@ const McpEditView: Component<Props> = (props) => {
   const [envVal, setEnvVal] = createSignal("")
 
   const update = (partial: Partial<McpConfig>) => {
-    const existing = config().mcp ?? {}
-    const current = existing[props.name] ?? {}
     updateConfig({
-      mcp: { ...existing, [props.name]: { ...current, ...partial } },
+      mcp: { [props.name]: partial },
     })
   }
 

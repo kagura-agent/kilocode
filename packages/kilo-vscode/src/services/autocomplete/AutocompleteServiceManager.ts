@@ -118,6 +118,7 @@ export class AutocompleteServiceManager {
   public async load() {
     this.settings = readSettings()
 
+    this.codeActionProvider.enabled = this.settings?.enableSmartInlineTaskKeybinding ?? false
     await this.updateGlobalContext()
     this.updateStatusBar()
     await this.ensureInlineCompletionProviderRegistration()

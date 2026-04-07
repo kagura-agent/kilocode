@@ -23,7 +23,6 @@ export class KiloCodeActionProvider implements vscode.CodeActionProvider {
     if (hasDiagnostics) {
       const fix = new vscode.CodeAction("Fix with Kilo Code", vscode.CodeActionKind.QuickFix)
       fix.command = { command: "kilo-code.new.fixCode", title: "Fix with Kilo Code" }
-      fix.isPreferred = true
       actions.push(fix)
     }
 

@@ -78,10 +78,10 @@ describe("KiloCodeActionProvider", () => {
         expect(result).toHaveLength(2)
       })
 
-      it("Fix action is preferred", () => {
+      it("Fix action is not preferred so it does not hijack auto-fix", () => {
         const result = provider.provideCodeActions({} as never, makeRange(false) as never, makeContext(1) as never)
         const fix = result.find((a) => a.title === "Fix with Kilo Code")
-        expect(fix?.isPreferred).toBe(true)
+        expect(fix?.isPreferred).toBeFalsy()
       })
 
       it("Fix action uses QuickFix kind", () => {

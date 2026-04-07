@@ -6,12 +6,20 @@ export class AutocompleteCodeActionProvider implements vscode.CodeActionProvider
     quickfix: vscode.CodeActionKind.QuickFix,
   }
 
+  private _enabled = false
+
+  public set enabled(value: boolean) {
+    this._enabled = value
+  }
+
   public provideCodeActions(
     document: vscode.TextDocument,
     range: vscode.Range | vscode.Selection,
     _context: vscode.CodeActionContext,
     _token: vscode.CancellationToken,
   ): vscode.ProviderResult<(vscode.CodeAction | vscode.Command)[]> {
+    if (!this._enabled) return []
+
     const action = new vscode.CodeAction(
       t("kilocode:autocomplete.codeAction.title"),
       this.providedCodeActionKinds["quickfix"],

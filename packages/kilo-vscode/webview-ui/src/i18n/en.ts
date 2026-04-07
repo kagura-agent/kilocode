@@ -1173,6 +1173,16 @@ export const dict = {
   "settings.agentBehaviour.editMode.back": "Back to list",
   "settings.agentBehaviour.editMode.native": "Built-in mode (read-only definition)",
   "settings.agentBehaviour.editMode.promptOverride": "Custom prompt override for this built-in mode",
+  "settings.agentBehaviour.editMode.permissions": "Effective Permissions",
+  "settings.agentBehaviour.editMode.permissions.description":
+    "Calculated permissions for this agent (for debugging permission issues)",
+  "settings.agentBehaviour.editMode.permissions.empty": "No permission rules defined",
+  "settings.agentBehaviour.editMode.permissions.permission": "Permission",
+  "settings.agentBehaviour.editMode.permissions.pattern": "Pattern",
+  "settings.agentBehaviour.editMode.permissions.action": "Action",
+  "settings.agentBehaviour.editMode.permissions.action.allow": "Allow",
+  "settings.agentBehaviour.editMode.permissions.action.ask": "Ask",
+  "settings.agentBehaviour.editMode.permissions.action.deny": "Deny",
 
   "settings.autoApprove.description":
     "Define how tools are allowed to run. Most tools default to Allow. doom_loop and external_directory default to Ask.",

@@ -213,7 +213,12 @@ export interface SlashCommandInfo {
   hints: string[]
 }
 
-// Agent/mode info from CLI backend
+export interface PermissionRuleSet {
+  permission: string
+  pattern: string
+  action: "allow" | "deny" | "ask"
+}
+
 export interface AgentInfo {
   name: string
   displayName?: string
@@ -223,6 +228,7 @@ export interface AgentInfo {
   hidden?: boolean
   deprecated?: boolean
   color?: string
+  permission?: PermissionRuleSet[]
 }
 
 // Server info

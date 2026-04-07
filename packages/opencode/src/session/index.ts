@@ -600,8 +600,9 @@ export namespace Session {
       // don't show each other's sessions.
       const worktree = Instance.worktree
       if (worktree && worktree !== "/") {
+        const escaped = worktree.replace(/[%_]/g, "\\$&")
         conditions.push(
-          or(eq(SessionTable.directory, worktree), like(SessionTable.directory, worktree + path.sep + "%"))!,
+          or(eq(SessionTable.directory, worktree), like(SessionTable.directory, escaped + path.sep + "%"))!,
         )
       }
       // kilocode_change end

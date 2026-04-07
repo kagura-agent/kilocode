@@ -56,7 +56,7 @@ When Claude Code compatibility is enabled, Kilo loads `CLAUDE.md` files into the
 | `~/.claude/CLAUDE.md`       | Global  | Your home directory Claude config                                    |
 
 {% callout type="warning" %}
-Kilo uses a **first-match-wins** strategy per directory. If a directory contains both `AGENTS.md` and `CLAUDE.md`, only `AGENTS.md` is loaded from that directory. This means if you have both files at your project root, `CLAUDE.md` will be ignored in favor of `AGENTS.md`.
+Kilo uses a **file-type priority** system: it searches for `AGENTS.md` first across all directories (from working directory up to worktree root). If any `AGENTS.md` is found anywhere in the hierarchy, `CLAUDE.md` files are **not loaded at all**. Only when no `AGENTS.md` exists anywhere does Kilo fall back to loading `CLAUDE.md` files. This means adding an `AGENTS.md` at any level will suppress all `CLAUDE.md` loading.
 {% /callout %}
 
 ### Claude Code Skills
@@ -135,25 +135,33 @@ The skill format is the same — each skill is a directory containing a `SKILL.m
 
 ### Convert to Kilo Rules
 
-For more fine-grained control, you can split your `CLAUDE.md` into separate rule files:
+For more fine-grained control, you can split your `CLAUDE.md` into separate rule files. Create a `.kilo/rules/` directory and reference them in `kilo.jsonc`:
 
 ```bash
-mkdir -p .kilocode/rules
+mkdir -p .kilo/rules
 ```
 
-Create focused rule files in `.kilocode/rules/`:
+Create focused rule files in `.kilo/rules/`:
 
 - `coding-standards.md` — Language and style preferences
 - `testing-guidelines.md` — Test writing conventions
 - `api-conventions.md` — API design rules
 
-Kilo's rule system adds **agent-specific rules** that Claude Code doesn't support:
+Then reference them in your project's `kilo.jsonc`:
+
+```jsonc
+{
+  "instructions": [".kilo/rules/*.md"],
+}
+```
+
+Kilo's rule system adds **agent-specific rules** that Claude Code doesn't support. Use the `kilo.jsonc` `instructions` field scoped per agent, or use agent-specific rule directories:
 
 ```bash
-.kilocode/rules/              # Apply to ALL agents
-.kilocode/rules-code/         # Only in Code agent
-.kilocode/rules-debug/        # Only in Debug agent
-.kilocode/rules-ask/          # Only in Ask agent
+.kilo/rules/              # Apply to ALL agents
+.kilo/rules-code/         # Only in Code agent
+.kilo/rules-debug/        # Only in Debug agent
+.kilo/rules-ask/          # Only in Ask agent
 ```
 
 See [Custom Rules](/docs/customize/custom-rules) for the full rule system.
@@ -165,7 +173,7 @@ See [Custom Rules](/docs/customize/custom-rules) for the full rule system.
 | Claude Code                      | Kilo Code                                   | Notes                                                                                                         |
 | -------------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
 | Single agent                     | Specialized agents (Code, Ask, Debug, Plan) | Each optimized for a specific workflow                                                                        |
-| `CLAUDE.md`                      | `AGENTS.md` + `.kilocode/rules/`            | Kilo also reads `CLAUDE.md` with compat enabled                                                               |
+| `CLAUDE.md`                      | `AGENTS.md` + `.kilo/rules/`                | Kilo also reads `CLAUDE.md` with compat enabled                                                               |
 | `.claude/skills/`                | `.kilo/skills/`                             | Same format, Kilo also reads `.claude/skills/`                                                                |
 | Claude models only               | 500+ models from any provider               | Anthropic, OpenAI, Google, local models, and more                                                             |
 | Terminal-based                   | VS Code, JetBrains, CLI, Web                | Sessions sync across all interfaces                                                                           |
@@ -189,8 +197,8 @@ If you're used to Claude Code's workflow, here's how to think about things in Ki
 | `/clear`    | New session                                                    | Start a fresh session from the sidebar                  |
 | `/cost`     | Session cost display                                           | Visible in the session panel                            |
 | `/doctor`   | [Troubleshooting guide](/docs/getting-started/troubleshooting) | Built-in diagnostics                                    |
-| `/init`     | `AGENTS.md` or `.kilocode/rules/`                              | Create your project instructions                        |
-| `/memory`   | `.kilocode/rules/`                                             | Persistent rules instead of ephemeral memory            |
+| `/init`     | `AGENTS.md` or `.kilo/rules/`                                  | Create your project instructions                        |
+| `/memory`   | `.kilo/rules/`                                                 | Persistent rules instead of ephemeral memory            |
 | `/review`   | [Code Reviews](/docs/automate/code-reviews/overview)           | AI-powered PR analysis, runs automatically              |
 
 ### Permission Model

@@ -91,7 +91,7 @@ Select agent from dropdown -> Build -> Switch agents as needed -> Checkpoint -> 
 - "What external services does this integrate with?"
 - Ask agent never writes files, so exploration is always safe
 
-**Why this matters:** In Cline, you might accidentally make changes while exploring. In Kilo, Ask and Plan agents can't write files, so you're safe to explore without worry.
+**Why this matters:** In Cline, you might accidentally make changes while exploring. In Kilo, the Ask agent cannot write any files, so exploration is always safe. The Plan agent can only write to plan files (`.kilo/plans/*.md`), keeping your source code untouched during the planning phase.
 
 ---
 
@@ -170,17 +170,25 @@ Cline's `.clinerules` files map directly to Kilo's rule system:
 
 ```bash
 # Create Kilo rules directory
-mkdir -p .kilocode/rules
+mkdir -p .kilo/rules
 
 # Copy existing Cline rules
-cp .clinerules .kilocode/rules/project-rules.md
+cp .clinerules .kilo/rules/project-rules.md
 ```
 
-Mode-specific Cline rules (`.clinerules-code`, `.clinerules-ask`, etc.) map to Kilo's mode-specific directories:
+Then reference the rules in your project's `kilo.jsonc`:
+
+```jsonc
+{
+  "instructions": [".kilo/rules/*.md"],
+}
+```
+
+Mode-specific Cline rules (`.clinerules-code`, `.clinerules-ask`, etc.) map to Kilo's agent-specific directories:
 
 ```bash
-mkdir -p .kilocode/rules-code
-mkdir -p .kilocode/rules-ask
+mkdir -p .kilo/rules-code
+mkdir -p .kilo/rules-ask
 # Move mode-specific rules to corresponding directories
 ```
 
@@ -283,16 +291,16 @@ In-line ghost-text completions with tab to complete. Works alongside the agents 
 
 ## Feature Mapping
 
-| Cline Feature      | Kilo Equivalent        | Notes                                                    |
-| ------------------ | ---------------------- | -------------------------------------------------------- |
-| Plan mode          | Plan, Ask agents       | Plan designs systems, Ask explains code                  |
-| Act mode           | Code agent             | Implementation                                           |
-| Plan/Act toggle    | Agent dropdown         | More granular control                                    |
-| Checkpoints        | Sessions + Checkpoints | Sessions preserve agent + context                        |
-| Background editing | Fast Apply             | Sequential but instant                                   |
-| Single agent       | Specialized agents     | Purpose-built for each task                              |
-| Local only         | Multi-platform         | IDE, CLI, web, mobile                                    |
-| `.clinerules`      | `.kilocode/rules/`     | More flexible rule system with mode-specific directories |
+| Cline Feature      | Kilo Equivalent        | Notes                                                     |
+| ------------------ | ---------------------- | --------------------------------------------------------- |
+| Plan mode          | Plan, Ask agents       | Plan designs systems, Ask explains code                   |
+| Act mode           | Code agent             | Implementation                                            |
+| Plan/Act toggle    | Agent dropdown         | More granular control                                     |
+| Checkpoints        | Sessions + Checkpoints | Sessions preserve agent + context                         |
+| Background editing | Fast Apply             | Sequential but instant                                    |
+| Single agent       | Specialized agents     | Purpose-built for each task                               |
+| Local only         | Multi-platform         | IDE, CLI, web, mobile                                     |
+| `.clinerules`      | `.kilo/rules/`         | More flexible rule system with agent-specific directories |
 
 ---
 

@@ -28,8 +28,16 @@ GitHub Copilot focuses on inline completions and chat. Kilo provides both inline
 If you have a `.github/copilot-instructions.md` file, copy its contents to Kilo's rules:
 
 ```bash
-mkdir -p .kilocode/rules
-cp .github/copilot-instructions.md .kilocode/rules/project-instructions.md
+mkdir -p .kilo/rules
+cp .github/copilot-instructions.md .kilo/rules/project-instructions.md
+```
+
+Then reference the rules in your project's `kilo.jsonc`:
+
+```jsonc
+{
+  "instructions": [".kilo/rules/*.md"],
+}
 ```
 
 **Enable inline completions:**
@@ -42,12 +50,12 @@ If you rely on Copilot's inline suggestions, enable Kilo's Ghost feature in Sett
 - **Code agent** for generating implementations
 - **Debug agent** for troubleshooting errors
 
-| GitHub Copilot                    | Kilo Code                        | Notes                                   |
-| --------------------------------- | -------------------------------- | --------------------------------------- |
-| Inline completions                | Ghost autocomplete               | Enable in Settings > Ghost              |
-| Copilot Chat                      | Specialized agents               | Code, Ask, Debug, Plan                  |
-| `.github/copilot-instructions.md` | `.kilocode/rules/` + `AGENTS.md` | More flexible rule system               |
-| GitHub-only models                | 500+ models                      | Bring your own keys or use Kilo Gateway |
+| GitHub Copilot                    | Kilo Code                    | Notes                                   |
+| --------------------------------- | ---------------------------- | --------------------------------------- |
+| Inline completions                | Ghost autocomplete           | Enable in Settings > Ghost              |
+| Copilot Chat                      | Specialized agents           | Code, Ask, Debug, Plan                  |
+| `.github/copilot-instructions.md` | `.kilo/rules/` + `AGENTS.md` | More flexible rule system               |
+| GitHub-only models                | 500+ models                  | Bring your own keys or use Kilo Gateway |
 
 ### Aider
 
@@ -63,15 +71,23 @@ kilo
 **Migrate configuration:**
 
 ```bash
-mkdir -p .kilocode/rules
+mkdir -p .kilo/rules
 # Move any .aider instruction files
-cp .aider.instructions.md .kilocode/rules/project-instructions.md
+cp .aider.instructions.md .kilo/rules/project-instructions.md
+```
+
+Then reference the rules in your project's `kilo.jsonc`:
+
+```jsonc
+{
+  "instructions": [".kilo/rules/*.md"],
+}
 ```
 
 | Aider                | Kilo Code                                | Notes                            |
 | -------------------- | ---------------------------------------- | -------------------------------- |
 | Terminal UI          | Terminal TUI + VS Code + JetBrains + Web | Same engine, multiple interfaces |
-| `.aider.conf.yml`    | `kilo.json` + `.kilocode/rules/`         | JSON config and Markdown rules   |
+| `.aider.conf.yml`    | `kilo.jsonc` + `.kilo/rules/`            | JSON config and Markdown rules   |
 | Git-centric workflow | Git-aware with checkpoints and sessions  | Automatic session saving         |
 | BYOK only            | BYOK or Kilo Gateway                     | Managed gateway with 500+ models |
 

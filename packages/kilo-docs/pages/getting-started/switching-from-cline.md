@@ -184,13 +184,7 @@ Then reference the rules in your project's `kilo.jsonc`:
 }
 ```
 
-Mode-specific Cline rules (`.clinerules-code`, `.clinerules-ask`, etc.) map to Kilo's agent-specific directories:
-
-```bash
-mkdir -p .kilo/rules-code
-mkdir -p .kilo/rules-ask
-# Move mode-specific rules to corresponding directories
-```
+If you have mode-specific Cline rules (`.clinerules-code`, `.clinerules-ask`, etc.), you can consolidate them into separate files in `.kilo/rules/` and reference them all via `kilo.jsonc`. All instruction files are loaded globally across agents.
 
 ### MCP Servers
 
@@ -291,16 +285,16 @@ In-line ghost-text completions with tab to complete. Works alongside the agents 
 
 ## Feature Mapping
 
-| Cline Feature      | Kilo Equivalent        | Notes                                                     |
-| ------------------ | ---------------------- | --------------------------------------------------------- |
-| Plan mode          | Plan, Ask agents       | Plan designs systems, Ask explains code                   |
-| Act mode           | Code agent             | Implementation                                            |
-| Plan/Act toggle    | Agent dropdown         | More granular control                                     |
-| Checkpoints        | Sessions + Checkpoints | Sessions preserve agent + context                         |
-| Background editing | Fast Apply             | Sequential but instant                                    |
-| Single agent       | Specialized agents     | Purpose-built for each task                               |
-| Local only         | Multi-platform         | IDE, CLI, web, mobile                                     |
-| `.clinerules`      | `.kilo/rules/`         | More flexible rule system with agent-specific directories |
+| Cline Feature      | Kilo Equivalent        | Notes                                              |
+| ------------------ | ---------------------- | -------------------------------------------------- |
+| Plan mode          | Plan, Ask agents       | Plan designs systems, Ask explains code            |
+| Act mode           | Code agent             | Implementation                                     |
+| Plan/Act toggle    | Agent dropdown         | More granular control                              |
+| Checkpoints        | Sessions + Checkpoints | Sessions preserve agent + context                  |
+| Background editing | Fast Apply             | Sequential but instant                             |
+| Single agent       | Specialized agents     | Purpose-built for each task                        |
+| Local only         | Multi-platform         | IDE, CLI, web, mobile                              |
+| `.clinerules`      | `.kilo/rules/`         | More flexible rule system with multiple rule files |
 
 ---
 

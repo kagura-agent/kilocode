@@ -155,16 +155,7 @@ Then reference them in your project's `kilo.jsonc`:
 }
 ```
 
-Kilo's rule system adds **agent-specific rules** that Claude Code doesn't support. Use the `kilo.jsonc` `instructions` field scoped per agent, or use agent-specific rule directories:
-
-```bash
-.kilo/rules/              # Apply to ALL agents
-.kilo/rules-code/         # Only in Code agent
-.kilo/rules-debug/        # Only in Debug agent
-.kilo/rules-ask/          # Only in Ask agent
-```
-
-See [Custom Rules](/docs/customize/custom-rules) for the full rule system.
+Unlike Claude Code's single instruction file, Kilo's rule system lets you organize instructions into separate, focused files. See [Custom Rules](/docs/customize/custom-rules) for the full rule system.
 
 ---
 

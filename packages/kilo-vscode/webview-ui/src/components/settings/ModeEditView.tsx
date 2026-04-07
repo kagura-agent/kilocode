@@ -1,4 +1,4 @@
-import { Component, Show, For, createMemo, createSignal } from "solid-js"
+import { Component, Show, For, createMemo, createSignal, createEffect } from "solid-js"
 import { TextField } from "@kilocode/kilo-ui/text-field"
 import { Switch } from "@kilocode/kilo-ui/switch"
 import { Card } from "@kilocode/kilo-ui/card"
@@ -41,6 +41,25 @@ const ModeEditView: Component<Props> = (props) => {
         [props.name]: { ...current, ...partial },
       },
     })
+  }
+
+  // Local string state for float fields so intermediate input like "0." isn't
+  // erased by the parseFloat→toString controlled-value round-trip.
+  const [tempStr, setTempStr] = createSignal("")
+  const [topPStr, setTopPStr] = createSignal("")
+
+  createEffect(() => {
+    const t = cfg().temperature
+    setTempStr(t != null ? t.toString() : "")
+  })
+  createEffect(() => {
+    const p = cfg().top_p
+    setTopPStr(p != null ? p.toString() : "")
+  })
+
+  const commitFloat = (key: "temperature" | "top_p", raw: string) => {
+    const parsed = parseFloat(raw)
+    update({ [key]: isNaN(parsed) ? undefined : parsed })
   }
 
   const exportMode = () => {
@@ -154,12 +173,10 @@ const ModeEditView: Component<Props> = (props) => {
           description={language.t("settings.agentBehaviour.temperature.description")}
         >
           <TextField
-            value={cfg().temperature?.toString() ?? ""}
+            value={tempStr()}
             placeholder={language.t("common.default")}
-            onChange={(val) => {
-              const parsed = parseFloat(val)
-              update({ temperature: isNaN(parsed) ? undefined : parsed })
-            }}
+            onChange={setTempStr}
+            onBlur={() => commitFloat("temperature", tempStr())}
           />
         </SettingsRow>
 
@@ -168,12 +185,10 @@ const ModeEditView: Component<Props> = (props) => {
           description={language.t("settings.agentBehaviour.topP.description")}
         >
           <TextField
-            value={cfg().top_p?.toString() ?? ""}
+            value={topPStr()}
             placeholder={language.t("common.default")}
-            onChange={(val) => {
-              const parsed = parseFloat(val)
-              update({ top_p: isNaN(parsed) ? undefined : parsed })
-            }}
+            onChange={setTopPStr}
+            onBlur={() => commitFloat("top_p", topPStr())}
           />
         </SettingsRow>
 

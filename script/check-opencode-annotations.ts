@@ -49,10 +49,8 @@ function changedFiles() {
 }
 
 function isExempt(file: string) {
-  const norm = file.replaceAll("\\", "/")
-  if (norm.includes("/kilocode/")) return true
-  if (path.basename(norm).includes("kilocode")) return true
-  return false
+  const norm = file.replaceAll("\\", "/").toLowerCase()
+  return norm.split("/").some((part) => part.includes("kilocode"))
 }
 
 function isSource(file: string) {

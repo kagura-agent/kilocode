@@ -1,5 +1,10 @@
 import { createSignal } from "solid-js"
-import { ACCEPTED_IMAGE_TYPES, isAcceptedImageType, isDragLeavingComponent } from "./image-attachments-utils"
+import {
+  ACCEPTED_IMAGE_TYPES,
+  inferMimeType,
+  isAcceptedImageType,
+  isDragLeavingComponent,
+} from "./image-attachments-utils"
 import { extractDropPaths } from "../utils/path-mentions"
 
 export interface ImageAttachment {
@@ -23,13 +28,14 @@ export function useImageAttachments() {
   }
 
   const add = (file: File) => {
-    if (!isAcceptedImageType(file.type)) return
+    const mime = inferMimeType(file.name, file.type)
+    if (!isAcceptedImageType(mime)) return
     const reader = new FileReader()
     reader.onload = () => {
       const attachment: ImageAttachment = {
         id: crypto.randomUUID(),
         filename: file.name || "image",
-        mime: file.type,
+        mime,
         dataUrl: reader.result as string,
       }
       setImages((prev) => [...prev, attachment])

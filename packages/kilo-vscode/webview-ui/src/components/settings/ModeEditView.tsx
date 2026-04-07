@@ -165,7 +165,7 @@ const ModeEditView: Component<Props> = (props) => {
           <TextField
             value={cfg().model ?? ""}
             placeholder="e.g. anthropic/claude-sonnet-4-20250514"
-            onChange={(val) => update({ model: val || undefined })}
+            onChange={(val) => update({ model: val || null })}
           />
         </SettingsRow>
 
@@ -178,7 +178,7 @@ const ModeEditView: Component<Props> = (props) => {
             placeholder={language.t("common.default")}
             onChange={(val) => {
               const parsed = parseFloat(val)
-              update({ temperature: isNaN(parsed) ? undefined : parsed })
+              update({ temperature: isNaN(parsed) ? null : parsed })
             }}
           />
         </SettingsRow>
@@ -192,7 +192,7 @@ const ModeEditView: Component<Props> = (props) => {
             placeholder={language.t("common.default")}
             onChange={(val) => {
               const parsed = parseFloat(val)
-              update({ top_p: isNaN(parsed) ? undefined : parsed })
+              update({ top_p: isNaN(parsed) ? null : parsed })
             }}
           />
         </SettingsRow>
@@ -206,7 +206,7 @@ const ModeEditView: Component<Props> = (props) => {
             placeholder={language.t("common.default")}
             onChange={(val) => {
               const parsed = parseInt(val, 10)
-              update({ steps: isNaN(parsed) ? undefined : parsed })
+              update({ steps: isNaN(parsed) ? null : parsed })
             }}
           />
         </SettingsRow>

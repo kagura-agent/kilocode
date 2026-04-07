@@ -826,8 +826,10 @@ export namespace Config {
         .string()
         .optional()
         .describe("Default model variant for this agent (applies only when using the agent's configured model)."),
-      temperature: z.number().optional(),
-      top_p: z.number().optional(),
+      // kilocode_change start — nullable for delete sentinel (null = unset / revert to default)
+      temperature: z.number().nullable().optional(),
+      top_p: z.number().nullable().optional(),
+      // kilocode_change end
       prompt: z.string().optional(),
       tools: z.record(z.string(), z.boolean()).optional().describe("@deprecated Use 'permission' field instead"),
       disable: z.boolean().optional(),
@@ -845,10 +847,12 @@ export namespace Config {
         ])
         .optional()
         .describe("Hex color code (e.g., #FF5733) or theme color (e.g., primary)"),
+      // kilocode_change — nullable for delete sentinel
       steps: z
         .number()
         .int()
         .positive()
+        .nullable()
         .optional()
         .describe("Maximum number of agentic iterations before forcing text-only response"),
       maxSteps: z.number().int().positive().optional().describe("@deprecated Use 'steps' field instead."),

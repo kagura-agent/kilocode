@@ -95,6 +95,15 @@ export const VscodeSessionTurn: Component<VscodeSessionTurnProps> = (props) => {
       if (m.role === "user") break
       if (m.role === "assistant") result.push(m as SDKAssistantMessage)
     }
+
+    // Part-level revert: truncate assistant messages at the boundary.
+    // Keep the boundary message (its parts are truncated by AssistantMessage),
+    // but hide all subsequent assistant messages in this turn.
+    const rev = session.revert()
+    if (rev?.partID) {
+      const boundary = result.findIndex((m) => m.id === rev.messageID)
+      if (boundary !== -1) return result.slice(0, boundary + 1)
+    }
     return result
   })
 

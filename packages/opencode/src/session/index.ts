@@ -594,6 +594,17 @@ export namespace Session {
       // kilocode_change start: vscode uri.fsPath gives lowercase drive letter on Windows; resolve() canonicalises to match stored path
       conditions.push(eq(SessionTable.directory, Filesystem.resolve(input.directory)))
       // kilocode_change end
+    } else {
+      // kilocode_change start: scope session list to the current worktree so that
+      // git worktrees / separate clones with the same root commit (same projectID)
+      // don't show each other's sessions.
+      const worktree = Instance.worktree
+      if (worktree && worktree !== "/") {
+        conditions.push(
+          or(eq(SessionTable.directory, worktree), like(SessionTable.directory, worktree + path.sep + "%"))!,
+        )
+      }
+      // kilocode_change end
     }
     if (input?.roots) {
       conditions.push(isNull(SessionTable.parent_id))

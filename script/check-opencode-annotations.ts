@@ -38,11 +38,6 @@ function run(cmd: string, args: string[]) {
   return result.stdout?.trim() ?? ""
 }
 
-function isMergeCommit() {
-  const out = run("git", ["cat-file", "-p", "HEAD"])
-  return out.split("\n").filter((l) => l.startsWith("parent ")).length >= 2
-}
-
 function changedFiles() {
   const out = run("git", ["diff", "--name-only", "--diff-filter=AMRT", `${base}...HEAD`, "--", "packages/opencode"])
   return out ? out.split("\n").filter(Boolean) : []
@@ -84,7 +79,7 @@ function coveredLines(text: string): { lines: string[]; covered: Set<number> } {
   let block = false
   for (let i = 0; i < lines.length; i++) {
     const n = i + 1
-    const line = lines[i]
+    const line = lines[i] ?? ""
 
     if (line.match(/\/\/\s*kilocode_change\s+start\b/)) {
       block = true
@@ -110,11 +105,6 @@ function coveredLines(text: string): { lines: string[]; covered: Set<number> } {
 }
 
 // --- main ---
-
-if (isMergeCommit()) {
-  console.log("HEAD is a merge commit — skipping annotation check (upstream merge).")
-  process.exit(0)
-}
 
 const files = changedFiles().filter((f) => !isExempt(f) && isSource(f))
 

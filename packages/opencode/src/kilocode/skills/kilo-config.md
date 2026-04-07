@@ -2,6 +2,8 @@
 
 All config lives in `kilo.json` (or `kilo.jsonc`). Precedence low-to-high: remote well-known, global (`~/.config/kilo/kilo.json`), env `KILO_CONFIG`, project `./kilo.json`, `.kilo/kilo.json`, `KILO_CONFIG_CONTENT`, managed (see Config File Locations). Deep-merged; later wins.
 
+This also covers where Kilo looks for config files, commands, agents, and skills across project, global, and legacy paths such as `.kilo/`, `.kilocode/`, `.opencode/`, and `~/.config/kilo/`.
+
 ## Commands (`.kilo/command/*.md`)
 
 Markdown files with YAML frontmatter. The filename (minus `.md`) becomes the command name invoked via `/name`. Also loaded from `.kilocode/` and `.opencode/` directories (legacy), and plural `commands/` variants. See Config File Locations for the full search order.

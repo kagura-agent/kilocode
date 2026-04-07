@@ -50,11 +50,11 @@ const ModeEditView: Component<Props> = (props) => {
 
   createEffect(() => {
     const t = cfg().temperature
-    setTempStr(t != null ? t.toString() : "")
+    setTempStr(t !== undefined ? t.toString() : "")
   })
   createEffect(() => {
     const p = cfg().top_p
-    setTopPStr(p != null ? p.toString() : "")
+    setTopPStr(p !== undefined ? p.toString() : "")
   })
 
   const commitFloat = (key: "temperature" | "top_p", raw: string) => {

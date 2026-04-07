@@ -32,11 +32,18 @@ export function useImageAttachments() {
     if (!isAcceptedImageType(mime)) return
     const reader = new FileReader()
     reader.onload = () => {
+      let dataUrl = reader.result as string
+      // On Windows, dragged files often have an empty type, producing
+      // "data:;base64,..." which breaks downstream consumers like
+      // parseImage(). Rewrite the header with the inferred MIME type.
+      if (!file.type && dataUrl.startsWith("data:;")) {
+        dataUrl = `data:${mime};${dataUrl.slice(6)}`
+      }
       const attachment: ImageAttachment = {
         id: crypto.randomUUID(),
         filename: file.name || "image",
         mime,
-        dataUrl: reader.result as string,
+        dataUrl,
       }
       setImages((prev) => [...prev, attachment])
     }

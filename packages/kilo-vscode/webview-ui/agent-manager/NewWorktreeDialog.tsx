@@ -380,10 +380,8 @@ export const NewWorktreeDialog: Component<{ onClose: () => void; defaultBaseBran
                           setHighlightedIndex(0)
                         }
                       }}
-                      placement="top-start"
-                      flip={false}
+                      placement="bottom-start"
                       sameWidth
-                      portal={false}
                       class="am-dropdown"
                       trigger={
                         <button class="am-selector-trigger" type="button">
@@ -627,10 +625,8 @@ export const NewWorktreeDialog: Component<{ onClose: () => void; defaultBaseBran
               <Popover
                 open={branchOpen()}
                 onOpenChange={setBranchOpen}
-                placement="top-start"
-                flip={false}
+                placement="bottom-start"
                 sameWidth
-                portal={false}
                 class="am-dropdown"
                 trigger={
                   <button class="am-selector-trigger" disabled={isPending()} type="button">

@@ -1123,10 +1123,6 @@ export const dict = {
   "settings.agentBehaviour.instructionFiles": "Додаткові файли інструкцій",
   "settings.agentBehaviour.instructionFiles.description":
     "Шляхи до додаткових файлів інструкцій, що включаються до системного запиту",
-  "settings.agentBehaviour.claudeCompat.heading": "Сумісність з Claude Code",
-  "settings.agentBehaviour.claudeCompat.title": "Завантажувати файли Claude Code",
-  "settings.agentBehaviour.claudeCompat.description":
-    "Завантажувати інструкції та навички CLAUDE.md з вашого каталогу конфігурації Claude Code у сесії. Увімкніть це, якщо ви хочете, щоб Kilo використовував ваші інструкції та навички Claude Code. Потребує перезапуску.",
   "settings.agentBehaviour.removeMcp.title": "Видалити MCP-сервер",
   "settings.agentBehaviour.removeMcp.confirm": 'Видалити MCP-сервер "{{name}}"? Це видалить його з вашої конфігурації.',
   "settings.agentBehaviour.removeMcp.button": "Видалити",
@@ -1260,7 +1256,6 @@ export const dict = {
   "migration.whatsNew.features.foundation.detail":
     "Малий та ефективний ядерний модуль у кожному продукті Kilo. Знайомий досвід незалежно від того, як ви вважаєте за краще працювати.",
   "migration.whatsNew.blogLink": "Читати повне оголошення",
-  "migration.whatsNew.docsLink": "Що нового та часті запитання",
   "migration.whatsNew.continue": "Продовжити",
 
   // Screen 2 — Migrate Settings
@@ -1297,36 +1292,6 @@ export const dict = {
   "migration.error.continue": "Продовжити",
   "migration.error.action.copy": "Копіювати",
   "migration.error.toast.copied": "Помилку скопійовано до буфера обміну",
-
-  "migration.sessionSummary.title": "Підсумок:",
-  "migration.sessionSummary.copy": "Скопіювати звіт",
-  "migration.sessionSummary.toast.copied": "Звіт скопійовано",
-  "migration.sessionSummary.successful": "Успішно",
-  "migration.sessionSummary.skipped": "Пропущено",
-  "migration.sessionSummary.alreadyMigrated": "Уже перенесено",
-  "migration.sessionSummary.errored": "З помилкою",
-  "migration.sessionSummary.none": "Немає",
-  "migration.forceReimport.title": "Примусово імпортувати повторно",
-  "migration.forceReimport.description":
-    "Повторний імпорт {{target}} перезапише їх і видалить усі нові повідомлення, уже створені в цих сесіях.",
-  "migration.forceReimport.target.one": "цю сесію",
-  "migration.forceReimport.target.many": "ці {{count}} сесії",
-  "migration.forceReimport.button": "Примусово імпортувати повторно",
-  "migration.forceReimport.all": "Імпортувати все повторно",
-  "migration.forceReimport.proceed": "Продовжити",
-  "migration.forceReimport.toast.started": "Примусовий повторний імпорт розпочато",
-  "migration.running.title": "Триває перенесення",
-  "migration.running.description.line1": "Ви збираєтеся завершити роботу, поки деякі сесії ще переносяться.",
-  "migration.running.description.line2": "Якщо ви вийдете зараз, деякі сесії можуть залишитися незавершеними.",
-  "migration.running.stay": "Залишитися",
-  "migration.running.proceed": "Продовжити",
-  "migration.sessionProgress.preparing": "Підготовка сесії",
-  "migration.sessionProgress.storing": "Збереження сесії",
-  "migration.sessionProgress.skipped": "Сесію пропущено",
-  "migration.sessionProgress.header": "Перенесення {{current}} з {{total}}",
-  "migration.sessionFormat.unknownDate": "Невідома дата",
-  "migration.sessionFormat.unknown": "Невідомо",
-  "migration.sessionFormat.unknownError": "Невідома помилка",
   // legacy-migration end
 
   "error.details.show": "Деталі",

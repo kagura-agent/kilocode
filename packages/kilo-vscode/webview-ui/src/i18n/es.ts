@@ -1168,10 +1168,6 @@ export const dict = {
   "settings.agentBehaviour.instructionFiles": "Archivos de instrucciones adicionales",
   "settings.agentBehaviour.instructionFiles.description":
     "Rutas a archivos de instrucciones adicionales incluidos en el prompt del sistema",
-  "settings.agentBehaviour.claudeCompat.heading": "Compatibilidad con Claude Code",
-  "settings.agentBehaviour.claudeCompat.title": "Cargar archivos de Claude Code",
-  "settings.agentBehaviour.claudeCompat.description":
-    "Carga las instrucciones y habilidades de CLAUDE.md desde tu directorio de configuración de Claude Code en las sesiones. Activa esta opción si quieres que Kilo utilice tus instrucciones y habilidades de Claude Code. Requiere reiniciar.",
   "settings.agentBehaviour.mcpDetail.command": "Comando",
   "settings.agentBehaviour.mcpDetail.args": "Argumentos",
   "settings.agentBehaviour.mcpDetail.env": "Entorno",
@@ -1279,7 +1275,6 @@ export const dict = {
   "migration.whatsNew.features.foundation.detail":
     "Un núcleo pequeño y eficiente en todos los productos Kilo. Una experiencia familiar sin importar cómo elijas trabajar.",
   "migration.whatsNew.blogLink": "Leer el anuncio completo",
-  "migration.whatsNew.docsLink": "Novedades y preguntas frecuentes",
   "migration.whatsNew.continue": "Continuar",
 
   // Screen 2 — Migrate Settings
@@ -1317,35 +1312,6 @@ export const dict = {
   "migration.error.continue": "Continuar",
   "migration.error.action.copy": "Copiar",
   "migration.error.toast.copied": "Error copiado al portapapeles",
-  "migration.sessionSummary.title": "Resumen:",
-  "migration.sessionSummary.copy": "Copiar informe",
-  "migration.sessionSummary.toast.copied": "Informe copiado",
-  "migration.sessionSummary.successful": "Correctas",
-  "migration.sessionSummary.skipped": "Omitidas",
-  "migration.sessionSummary.alreadyMigrated": "Ya migradas",
-  "migration.sessionSummary.errored": "Con error",
-  "migration.sessionSummary.none": "Ninguna",
-  "migration.forceReimport.title": "Forzar reimportación",
-  "migration.forceReimport.description":
-    "Reimportar {{target}} sobrescribirá las sesiones y eliminará los mensajes nuevos ya realizados en ellas.",
-  "migration.forceReimport.target.one": "esta sesión",
-  "migration.forceReimport.target.many": "estas {{count}} sesiones",
-  "migration.forceReimport.button": "Forzar reimportación",
-  "migration.forceReimport.all": "Reimportar todo",
-  "migration.forceReimport.proceed": "Proceder",
-  "migration.forceReimport.toast.started": "Reimportación forzada iniciada",
-  "migration.running.title": "Migración en curso",
-  "migration.running.description.line1": "Vas a terminar mientras todavía hay sesiones migrándose.",
-  "migration.running.description.line2": "Si sales ahora, algunas sesiones pueden quedar incompletas.",
-  "migration.running.stay": "Quedarse",
-  "migration.running.proceed": "Proceder",
-  "migration.sessionProgress.preparing": "Preparando sesión",
-  "migration.sessionProgress.storing": "Guardando sesión",
-  "migration.sessionProgress.skipped": "Sesión omitida",
-  "migration.sessionProgress.header": "Migrando {{current}} de {{total}}",
-  "migration.sessionFormat.unknownDate": "Fecha desconocida",
-  "migration.sessionFormat.unknown": "Desconocido",
-  "migration.sessionFormat.unknownError": "Error desconocido",
   // legacy-migration end
 
   "error.details.show": "Detalles",

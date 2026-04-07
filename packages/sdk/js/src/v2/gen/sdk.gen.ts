@@ -3180,7 +3180,6 @@ export class SessionImport extends HeyApiClient {
       workspace?: string
       id?: string
       projectID?: string
-      force?: boolean
       workspaceID?: string
       parentID?: string
       slug?: string
@@ -3225,7 +3224,6 @@ export class SessionImport extends HeyApiClient {
             { in: "query", key: "workspace" },
             { in: "body", key: "id" },
             { in: "body", key: "projectID" },
-            { in: "body", key: "force" },
             { in: "body", key: "workspaceID" },
             { in: "body", key: "parentID" },
             { in: "body", key: "slug" },

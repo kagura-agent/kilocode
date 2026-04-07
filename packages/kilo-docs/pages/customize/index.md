@@ -43,7 +43,7 @@ New to customization? Here's where to start:
 
 - Keep custom instructions concise and actionable
 - Use custom agents for repetitive tasks
-- Combine rules with modes for powerful workflows
+- Combine rules with agents for powerful workflows
 
 ## Next Steps
 

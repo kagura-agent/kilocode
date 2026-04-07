@@ -132,7 +132,7 @@ Clicking the **Import** button allows you to load settings from a previously exp
 
 Clicking the **Reset** button completely clears all Kilo Code configuration data and returns the extension to its default state. This is a destructive action intended for troubleshooting or starting fresh.
 
-- **Warning:** This action is **irreversible**. It permanently deletes all API configurations (including keys stored in secret storage), custom agents, global settings, and task history.
+- **Warning:** This action is **irreversible**. It permanently deletes all API configurations (including keys stored in secret storage), custom modes, global settings, and task history.
 
 - **Process:**
   1.  Click the red **Reset** button.
@@ -142,7 +142,7 @@ Clicking the **Reset** button completely clears all Kilo Code configuration data
 - **What is Reset:**
   - **API Provider Profiles:** All configurations are deleted from settings and secret storage.
   - **Global Settings:** All preferences (UI, modes, approvals, browser, etc.) are reset to defaults.
-  - **Custom Agents:** All user-defined agents are deleted.
+  - **Custom Modes:** All user-defined modes are deleted.
   - **Secret Storage:** All API keys and other secrets managed by Kilo Code are cleared.
   - **Task History:** The current task stack is cleared.
 

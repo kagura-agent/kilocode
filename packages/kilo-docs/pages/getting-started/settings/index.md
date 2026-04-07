@@ -212,7 +212,7 @@ When enabled, Kilo Code will remind the model about the details of its current m
 
 **When to enable:**
 
-- Working with custom agents that have specific role definitions
+- Working with custom modes that have specific role definitions
 - You need stricter adherence to custom instructions
 - The model is deviating from the intended mode behavior
 
@@ -220,7 +220,7 @@ When enabled, Kilo Code will remind the model about the details of its current m
 
 **Default:** Disabled
 
-Learn more about [Custom Agents](/docs/customize/custom-agents) and how Power Steering can improve agent behavior.
+Learn more about [Custom Modes](/docs/customize/custom-agents) and how Power Steering can improve mode behavior.
 
 ### File Read Auto-Truncate Threshold
 

@@ -296,7 +296,7 @@ module.exports = [
   // ============================================
   {
     source: "/docs/agent-behavior/custom-modes",
-    destination: "/docs/customize/custom-modes",
+    destination: "/docs/customize/custom-agents",
     basePath: false,
     permanent: true,
   },
@@ -345,7 +345,7 @@ module.exports = [
   // Old code-with-ai/customization paths redirect to new customize paths
   {
     source: "/docs/code-with-ai/customization/custom-modes",
-    destination: "/docs/customize/custom-modes",
+    destination: "/docs/customize/custom-agents",
     basePath: false,
     permanent: true,
   },
@@ -435,7 +435,7 @@ module.exports = [
   },
   {
     source: "/docs/plans/custom-modes",
-    destination: "/docs/collaborate/teams/custom-modes-org",
+    destination: "/docs/collaborate/teams/custom-agents-org",
     basePath: false,
     permanent: true,
   },

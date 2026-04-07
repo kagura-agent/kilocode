@@ -45,12 +45,14 @@ export function buildChatPrefix(
   if (history && history.length > 0) {
     parts.push("\n// Recent prompts by the user:")
     for (const prompt of history) {
-      parts.push(`// - ${prompt}`)
+      const lines = prompt.split("\n").map((l, i) => (i === 0 ? `// - ${l}` : `//   ${l}`))
+      parts.push(lines.join("\n"))
     }
   }
   if (lastResponse) {
     parts.push("\n// Last assistant response:")
-    parts.push(`// ${lastResponse}`)
+    const lines = lastResponse.split("\n").map((l) => `// ${l}`)
+    parts.push(lines.join("\n"))
   }
   parts.push("\n// User's message:")
   parts.push(userText)

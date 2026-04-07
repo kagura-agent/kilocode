@@ -63,9 +63,9 @@ export namespace Agent {
 
     const skillDirs = await Skill.dirs()
     const whitelistedDirs = [Truncate.GLOB, ...skillDirs.map((dir) => path.join(dir, "*"))]
-    // kilocode_change start — safe bash commands that don't need user approval (Linux/macOS only).
-    // only commands that cannot execute arbitrary code or subprocesses.
-    const safeBashCommands: Record<string, "allow"> = {
+    // kilocode_change start — safe bash commands that don't need user approval.
+    // cross-platform commands are always allowed; Linux/macOS-specific commands are gated.
+    const crossPlatformBashCommands: Record<string, "allow"> = {
       // read-only / informational
       "cat *": "allow",
       "head *": "allow",
@@ -83,7 +83,6 @@ export namespace Agent {
       "du *": "allow",
       "df *": "allow",
       "date *": "allow",
-      "uname *": "allow",
       "whoami *": "allow",
       "printenv *": "allow",
       "man *": "allow",
@@ -104,24 +103,32 @@ export namespace Agent {
       // compilers (no script execution)
       "tsc *": "allow",
       "tsgo *": "allow",
-      // archive
-      "tar *": "allow",
+      // archive (cross-platform)
       "unzip *": "allow",
+    }
+    const linuxBashCommands: Record<string, "allow"> = {
+      // archive (Linux/macOS only)
+      "tar *": "allow",
       "gzip *": "allow",
       "gunzip *": "allow",
+      // system info
+      "uname *": "allow",
     }
     const bash: Record<string, "allow" | "ask" | "deny"> = {
       "*": "ask",
-      ...(process.platform !== "win32" ? safeBashCommands : {}),
+      ...crossPlatformBashCommands,
+      ...(process.platform !== "win32" ? linuxBashCommands : {}),
     }
     // kilocode_change end
 
-    // kilocode_change start — read-only bash commands for the ask agent (Linux/macOS only).
+    // kilocode_change start — read-only bash commands for the ask agent.
     // Unlike the default bash allowlist, unknown commands are DENIED (not "ask")
     // because the ask agent must never modify the filesystem.
+    // Cross-platform commands are always allowed; Linux/macOS-specific commands are gated.
     const readOnlyBash: Record<string, "allow" | "ask" | "deny"> = {
       "*": "deny",
-      ...(process.platform !== "win32" ? safeBashCommands : {}),
+      ...crossPlatformBashCommands,
+      ...(process.platform !== "win32" ? linuxBashCommands : {}),
       // git — allowlist of read-only subcommands, deny everything else
       "git *": "deny",
       "git log *": "allow",

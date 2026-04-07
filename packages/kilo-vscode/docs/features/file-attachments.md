@@ -5,6 +5,17 @@
 
 Image attachments and `@file` path mentions work. Non-image file content attachments are missing.
 
+## Supported Image Types
+
+The following image formats are supported for paste and drag-and-drop:
+
+- PNG (`image/png`)
+- JPEG (`image/jpeg`)
+- GIF (`image/gif`)
+- WebP (`image/webp`)
+
+**Known Issue:** Drag-and-drop may not work for images dragged from external sources (file explorer, browsers). See [#8451](https://github.com/Kilo-Org/kilocode/issues/8451).
+
 ## Remaining Work
 
 - Add a file attachment button to the chat input toolbar (paperclip icon or similar)

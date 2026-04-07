@@ -5,6 +5,15 @@
 
 Image attachments and `@file` path mentions work. Non-image file content attachments are missing.
 
+## Supported Image Types
+
+The following image formats are supported for paste and drag-and-drop:
+
+- PNG (`image/png`)
+- JPEG (`image/jpeg`)
+- GIF (`image/gif`)
+- WebP (`image/webp`)
+
 ## Remaining Work
 
 - Add a file attachment button to the chat input toolbar (paperclip icon or similar)

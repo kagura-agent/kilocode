@@ -1173,6 +1173,10 @@ export const dict = {
   "settings.agentBehaviour.editMode.back": "Back to list",
   "settings.agentBehaviour.editMode.native": "Built-in mode (read-only definition)",
   "settings.agentBehaviour.editMode.promptOverride": "Custom prompt override for this built-in mode",
+  "settings.agentBehaviour.editMode.managed.file":
+    "This agent is defined in a .md file. Its prompt and description are read-only here — edit the source file to change them. Other settings like model, temperature, and steps can still be overridden.",
+  "settings.agentBehaviour.editMode.managed.organization":
+    "This agent is managed by your organization. Its prompt and description are read-only — manage it from the cloud dashboard. Other settings like model, temperature, and steps can still be overridden.",
 
   "settings.autoApprove.description":
     "Define how tools are allowed to run. Most tools default to Allow. doom_loop and external_directory default to Ask.",

@@ -552,7 +552,11 @@ export namespace Config {
       }
       const parsed = Agent.safeParse(config)
       if (parsed.success) {
-        result[config.name] = parsed.data
+        // kilocode_change — tag file-based agents so the UI knows prompt is managed
+        const data = parsed.data
+        data.options = { ...data.options, source: "file" }
+        result[config.name] = data
+        // kilocode_change end
         continue
       }
       throw new InvalidError({ path: item, issues: parsed.error.issues }, { cause: parsed.error })
@@ -588,6 +592,9 @@ export namespace Config {
       if (parsed.success) {
         result[config.name] = {
           ...parsed.data,
+          // kilocode_change — tag file-based modes so the UI knows prompt is managed
+          options: { ...parsed.data.options, source: "file" },
+          // kilocode_change end
           mode: "primary" as const,
         }
         continue

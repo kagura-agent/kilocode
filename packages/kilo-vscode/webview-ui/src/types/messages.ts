@@ -223,6 +223,8 @@ export interface AgentInfo {
   hidden?: boolean
   deprecated?: boolean
   color?: string
+  /** Where this agent was defined: "file" (.md), "organization" (cloud API), or undefined (user config / native). */
+  source?: string
 }
 
 // Server info

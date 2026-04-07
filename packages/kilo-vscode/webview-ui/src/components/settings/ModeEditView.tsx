@@ -28,6 +28,12 @@ const ModeEditView: Component<Props> = (props) => {
   // custom modes) and all fields read from cfg() which comes from config context.
   const agent = () => session.agents().find((a) => a.name === props.name)
   const native = () => agent()?.native ?? false
+  // Agents from .md files or organization API have their prompt/description managed
+  // externally — edits to global config would be overridden by the higher-precedence source.
+  const managed = () => {
+    const src = agent()?.source
+    return src === "file" || src === "organization"
+  }
 
   const cfg = createMemo<AgentConfig>(() => config().agent?.[props.name] ?? {})
 
@@ -67,7 +73,7 @@ const ModeEditView: Component<Props> = (props) => {
             {language.t("settings.agentBehaviour.editMode")} — {props.name}
           </span>
         </div>
-        <Show when={!native()}>
+        <Show when={!native() && !managed()}>
           <div style={{ display: "flex", gap: "4px" }}>
             <IconButton
               size="small"
@@ -103,7 +109,23 @@ const ModeEditView: Component<Props> = (props) => {
         </Card>
       </Show>
 
-      {/* Description (full-width, custom modes only) */}
+      <Show when={managed()}>
+        <Card style={{ "margin-bottom": "12px" }}>
+          <div
+            style={{
+              "font-size": "12px",
+              color: "var(--text-weak-base, var(--vscode-descriptionForeground))",
+              padding: "4px 0",
+            }}
+          >
+            {agent()?.source === "organization"
+              ? language.t("settings.agentBehaviour.editMode.managed.organization")
+              : language.t("settings.agentBehaviour.editMode.managed.file")}
+          </div>
+        </Card>
+      </Show>
+
+      {/* Description (full-width, custom modes only — read-only for managed agents) */}
       <Show when={!native()}>
         <Card style={{ "margin-bottom": "12px" }}>
           <div data-slot="settings-row-label-title" style={{ "margin-bottom": "8px" }}>
@@ -113,11 +135,12 @@ const ModeEditView: Component<Props> = (props) => {
             value={cfg().description ?? ""}
             placeholder={language.t("settings.agentBehaviour.createMode.description.placeholder")}
             onChange={(val) => update({ description: val || undefined })}
+            disabled={managed()}
           />
         </Card>
       </Show>
 
-      {/* Prompt (full-width, auto-resizing) */}
+      {/* Prompt (full-width, auto-resizing — read-only for managed agents) */}
       <Card style={{ "margin-bottom": "12px" }}>
         <div data-slot="settings-row-label-title" style={{ "margin-bottom": "8px" }}>
           {native()
@@ -129,6 +152,7 @@ const ModeEditView: Component<Props> = (props) => {
           placeholder={language.t("settings.agentBehaviour.createMode.prompt.placeholder")}
           multiline
           onChange={(val) => update({ prompt: val || undefined })}
+          disabled={managed()}
         />
       </Card>
 

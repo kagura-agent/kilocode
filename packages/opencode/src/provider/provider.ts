@@ -53,6 +53,7 @@ import { DEFAULT_HEADERS } from "@/kilocode/const" // kilocode_change
 export namespace Provider {
   const log = Log.create({ service: "provider" })
   const TTL = 5 * 60 * 1000
+  const stamp = new Map<string, number>()
 
   function isGpt5OrLater(modelID: string): boolean {
     const match = /^gpt-(\d+)/.exec(modelID)
@@ -1108,22 +1109,35 @@ export namespace Provider {
 
   async function current(): Promise<Data> {
     const data = await state()
-    const age = Date.now() - data.loadedAt
+    const dir = Instance.directory
+    const loadedAt = stamp.get(dir) ?? data.loadedAt
+    const age = Date.now() - loadedAt
     if (age <= TTL) return data
 
-    const dir = Instance.directory
     const pending = inflight.get(dir)
     if (pending) return pending
 
     log.info("refreshing stale provider state", { age, directory: dir })
     const task = (async () => {
+      const next = await load()
+      stamp.set(dir, next.loadedAt)
       State.resetEntry(dir, load)
-      return state()
+      const cached = state()
+      if (cached instanceof Promise) {
+        return cached
+      }
+      return next
     })()
 
     inflight.set(dir, task)
     try {
-      return await task
+      const next = await task
+      stamp.set(dir, next.loadedAt)
+      return next
+    } catch (error) {
+      stamp.set(dir, data.loadedAt)
+      log.warn("provider refresh failed, serving stale state", { directory: dir, error })
+      return data
     } finally {
       if (inflight.get(dir) === task) inflight.delete(dir)
     }

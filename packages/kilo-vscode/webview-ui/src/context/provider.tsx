@@ -76,7 +76,7 @@ export const ProviderProvider: ParentComponent = (props) => {
     setDefaultSelection(message.defaultSelection)
     setAuthMethods(message.authMethods)
     setAuthStates(message.authStates)
-    setLoadedAt(Date.now())
+    setLoadedAt(message.loadedAt)
   })
 
   onCleanup(unsubscribe)

@@ -354,10 +354,7 @@ export const ModelSelectorBase: Component<ModelSelectorBaseProps> = (props) => {
   })
 
   // Listen for slash command trigger
-  const onTrigger = () => {
-    ensureFresh()
-    setOpen(true)
-  }
+  const onTrigger = () => setOpen(true)
   window.addEventListener("openModelPicker", onTrigger)
   onCleanup(() => window.removeEventListener("openModelPicker", onTrigger))
 

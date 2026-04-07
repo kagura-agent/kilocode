@@ -1501,6 +1501,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
             ),
             authMethods,
             authStates,
+            loadedAt: Date.now(),
           }
           this.cachedProvidersMessage = message
           this.postMessage(message)

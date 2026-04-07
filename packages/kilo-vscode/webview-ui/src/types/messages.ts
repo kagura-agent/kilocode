@@ -651,6 +651,7 @@ export interface ProvidersLoadedMessage {
   defaultSelection: ModelSelection
   authMethods: Record<string, ProviderAuthMethod[]>
   authStates: Record<string, ProviderAuthState>
+  loadedAt: number
 }
 
 export interface AgentsLoadedMessage {

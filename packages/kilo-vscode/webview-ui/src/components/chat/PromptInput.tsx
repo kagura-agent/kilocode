@@ -106,10 +106,11 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
   let preEnhanceText: string | null = null
 
   // Collect prompt history for autocomplete context: merge the last 10 entries
-  // from localStorage history with all earlier user messages in the current session.
+  // from localStorage history with the last 10 user messages in the current session.
   const getHistory = (): string[] => {
     const stored = history.recent(10)
-    const msgs = session.userMessages()
+    const all = session.userMessages()
+    const msgs = all.slice(-10)
     const texts: string[] = []
     for (const m of msgs) {
       const parts = session.getParts(m.id)

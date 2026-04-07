@@ -170,6 +170,13 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
   private statsPoller: GitStatsPoller | null = null
   private cachedStats: unknown = null
 
+  /** Retry state for webview service worker failures (VS Code platform bug, see microsoft/vscode#125993) */
+  private readyTimer: ReturnType<typeof setTimeout> | null = null
+  private readyRetries = 0
+  private htmlGenerator: (() => string) | null = null
+  private static READY_TIMEOUT = 8_000
+  private static MAX_RETRIES = 3
+
   /** Optional interceptor called before the standard message handler.
    *  Return null to consume the message, or return a (possibly transformed) message. */
   private onBeforeMessage: ((msg: Record<string, unknown>) => Promise<Record<string, unknown> | null>) | null = null
@@ -341,6 +348,9 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
       this.statsPoller?.setEnabled(webviewView.visible)
     })
 
+    // Detect service worker failures and retry (microsoft/vscode#125993)
+    this.scheduleReadyCheck()
+
     // Initialize connection to CLI backend
     this.initializeConnection()
   }
@@ -362,6 +372,9 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
 
     // Handle messages from webview (shared handler)
     this.setupWebviewMessageHandler(panel.webview)
+
+    // Detect service worker failures and retry (microsoft/vscode#125993)
+    this.scheduleReadyCheck()
 
     this.initializeConnection()
   }
@@ -470,6 +483,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
       switch (message.type) {
         case "webviewReady":
           console.log("[Kilo New] KiloProvider: ✅ webviewReady received")
+          this.cancelReadyCheck()
           this.isWebviewReady = true
           await this.syncWebviewState("webviewReady")
           this.flushPendingReviewComments()
@@ -2944,6 +2958,58 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
     return resolveProjectDirectory(this.projectDirectory, () => this.getWorkspaceDirectory(sessionId))
   }
 
+  /**
+   * Schedule a timer that detects when the webview fails to send "webviewReady"
+   * (typically caused by VS Code's internal service worker failing to register —
+   * see microsoft/vscode#125993). On timeout, re-assigns webview.html to force
+   * a fresh iframe + service worker registration attempt.
+   *
+   * @param html Optional HTML generator. Defaults to this._getHtmlForWebview().
+   */
+  public scheduleReadyCheck(html?: () => string): void {
+    this.cancelReadyCheck()
+    this.readyRetries = 0
+    this.htmlGenerator = html ?? null
+    this.readyTimer = setTimeout(() => this.retryWebview(), KiloProvider.READY_TIMEOUT)
+  }
+
+  private retryWebview(): void {
+    if (this.isWebviewReady || !this.webview) return
+    if (this.readyRetries >= KiloProvider.MAX_RETRIES) {
+      console.error(
+        `[Kilo New] KiloProvider: webview not ready after ${KiloProvider.MAX_RETRIES} retries — ` +
+          "likely VS Code service worker bug (microsoft/vscode#125993). " +
+          'Try "Developer: Reload Window".',
+      )
+      void vscode.window
+        .showWarningMessage(
+          "Kilo Code failed to load. This is a known VS Code issue. Try reloading the window.",
+          "Reload Window",
+        )
+        .then((choice: string | undefined) => {
+          if (choice === "Reload Window") {
+            void vscode.commands.executeCommand("workbench.action.reloadWindow")
+          }
+        })
+      return
+    }
+    this.readyRetries++
+    console.warn(
+      `[Kilo New] KiloProvider: webview not ready after ${KiloProvider.READY_TIMEOUT}ms, ` +
+        `retrying (${this.readyRetries}/${KiloProvider.MAX_RETRIES})`,
+    )
+    const gen = this.htmlGenerator
+    this.webview.html = gen ? gen() : this._getHtmlForWebview(this.webview)
+    this.readyTimer = setTimeout(() => this.retryWebview(), KiloProvider.READY_TIMEOUT)
+  }
+
+  private cancelReadyCheck(): void {
+    if (this.readyTimer) {
+      clearTimeout(this.readyTimer)
+      this.readyTimer = null
+    }
+  }
+
   private _getHtmlForWebview(webview: vscode.Webview): string {
     return buildWebviewHtml(webview, {
       scriptUri: webview.asWebviewUri(vscode.Uri.joinPath(this.extensionUri, "dist", "webview.js")),
@@ -3021,6 +3087,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
    * Does NOT kill the server — that's the connection service's job.
    */
   dispose(): void {
+    this.cancelReadyCheck()
     this.statsPoller?.stop()
     this.unsubscribeEvent?.()
     this.unsubscribeState?.()

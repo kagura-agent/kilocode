@@ -78,6 +78,17 @@ export class VscodeHost implements Host {
       onBeforeMessage: opts.onBeforeMessage,
     })
 
+    // Detect service worker failures and retry (microsoft/vscode#125993)
+    const html = () =>
+      buildWebviewHtml(panel.webview, {
+        scriptUri: panel.webview.asWebviewUri(vscode.Uri.joinPath(this.extensionUri, "dist", "agent-manager.js")),
+        styleUri: panel.webview.asWebviewUri(vscode.Uri.joinPath(this.extensionUri, "dist", "agent-manager.css")),
+        iconsBaseUri: panel.webview.asWebviewUri(vscode.Uri.joinPath(this.extensionUri, "assets", "icons")),
+        title: "Agent Manager",
+        port: this.connectionService.getServerInfo()?.port,
+      })
+    provider.scheduleReadyCheck(html)
+
     const sessions: SessionProvider = {
       setSessionDirectory: (id, dir) => provider.setSessionDirectory(id, dir),
       clearSessionDirectory: (id) => provider.clearSessionDirectory(id),

@@ -84,6 +84,7 @@ export const dict = {
   "revert.banner.redo.all": "Rehacer todo",
   "revert.banner.hint": "Envía un nuevo mensaje para hacerlo permanente",
   "revert.disabled.agentBusy": "Espera a que el agente termine",
+  "revert.checkpoint.restore": "Restaurar hasta aquí",
   "command.session.compact": "Compactar sesión",
   "command.session.compact.description": "Resumir la sesión para reducir el tamaño del contexto",
   "command.session.fork": "Bifurcar desde mensaje",

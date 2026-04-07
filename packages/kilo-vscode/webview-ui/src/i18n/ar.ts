@@ -84,6 +84,7 @@ export const dict = {
   "revert.banner.redo.all": "إعادة الكل",
   "revert.banner.hint": "أرسل رسالة جديدة لجعل هذا دائمًا",
   "revert.disabled.agentBusy": "انتظر انتهاء الوكيل",
+  "revert.checkpoint.restore": "استعادة إلى هنا",
   "command.session.compact": "ضغط الجلسة",
   "command.session.compact.description": "تلخيص الجلسة لتقليل حجم السياق",
   "command.session.fork": "تشعب من الرسالة",

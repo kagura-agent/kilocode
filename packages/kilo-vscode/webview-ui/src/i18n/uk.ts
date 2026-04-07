@@ -84,6 +84,7 @@ export const dict = {
   "revert.banner.redo.all": "Повторити все",
   "revert.banner.hint": "Надішліть нове повідомлення, щоб зробити це постійним",
   "revert.disabled.agentBusy": "Зачекайте завершення агента",
+  "revert.checkpoint.restore": "Відновити до цієї точки",
   "command.session.compact": "Стиснути сесію",
   "command.session.compact.description": "Підсумувати сесію для зменшення розміру контексту",
   "command.session.fork": "Розгалужити від повідомлення",

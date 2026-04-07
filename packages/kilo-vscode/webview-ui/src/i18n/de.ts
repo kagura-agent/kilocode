@@ -88,6 +88,7 @@ export const dict = {
   "revert.banner.redo.all": "Alle wiederholen",
   "revert.banner.hint": "Sende eine neue Nachricht, um dies dauerhaft zu machen",
   "revert.disabled.agentBusy": "Warten bis der Agent fertig ist",
+  "revert.checkpoint.restore": "Hierher wiederherstellen",
   "command.session.compact": "Sitzung komprimieren",
   "command.session.compact.description": "Sitzung zusammenfassen, um die Kontextgröße zu reduzieren",
   "command.session.fork": "Von Nachricht abzweigen",

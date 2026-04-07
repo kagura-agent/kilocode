@@ -84,6 +84,7 @@ export const dict = {
   "revert.banner.redo.all": "Redo All",
   "revert.banner.hint": "Send a new message to make this permanent",
   "revert.disabled.agentBusy": "Wait for agent to finish",
+  "revert.checkpoint.restore": "Restore to here",
   "command.session.compact": "Compact session",
   "command.session.compact.description": "Summarize the session to reduce context size",
   "command.session.fork": "Fork from message",

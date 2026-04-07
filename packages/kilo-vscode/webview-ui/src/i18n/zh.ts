@@ -88,6 +88,7 @@ export const dict = {
   "revert.banner.redo.all": "全部重做",
   "revert.banner.hint": "发送新消息以使此更改永久生效",
   "revert.disabled.agentBusy": "等待智能体完成",
+  "revert.checkpoint.restore": "还原到此处",
   "command.session.compact": "精简会话",
   "command.session.compact.description": "总结会话以减少上下文大小",
   "command.session.fork": "从消息分叉",

@@ -104,6 +104,13 @@ export const VscodeSessionTurn: Component<VscodeSessionTurnProps> = (props) => {
     () => assistantMessages().find((m) => m.error && m.error.name !== "MessageAbortedError")?.error,
   )
 
+  // Part-level revert: check if any assistant message in this turn is the boundary
+  const isPartRevertBoundary = createMemo(() => {
+    const rev = session.revert()
+    if (!rev?.partID) return false
+    return assistantMessages().some((m) => m.id === rev.messageID)
+  })
+
   // Diffs from message summary
   const diffs = createMemo(() => {
     const rawDiffs = (message() as unknown as { summary?: { diffs?: unknown[] } } | undefined)?.summary?.diffs
@@ -153,30 +160,12 @@ export const VscodeSessionTurn: Component<VscodeSessionTurnProps> = (props) => {
       {(msg) => (
         <div class="vscode-session-turn" data-message={msg().id}>
           {/* User message */}
-          <div
-            class="vscode-session-turn-user"
-            data-revert-disabled={
-              assistantMessages().length > 0 && !session.revert() && session.status() !== "idle" ? "" : undefined
-            }
-            title={
-              assistantMessages().length > 0 && !session.revert() && session.status() !== "idle"
-                ? language.t("revert.disabled.agentBusy")
-                : undefined
-            }
-          >
+          <div class="vscode-session-turn-user">
             <UserMessageDisplay
               message={msg() as unknown as Parameters<typeof UserMessageDisplay>[0]["message"]}
               parts={parts() as unknown as Parameters<typeof UserMessageDisplay>[0]["parts"]}
               interrupted={interrupted()}
               queued={props.queued}
-              onRevert={
-                assistantMessages().length > 0 && !session.revert()
-                  ? () => {
-                      if (session.status() !== "idle") return
-                      session.revertSession(props.messageID)
-                    }
-                  : undefined
-              }
             />
           </div>
 
@@ -189,8 +178,8 @@ export const VscodeSessionTurn: Component<VscodeSessionTurnProps> = (props) => {
             </div>
           </Show>
 
-          {/* Diff summary — shown after completion */}
-          <Show when={diffs().length > 0}>
+          {/* Diff summary — hidden when this turn is the part-level revert boundary */}
+          <Show when={diffs().length > 0 && !isPartRevertBoundary()}>
             <div class="vscode-session-turn-diffs" data-component="session-turn">
               <Collapsible open={open()} onOpenChange={setOpen} variant="ghost">
                 <Collapsible.Trigger>

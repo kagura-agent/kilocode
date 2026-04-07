@@ -646,6 +646,51 @@
 }
 
 /* ============================================
+   Checkpoint Divider
+   ============================================ */
+
+.checkpoint-divider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  margin: 6px 0;
+  opacity: 0.5;
+  transition: opacity 150ms ease;
+  min-height: 24px;
+}
+
+.checkpoint-divider:hover {
+  opacity: 1;
+}
+
+.checkpoint-divider--disabled {
+  pointer-events: none;
+  opacity: 0.25;
+}
+
+.checkpoint-divider-left {
+  flex-shrink: 0;
+  color: var(--text-muted, var(--vscode-descriptionForeground));
+  display: flex;
+  align-items: center;
+}
+
+.checkpoint-divider-line {
+  display: block;
+  flex: 1;
+  height: 2px;
+  background: var(--vscode-editorGroup-border, #454545);
+  border-radius: 1px;
+}
+
+.checkpoint-divider-actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+/* ============================================
    Prompt Input
    ============================================ */
 

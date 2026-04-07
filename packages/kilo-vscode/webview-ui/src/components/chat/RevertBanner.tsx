@@ -1,7 +1,8 @@
 /**
  * RevertBanner component
  * Shows when the session is in a reverted state, displaying the number of
- * reverted messages, per-file diff stats, and Redo / Redo All actions.
+ * reverted messages (or edits for part-level revert), per-file diff stats,
+ * and Redo / Redo All actions.
  */
 
 import { Component, For, Show } from "solid-js"
@@ -18,18 +19,36 @@ export const RevertBanner: Component = () => {
   const info = () => session.revert()
   const count = () => session.revertedCount()
   const diffs = () => session.summary()?.diffs
+  const isPartLevel = () => !!info()?.partID
 
   const users = () => session.userMessages()
 
   const handleRedo = () => {
-    const boundary = info()?.messageID
-    if (!boundary) return
-    const next = users().find((m) => m.id > boundary)
+    const rev = info()
+    if (!rev) return
+    // For part-level revert, redo just goes back to full undo
+    if (rev.partID) {
+      session.unrevertSession()
+      return
+    }
+    const next = users().find((m) => m.id > rev.messageID)
     if (!next) {
       session.unrevertSession()
       return
     }
     session.revertSession(next.id)
+  }
+
+  const label = () => {
+    if (isPartLevel()) {
+      const n = diffs()?.length ?? 0
+      return n === 1
+        ? language.t("revert.banner.count_one", { count: n })
+        : language.t("revert.banner.count_other", { count: n })
+    }
+    return count() === 1
+      ? language.t("revert.banner.count_one", { count: count() })
+      : language.t("revert.banner.count_other", { count: count() })
   }
 
   return (
@@ -38,17 +57,13 @@ export const RevertBanner: Component = () => {
         <div class="revert-banner-header">
           <div class="revert-banner-info">
             <Icon name="arrow-left" size="small" />
-            <span class="revert-banner-count">
-              {count() === 1
-                ? language.t("revert.banner.count_one", { count: count() })
-                : language.t("revert.banner.count_other", { count: count() })}
-            </span>
+            <span class="revert-banner-count">{label()}</span>
           </div>
           <div class="revert-banner-actions">
             <Button variant="ghost" size="small" onClick={handleRedo}>
               {language.t("revert.banner.redo")}
             </Button>
-            <Show when={count() > 1}>
+            <Show when={!isPartLevel() && count() > 1}>
               <Button variant="ghost" size="small" onClick={() => session.unrevertSession()}>
                 {language.t("revert.banner.redo.all")}
               </Button>

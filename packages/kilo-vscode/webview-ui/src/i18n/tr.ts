@@ -84,6 +84,7 @@ export const dict = {
   "revert.banner.redo.all": "Tümünü Yinele",
   "revert.banner.hint": "Bunu kalıcı yapmak için yeni bir mesaj gönderin",
   "revert.disabled.agentBusy": "Ajanın bitmesini bekleyin",
+  "revert.checkpoint.restore": "Buraya geri yükle",
   "command.session.compact": "Oturumu sıkıştır",
   "command.session.compact.description": "Bağlam boyutunu azaltmak için oturumu özetle",
   "command.session.fork": "Mesajdan dallandır",

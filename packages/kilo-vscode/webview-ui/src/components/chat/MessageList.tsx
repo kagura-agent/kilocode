@@ -67,10 +67,13 @@ export const MessageList: Component<MessageListProps> = (props) => {
 
   const allUserMessages = () => session.userMessages()
   const boundary = () => session.revert()?.messageID
+  const boundaryPart = () => session.revert()?.partID
   const userMessages = createMemo(() => {
     const b = boundary()
     if (!b) return allUserMessages()
-    return allUserMessages().filter((m) => m.id < b)
+    // Part-level revert: show the boundary message (edits within it are dimmed).
+    // Message-level revert: hide the boundary message and everything after.
+    return boundaryPart() ? allUserMessages().filter((m) => m.id <= b) : allUserMessages().filter((m) => m.id < b)
   })
   const isEmpty = () => userMessages().length === 0 && !session.loading() && !boundary()
 

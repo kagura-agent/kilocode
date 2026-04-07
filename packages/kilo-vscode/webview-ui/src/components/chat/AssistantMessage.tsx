@@ -17,11 +17,23 @@ import type {
   ToolPart,
 } from "@kilocode/sdk/v2"
 import { useData } from "@kilocode/kilo-ui/context/data"
+import { CheckpointDivider } from "./CheckpointDivider"
+import { useSession } from "../../context/session"
 
 // Tools that the upstream message-part renderer suppresses (returns null for).
 // We render these ourselves via ToolRegistry when they complete,
 // so the user can see what the AI set up.
 export const UPSTREAM_SUPPRESSED_TOOLS = new Set(["todowrite", "todoread"])
+
+/** Tools whose execution modifies files on disk. */
+const FILE_MODIFYING_TOOLS = new Set(["edit", "write", "multiedit", "apply_patch"])
+
+function isFileModifying(part: SDKPart): boolean {
+  if (part.type !== "tool") return false
+  const tool = (part as SDKPart & { tool: string }).tool
+  const state = (part as SDKPart & { state: { status: string } }).state
+  return FILE_MODIFYING_TOOLS.has(tool) && state.status === "completed"
+}
 
 function isRenderable(part: SDKPart): boolean {
   if (part.type === "tool") {
@@ -67,12 +79,24 @@ function TodoToolCard(props: { part: ToolPart }) {
 
 export const AssistantMessage: Component<AssistantMessageProps> = (props) => {
   const data = useData()
+  const session = useSession()
 
   const parts = createMemo(() => {
     const stored = data.store.part?.[props.message.id]
     if (!stored) return []
-    return (stored as SDKPart[]).filter((part) => isRenderable(part))
+    const renderable = (stored as SDKPart[]).filter((part) => isRenderable(part))
+
+    // Part-level revert: if this message is the boundary, truncate at the reverted partID.
+    // Everything from that part onward was undone and should be hidden.
+    const rev = session.revert()
+    if (rev?.partID && rev.messageID === props.message.id) {
+      const idx = renderable.findIndex((p) => p.id === rev.partID)
+      if (idx !== -1) return renderable.slice(0, idx)
+    }
+    return renderable
   })
+
+  const reverted = () => !!session.revert()
 
   return (
     <>
@@ -84,6 +108,14 @@ export const AssistantMessage: Component<AssistantMessageProps> = (props) => {
             part.type === "tool" && UPSTREAM_SUPPRESSED_TOOLS.has((part as SDKPart & { tool: string }).tool)
           return (
             <Show when={isUpstreamSuppressed || PART_MAPPING[part.type]}>
+              {/* Checkpoint divider before file-modifying tools — restore to state before this edit */}
+              <Show when={isFileModifying(part) && !reverted()}>
+                <CheckpointDivider
+                  messageID={props.message.id}
+                  partID={part.id}
+                  disabled={session.status() !== "idle"}
+                />
+              </Show>
               <div data-component="tool-part-wrapper" data-part-type={part.type}>
                 <Show
                   when={isUpstreamSuppressed}

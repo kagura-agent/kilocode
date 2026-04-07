@@ -84,6 +84,7 @@ export const dict = {
   "revert.banner.redo.all": "Ponovi Sve",
   "revert.banner.hint": "Pošalji novu poruku da bi ovo postalo trajno",
   "revert.disabled.agentBusy": "Sačekajte da agent završi",
+  "revert.checkpoint.restore": "Vrati na ovu tačku",
   "command.session.compact": "Sažmi sesiju",
   "command.session.compact.description": "Sažmi sesiju kako bi se smanjio kontekst",
   "command.session.fork": "Fork iz poruke",

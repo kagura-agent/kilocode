@@ -84,6 +84,7 @@ export const dict = {
   "revert.banner.redo.all": "すべてやり直し",
   "revert.banner.hint": "新しいメッセージを送信してこれを永続させてください",
   "revert.disabled.agentBusy": "エージェントの完了を待ってください",
+  "revert.checkpoint.restore": "ここまで復元",
   "command.session.compact": "セッションを圧縮",
   "command.session.compact.description": "セッションを要約してコンテキストサイズを削減",
   "command.session.fork": "メッセージからフォーク",

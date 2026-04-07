@@ -87,6 +87,7 @@ export const dict = {
   "revert.banner.redo.all": "Gjenta alt",
   "revert.banner.hint": "Send en ny melding for å gjøre dette permanent",
   "revert.disabled.agentBusy": "Vent til agenten er ferdig",
+  "revert.checkpoint.restore": "Gjenopprett til her",
   "command.session.compact": "Komprimer sesjon",
   "command.session.compact.description": "Oppsummer sesjonen for å redusere kontekststørrelsen",
   "command.session.fork": "Forgren fra melding",

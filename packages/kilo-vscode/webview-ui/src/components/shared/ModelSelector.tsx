@@ -159,9 +159,11 @@ export const ModelSelectorBase: Component<ModelSelectorBaseProps> = (props) => {
   const hasProviders = () => visibleModels().length > 0
   const canOpen = () => hasProviders() || ((props.allowClear ?? false) && !!props.value)
 
-  // Debounce search input to avoid re-filtering on every keystroke
+  // Debounce search input to avoid re-filtering on every keystroke.
+  // Trim so whitespace-only input stays falsy for downstream truthiness checks
+  // (e.g. favoriteModels, activeKey).
   createEffect(() => {
-    const q = search()
+    const q = search().trim()
     const t = setTimeout(() => setDebouncedSearch(q), 250)
     onCleanup(() => clearTimeout(t))
   })

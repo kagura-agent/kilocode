@@ -652,12 +652,12 @@
 .checkpoint-divider {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
   padding: 4px 12px;
-  margin: 6px 0;
-  opacity: 0.5;
+  margin: 4px 0;
+  opacity: 0.4;
   transition: opacity 150ms ease;
-  min-height: 24px;
 }
 
 .checkpoint-divider:hover {
@@ -666,28 +666,33 @@
 
 .checkpoint-divider--disabled {
   pointer-events: none;
-  opacity: 0.25;
+  opacity: 0.2;
 }
 
 .checkpoint-divider-left {
   flex-shrink: 0;
-  color: var(--text-muted, var(--vscode-descriptionForeground));
   display: flex;
   align-items: center;
+  gap: 6px;
+  color: var(--text-muted, var(--vscode-descriptionForeground));
+  white-space: nowrap;
+}
+
+.checkpoint-divider-label {
+  font-size: 12px;
 }
 
 .checkpoint-divider-line {
   display: block;
   flex: 1;
   height: 2px;
-  background: var(--vscode-editorGroup-border, #454545);
-  border-radius: 1px;
-}
-
-.checkpoint-divider-actions {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
+  margin-top: 1px;
+  background-image: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--vscode-editorGroup-border, #454545) 65%, transparent),
+    color-mix(in srgb, var(--vscode-editorGroup-border, #454545) 65%, transparent) 80%,
+    transparent 99%
+  );
 }
 
 /* ============================================

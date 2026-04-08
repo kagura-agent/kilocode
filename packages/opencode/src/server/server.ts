@@ -54,6 +54,7 @@ import { PermissionRoutes } from "./routes/permission"
 import { RemoteRoutes } from "./routes/remote" // kilocode_change
 import { GlobalRoutes } from "./routes/global"
 import { MDNS } from "./mdns"
+import { ProcessLifecycle } from "@/kilocode/process-lifecycle" // kilocode_change
 
 // @ts-ignore This global is needed to prevent ai-sdk from logging warnings to stdout https://github.com/vercel/ai/blob/2dc67e0ef538307f21368db32d5a12345d98831b/packages/ai/src/logger/log-warnings.ts#L85
 globalThis.AI_SDK_LOG_WARNINGS = false
@@ -587,32 +588,54 @@ export namespace Server {
                   properties: {},
                 }),
               })
-              const unsub = Bus.subscribeAll(async (event) => {
-                await stream.writeSSE({
-                  data: JSON.stringify(event),
-                })
-                if (event.type === Bus.InstanceDisposed.type) {
-                  stream.close()
-                }
-              })
-
-              // Send heartbeat every 10s to prevent stalled proxy streams.
-              const heartbeat = setInterval(() => {
-                stream.writeSSE({
-                  data: JSON.stringify({
-                    type: "server.heartbeat",
-                    properties: {},
-                  }),
-                })
-              }, 10_000)
 
               await new Promise<void>((resolve) => {
-                stream.onAbort(() => {
-                  clearInterval(heartbeat)
-                  unsub()
+                // kilocode_change start - clean up SSE subscriptions when writes fail
+                const state: {
+                  heartbeat?: ReturnType<typeof setInterval>
+                  unsub?: () => void
+                } = {}
+                const cleanup = ProcessLifecycle.once(async () => {
+                  if (state.heartbeat) clearInterval(state.heartbeat)
+                  state.unsub?.()
                   resolve()
                   log.info("event disconnected")
                 })
+                const write = async (event: { type: string; properties: unknown }) => {
+                  try {
+                    await stream.writeSSE({
+                      data: JSON.stringify(event),
+                    })
+                    return true
+                  } catch (error) {
+                    log.warn("event stream write failed", { error })
+                    stream.close()
+                    await cleanup()
+                    return false
+                  }
+                }
+
+                state.unsub = Bus.subscribeAll(async (event) => {
+                  const ok = await write(event)
+                  if (!ok) return
+                  if (event.type === Bus.InstanceDisposed.type) {
+                    stream.close()
+                    await cleanup()
+                  }
+                })
+
+                state.heartbeat = setInterval(() => {
+                  void write({
+                    type: "server.heartbeat",
+                    properties: {},
+                  })
+                }, 10_000)
+                state.heartbeat.unref?.()
+
+                stream.onAbort(() => {
+                  void cleanup()
+                })
+                // kilocode_change end
               })
             })
           },

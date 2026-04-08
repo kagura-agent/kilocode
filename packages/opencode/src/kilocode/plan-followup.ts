@@ -291,15 +291,36 @@ export namespace PlanFollowup {
           sections.push(`## Todo List\n\n${todoList}`)
         }
 
+        const relative = path.relative(Instance.worktree, file)
         const next = await Session.create({})
-        await inject({
+        const msg: MessageV2.User = {
+          id: Identifier.ascending("message"),
           sessionID: next.id,
+          role: "user",
+          time: { created: Date.now() },
           agent: "code",
           model: code.model,
           variant: code.variant,
-          text: sections.join("\n\n"),
+        }
+        await Session.updateMessage(msg)
+        // Part 1: Visible to user — plan file reference
+        await Session.updatePart({
+          id: Identifier.ascending("part"),
+          messageID: msg.id,
+          sessionID: next.id,
+          type: "text",
+          text: `Implement the plan: ${relative}`,
           synthetic: false,
-        })
+        } satisfies MessageV2.TextPart)
+        // Part 2: Synthetic — full context for model
+        await Session.updatePart({
+          id: Identifier.ascending("part"),
+          messageID: msg.id,
+          sessionID: next.id,
+          type: "text",
+          text: sections.join("\n\n"),
+          synthetic: true,
+        } satisfies MessageV2.TextPart)
         if (todos.length) {
           await Todo.update({ sessionID: next.id, todos })
         }

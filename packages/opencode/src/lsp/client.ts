@@ -240,7 +240,7 @@ export namespace LSPClient {
         l.info("shutting down")
         connection.end()
         connection.dispose()
-        await Process.stop(input.server.process)
+        Process.stop(input.server.process)
         l.info("shutdown")
       },
     }

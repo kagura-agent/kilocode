@@ -942,6 +942,10 @@ export const dict = {
   "session.status.retrying": "Prøver igen (forsøg {{ attempt }})… {{ message }}",
   "session.status.working": "Arbejder…",
 
+  "ui.sessionTurn.cancel": "Annuller",
+  "ui.sessionTurn.status.thinking": "Tænker...",
+  "ui.sessionTurn.status.consideringNextSteps": "Overvejer næste trin...",
+
   "dialog.model.noProviders": "Ingen udbydere",
 
   "prompt.placeholder.connecting": "Opretter forbindelse til server...",
@@ -1347,4 +1351,5 @@ export const dict = {
   "notifications.action.next": "Næste",
   "notifications.action.close": "Luk",
   "notifications.action.tryModel": "Prøv {{model}}",
+  "notifications.action.tryModelGeneric": "Prøv model",
 }

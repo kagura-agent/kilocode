@@ -943,6 +943,10 @@ export const dict = {
   "session.status.retrying": "Opnieuw proberen (poging {{ attempt }})... {{ message }}",
   "session.status.working": "Bezig...",
 
+  "ui.sessionTurn.cancel": "Annuleren",
+  "ui.sessionTurn.status.thinking": "Denken...",
+  "ui.sessionTurn.status.consideringNextSteps": "Volgende stappen overwegen...",
+
   "dialog.model.noProviders": "Geen providers",
 
   "prompt.placeholder.connecting": "Verbinden met server...",
@@ -1352,6 +1356,7 @@ export const dict = {
   "notifications.action.next": "Volgende",
   "notifications.action.close": "Sluiten",
   "notifications.action.tryModel": "Probeer {{model}}",
+  "notifications.action.tryModelGeneric": "Probeer model",
   // Missing translations - English fallbacks until translated
   "settings.agentBehaviour.createMode": "Nieuwe modus aanmaken",
   "settings.agentBehaviour.createMode.button": "Aanmaken",
@@ -1374,7 +1379,8 @@ export const dict = {
   "settings.agentBehaviour.editMode": "Modus bewerken",
   "settings.agentBehaviour.editMode.back": "Terug naar lijst",
   "settings.agentBehaviour.editMode.description": "Beschrijving",
-  "settings.agentBehaviour.editMode.native": "Ingebouwde modus (alleen-lezen definitie)",
+  "settings.agentBehaviour.editMode.native":
+    "Dit is een ingebouwde modus. De basisdefinitie kan niet worden gewijzigd, maar u kunt hieronder overrides configureren.",
   "settings.agentBehaviour.editMode.prompt": "Systeemprompt",
   "settings.agentBehaviour.editMode.promptOverride": "Aangepaste systeemprompt voor deze ingebouwde modus",
   "settings.agentBehaviour.editMode.save": "Klaar",

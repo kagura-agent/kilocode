@@ -94,3 +94,66 @@ describe("MarketplaceInstaller MCP format normalization", () => {
     expect(mcp).toEqual({ type: "local", command: ["npx", "-y", "someserver"], environment: { KEY: "val" } })
   })
 })
+
+describe("MarketplaceInstaller MCP removal persistence", () => {
+  afterEach(async () => {
+    await fs.rm(tmpDir, { recursive: true }).catch(() => {})
+  })
+
+  it("writes { enabled: false } sentinel when removing an existing MCP", async () => {
+    const installer = new MarketplaceInstaller(new TestPaths())
+    const item = {
+      type: "mcp" as const,
+      id: "filesystem",
+      name: "filesystem",
+      description: "",
+      url: "",
+      content: JSON.stringify({ type: "local", command: ["npx", "fs-server"] }),
+    }
+
+    // Install first
+    await installer.install(item, { target: "global" }, undefined)
+    const before = JSON.parse(await fs.readFile(new TestPaths().configPath("global"), "utf-8"))
+    expect(before.mcp.filesystem.type).toBe("local")
+
+    // Remove
+    const result = await installer.remove(item, "global")
+    expect(result.success).toBe(true)
+
+    const after = JSON.parse(await fs.readFile(new TestPaths().configPath("global"), "utf-8"))
+    expect(after.mcp.filesystem).toEqual({ enabled: false })
+  })
+
+  it("writes sentinel even when entry does not exist in kilo.json", async () => {
+    const installer = new MarketplaceInstaller(new TestPaths())
+    const stub = { type: "mcp" as const, id: "legacy", name: "legacy", description: "", url: "", content: "" }
+
+    const result = await installer.remove(stub, "global")
+    expect(result.success).toBe(true)
+
+    const written = JSON.parse(await fs.readFile(new TestPaths().configPath("global"), "utf-8"))
+    expect(written.mcp.legacy).toEqual({ enabled: false })
+  })
+
+  it("allows installing an MCP over a removal sentinel", async () => {
+    const installer = new MarketplaceInstaller(new TestPaths())
+    const stub = { type: "mcp" as const, id: "revived", name: "revived", description: "", url: "", content: "" }
+
+    // Create sentinel
+    await installer.remove(stub, "global")
+    const sentinel = JSON.parse(await fs.readFile(new TestPaths().configPath("global"), "utf-8"))
+    expect(sentinel.mcp.revived).toEqual({ enabled: false })
+
+    // Install over sentinel
+    const item = {
+      ...stub,
+      content: JSON.stringify({ type: "local", command: ["npx", "revived-server"] }),
+    }
+    const result = await installer.install(item, { target: "global" }, undefined)
+    expect(result.success).toBe(true)
+
+    const after = JSON.parse(await fs.readFile(new TestPaths().configPath("global"), "utf-8"))
+    expect(after.mcp.revived.type).toBe("local")
+    expect(after.mcp.revived.command).toEqual(["npx", "revived-server"])
+  })
+})

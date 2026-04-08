@@ -44,7 +44,8 @@ export class MarketplaceInstaller {
     const config = await this.readConfig(scope, workspace)
     if (!config.mcp) config.mcp = {}
 
-    if (config.mcp[item.id]) {
+    const existing = config.mcp[item.id]
+    if (existing && !isRemovalSentinel(existing)) {
       return { success: false, slug: item.id, error: "MCP server already installed. Remove it first." }
     }
 
@@ -196,11 +197,10 @@ export class MarketplaceInstaller {
 
   async removeMcp(item: McpMarketplaceItem, scope: "project" | "global", workspace?: string): Promise<RemoveResult> {
     const config = await this.readConfig(scope, workspace)
-    if (!config.mcp?.[item.id]) {
-      return { success: true, slug: item.id }
-    }
-    delete config.mcp[item.id]
-    if (Object.keys(config.mcp).length === 0) delete config.mcp
+    if (!config.mcp) config.mcp = {}
+    // Write a disabled sentinel instead of deleting, so the entry overrides
+    // any lower-precedence source (e.g. legacy mcp.json) on next config load.
+    config.mcp[item.id] = { enabled: false }
     await this.writeConfig(scope, workspace, config)
     return { success: true, slug: item.id }
   }
@@ -270,6 +270,17 @@ export class MarketplaceInstaller {
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────
+
+/**
+ * Check if an MCP config entry is a removal sentinel ({ enabled: false } with no type).
+ * Removal sentinels override lower-precedence sources (e.g. legacy mcp.json)
+ * so that deleted servers stay removed across restarts.
+ */
+function isRemovalSentinel(entry: unknown): boolean {
+  if (typeof entry !== "object" || entry === null) return false
+  const record = entry as Record<string, unknown>
+  return record.enabled === false && !("type" in record)
+}
 
 /**
  * Normalize a marketplace MCP entry from the old Kilocode format to the CLI's expected format.

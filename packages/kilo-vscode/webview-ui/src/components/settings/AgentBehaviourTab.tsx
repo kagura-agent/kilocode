@@ -502,7 +502,7 @@ const AgentBehaviourTab: Component = () => {
   }
 
   const renderMcpSubtab = () => {
-    const mcpEntries = createMemo(() => Object.entries(config().mcp ?? {}))
+    const mcpEntries = createMemo(() => Object.entries(config().mcp ?? {}).filter(([, v]) => v && "type" in v))
     const [expanded, setExpanded] = createSignal<Record<string, boolean>>({})
 
     const toggle = (name: string) => {

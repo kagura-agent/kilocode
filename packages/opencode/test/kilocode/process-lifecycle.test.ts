@@ -60,9 +60,14 @@ describe("kilocode/process-lifecycle", () => {
     expect(state.calls).toBe(1)
   })
 
-  test("backs off to the cap", () => {
-    expect(ProcessLifecycle.nextBackoff(250)).toBe(500)
-    expect(ProcessLifecycle.nextBackoff(60_000)).toBe(60_000)
+  test("backs off with jitter and respects cap", () => {
+    const result = ProcessLifecycle.nextBackoff(250)
+    expect(result).toBeGreaterThanOrEqual(250)
+    expect(result).toBeLessThanOrEqual(500)
+
+    const capped = ProcessLifecycle.nextBackoff(60_000)
+    expect(capped).toBeGreaterThanOrEqual(30_000)
+    expect(capped).toBeLessThanOrEqual(60_000)
   })
 
   test("abortable sleep resolves before its timer", async () => {

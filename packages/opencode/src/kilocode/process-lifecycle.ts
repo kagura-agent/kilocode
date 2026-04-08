@@ -2,7 +2,8 @@ export namespace ProcessLifecycle {
   export type Kill = (pid: number, signal?: NodeJS.Signals | 0) => boolean
 
   export function nextBackoff(delay: number, max = 60_000) {
-    return Math.min(delay * 2, max)
+    const doubled = Math.min(delay * 2, max)
+    return Math.floor(doubled * (0.5 + Math.random() * 0.5))
   }
 
   export function once(fn: () => void | Promise<void>) {

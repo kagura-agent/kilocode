@@ -12,6 +12,7 @@ import { NamedError } from "@opencode-ai/util/error"
 import { withTimeout } from "../util/timeout"
 import { Instance } from "../project/instance"
 import { Filesystem } from "../util/filesystem"
+import { Process } from "../util/process"
 
 const DIAGNOSTICS_DEBOUNCE_MS = 150
 
@@ -239,7 +240,7 @@ export namespace LSPClient {
         l.info("shutting down")
         connection.end()
         connection.dispose()
-        input.server.process.kill()
+        await Process.stop(input.server.process)
         l.info("shutdown")
       },
     }

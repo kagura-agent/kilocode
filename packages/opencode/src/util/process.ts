@@ -1,8 +1,10 @@
-import { spawn as launch, type ChildProcess } from "child_process"
+import { type ChildProcess } from "child_process"
+import launch from "cross-spawn"
 import { buffer } from "node:stream/consumers"
 
 export namespace Process {
   export type Stdio = "inherit" | "pipe" | "ignore"
+  export type Shell = boolean | string
 
   export interface Options {
     cwd?: string
@@ -10,6 +12,7 @@ export namespace Process {
     stdin?: Stdio
     stdout?: Stdio
     stderr?: Stdio
+    shell?: Shell
     abort?: AbortSignal
     kill?: NodeJS.Signals | number
     timeout?: number
@@ -54,9 +57,10 @@ export namespace Process {
 
     const proc = launch(cmd[0], cmd.slice(1), {
       cwd: opts.cwd,
+      shell: opts.shell,
       env: opts.env === null ? {} : opts.env ? { ...process.env, ...opts.env } : undefined,
       stdio: [opts.stdin ?? "ignore", opts.stdout ?? "ignore", opts.stderr ?? "ignore"],
-      windowsHide: true, // kilocode_change - prevent CMD window flash on Windows
+      windowsHide: process.platform === "win32",
     })
 
     let closed = false
@@ -80,16 +84,17 @@ export namespace Process {
         if (timer) clearTimeout(timer)
       }
 
-      proc.once("exit", (code, signal) => {
+      proc.once("exit", (code: number | null, signal: NodeJS.Signals | null) => {
         done()
         resolve(code ?? (signal ? 1 : 0))
       })
 
-      proc.once("error", (error) => {
+      proc.once("error", (error: Error) => {
         done()
         reject(error)
       })
     })
+    void exited.catch(() => undefined)
 
     if (opts.abort) {
       opts.abort.addEventListener("abort", abort, { once: true })
@@ -106,6 +111,7 @@ export namespace Process {
       cwd: opts.cwd,
       env: opts.env,
       stdin: opts.stdin,
+      shell: opts.shell,
       abort: opts.abort,
       kill: opts.kill,
       timeout: opts.timeout,
@@ -123,5 +129,23 @@ export namespace Process {
     }
     if (out.code === 0 || opts.nothrow) return out
     throw new RunFailedError(cmd, out.code, out.stdout, out.stderr)
+  }
+
+  // Duplicated in `packages/sdk/js/src/process.ts` because the SDK cannot import
+  // `opencode` without creating a cycle. Keep both copies in sync.
+  export async function stop(proc: ChildProcess) {
+    if (proc.exitCode !== null || proc.signalCode !== null) return
+
+    if (process.platform !== "win32" || !proc.pid) {
+      proc.kill()
+      return
+    }
+
+    const out = await run(["taskkill", "/pid", String(proc.pid), "/T", "/F"], {
+      nothrow: true,
+    })
+
+    if (out.code === 0) return
+    proc.kill()
   }
 }

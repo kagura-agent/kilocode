@@ -11,6 +11,7 @@ import { spawn } from "child_process"
 import { Instance } from "../project/instance"
 import { Flag } from "@/flag/flag"
 import { TsClient } from "../kilocode/ts-client" // kilocode_change
+import { Process } from "../util/process"
 
 export namespace LSP {
   const log = Log.create({ service: "lsp" })
@@ -203,19 +204,19 @@ export namespace LSP {
         root,
       }).catch((err) => {
         s.broken.add(key)
-        handle.process.kill()
+        void Process.stop(handle.process)
         log.error(`Failed to initialize LSP client ${server.id}`, { error: err })
         return undefined
       })
 
       if (!client) {
-        handle.process.kill()
+        void Process.stop(handle.process)
         return undefined
       }
 
       const existing = s.clients.find((x) => x.root === root && x.serverID === server.id)
       if (existing) {
-        handle.process.kill()
+        void Process.stop(handle.process)
         return existing
       }
 

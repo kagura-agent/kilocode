@@ -26,7 +26,7 @@ import { convertToMentionPath } from "../../utils/path-mentions"
 import { usePromptHistory } from "../../hooks/usePromptHistory"
 import { WandSparkles } from "@kilocode/kilo-ui/lucide"
 import { fileName, dirName, buildHighlightSegments, atEnd } from "./prompt-input-utils"
-import type { ReviewComment, TextPart } from "../../types/messages"
+import type { ReviewComment, TextPart, QuestionRequest } from "../../types/messages"
 import { formatReviewCommentsMarkdown } from "../../utils/review-comment-markdown"
 import { pendingDraftKey, scopeDraftKey, sessionDraftKey } from "../../utils/prompt-drafts"
 
@@ -46,6 +46,7 @@ function mergeReviewComments(current: ReviewComment[], incoming: ReviewComment[]
 
 interface PromptInputProps {
   blocked?: () => boolean
+  pendingQuestion?: QuestionRequest
   boxId?: string
   pendingSessionID?: string
 }
@@ -548,6 +549,20 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
     vscode.postMessage({ type: "enhancePrompt", text: draft, requestId: `enhance-${draftKey()}-${enhanceCounter}` })
   }
 
+  const cleanup = (draft: string) => {
+    history.append(draft)
+    history.reset()
+    setText("")
+    clearReviewComments()
+    imageAttach.clear()
+    mention.closeMention()
+    slash.close()
+    drafts.delete(draftKey())
+    reviewDrafts.delete(draftKey())
+    imageDrafts.delete(draftKey())
+    if (textareaRef) textareaRef.style.height = "auto"
+  }
+
   const handleSend = () => {
     const draft = text().trim()
 
@@ -562,16 +577,16 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
 
     // Client-side slash command — runs locally without a backend round-trip
     if (matched?.action) {
-      setText("")
-      clearReviewComments()
-      imageAttach.clear()
-      mention.closeMention()
-      slash.close()
-      drafts.delete(draftKey())
-      reviewDrafts.delete(draftKey())
-      imageDrafts.delete(draftKey())
-      if (textareaRef) textareaRef.style.height = "auto"
+      cleanup(draft)
       matched.action()
+      return
+    }
+
+    // If a question is pending, route the text as a custom question reply
+    const question = props.pendingQuestion
+    if (question && draft) {
+      session.replyToQuestion(question.id, [[draft]])
+      cleanup(draft)
       return
     }
 
@@ -588,7 +603,6 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
     const sel = session.selected()
     const attachments = allFiles.length > 0 ? allFiles : undefined
 
-    const key = draftKey()
     const pendingId = props.pendingSessionID ?? session.draftSessionID()
     // Server-side slash command (cmdMatch/matched already computed above)
     if (matched) {
@@ -599,18 +613,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
       session.sendMessage(message, sel?.providerID, sel?.modelID, attachments, pendingId)
     }
 
-    history.append(draft)
-    history.reset()
-    setText("")
-    clearReviewComments()
-    imageAttach.clear()
-    mention.closeMention()
-    slash.close()
-    drafts.delete(key)
-    reviewDrafts.delete(key)
-    imageDrafts.delete(key)
-
-    if (textareaRef) textareaRef.style.height = "auto"
+    cleanup(draft)
   }
 
   return (

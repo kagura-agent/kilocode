@@ -64,7 +64,7 @@ export const ChatView: Component<ChatViewProps> = (props) => {
     familyQuestions().find((q) => !q.tool) ??
     familyQuestions()[0]
   const permissionRequest = () => familyPermissions().find((p) => p.sessionID === id()) ?? familyPermissions()[0]
-  const blocked = () => familyPermissions().length > 0 || familyQuestions().length > 0
+  const blocked = () => familyPermissions().length > 0
   const dock = () => !props.readonly || !!questionRequest() || !!permissionRequest()
 
   // When a bottom-dock permission/question disappears while the session is busy,
@@ -216,7 +216,12 @@ export const ChatView: Component<ChatViewProps> = (props) => {
             </div>
           </Show>
           <Show when={!props.readonly}>
-            <PromptInput blocked={blocked} boxId={props.promptBoxId} pendingSessionID={props.pendingSessionID} />
+            <PromptInput
+              blocked={blocked}
+              pendingQuestion={questionRequest()}
+              boxId={props.promptBoxId}
+              pendingSessionID={props.pendingSessionID}
+            />
           </Show>
         </div>
       </Show>

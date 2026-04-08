@@ -223,7 +223,7 @@ export namespace PlanFollowup {
         {
           question: "Ready to implement?",
           header: "Implement",
-          custom: true,
+          custom: false,
           options: [
             {
               label: ANSWER_NEW_SESSION,

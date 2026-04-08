@@ -5,6 +5,7 @@ import { Card } from "@kilocode/kilo-ui/card"
 import { Button } from "@kilocode/kilo-ui/button"
 import { IconButton } from "@kilocode/kilo-ui/icon-button"
 import { Dialog } from "@kilocode/kilo-ui/dialog"
+import { Tooltip } from "@kilocode/kilo-ui/tooltip"
 import { useDialog } from "@kilocode/kilo-ui/context/dialog"
 import { Switch } from "@kilocode/kilo-ui/switch"
 
@@ -1004,7 +1005,17 @@ const AgentBehaviourTab: Component = () => {
               >
                 {path}
               </span>
-              <IconButton size="small" variant="ghost" icon="close" onClick={() => removeInstruction(index())} />
+              <div style={{ display: "flex", gap: "4px" }}>
+                <Tooltip value={language.t("agentManager.diff.openFile")} placement="top">
+                  <IconButton
+                    size="small"
+                    variant="ghost"
+                    icon="go-to-file"
+                    onClick={() => vscode.postMessage({ type: "openFile", filePath: path })}
+                  />
+                </Tooltip>
+                <IconButton size="small" variant="ghost" icon="close" onClick={() => removeInstruction(index())} />
+              </div>
             </div>
           )}
         </For>

@@ -1,6 +1,7 @@
 import { BusEvent } from "@/bus/bus-event"
 import { Bus } from "@/bus"
 import { type IPty } from "bun-pty"
+import { spawnSync } from "child_process" // kilocode_change
 import z from "zod"
 import { Identifier } from "../id/id"
 import { Log } from "../util/log"
@@ -90,12 +91,24 @@ export namespace Pty {
     subscribers: Map<unknown, Socket>
   }
 
+  // kilocode_change start — kill process tree on Windows before IPty.kill()
+  function killPty(pty: IPty) {
+    if (process.platform === "win32" && pty.pid > 0) {
+      spawnSync("taskkill", ["/pid", String(pty.pid), "/T", "/F"], {
+        windowsHide: true,
+        stdio: "ignore",
+      })
+    }
+    pty.kill()
+  }
+  // kilocode_change end
+
   const state = Instance.state(
     () => new Map<string, ActiveSession>(),
     async (sessions) => {
       for (const session of sessions.values()) {
         try {
-          session.process.kill()
+          killPty(session.process)
         } catch {}
         for (const [key, ws] of session.subscribers.entries()) {
           try {
@@ -224,7 +237,7 @@ export namespace Pty {
     state().delete(id)
     log.info("removing session", { id })
     try {
-      session.process.kill()
+      killPty(session.process)
     } catch {}
     for (const [key, ws] of session.subscribers.entries()) {
       try {

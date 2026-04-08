@@ -6,6 +6,7 @@ import { Instance } from "../../project/instance" // kilocode_change
 import { Workspace } from "../../control-plane/workspace"
 import { Project } from "../../project/project"
 import { Installation } from "../../installation"
+import { ProcessLifecycle } from "../../kilocode/process-lifecycle" // kilocode_change
 
 export const ServeCommand = cmd({
   command: "serve",
@@ -25,20 +26,28 @@ export const ServeCommand = cmd({
       workspaceSync = Project.list().map((project) => Workspace.startSyncing(project))
     }
 
-    // kilocode_change start - graceful signal shutdown
+    // kilocode_change start - graceful shutdown and orphan detection
     const abort = new AbortController()
-    const shutdown = async () => {
+    const shutdown = ProcessLifecycle.once(async () => {
+      const cancel = ProcessLifecycle.forceExit({ timeout: 10_000 })
       try {
         await Instance.disposeAll()
         await server.stop(true)
         await Promise.all(workspaceSync.map((item) => item.stop()))
       } finally {
+        cancel()
         abort.abort()
       }
-    }
-    process.on("SIGTERM", shutdown)
-    process.on("SIGINT", shutdown)
-    process.on("SIGHUP", shutdown)
+    })
+    const unwatch = ProcessLifecycle.watchParent({
+      onExit: () => {
+        void shutdown()
+      },
+    })
+    abort.signal.addEventListener("abort", unwatch, { once: true })
+    process.once("SIGTERM", () => void shutdown())
+    process.once("SIGINT", () => void shutdown())
+    process.once("SIGHUP", () => void shutdown())
     await new Promise((resolve) => abort.signal.addEventListener("abort", resolve))
     // kilocode_change end
   },

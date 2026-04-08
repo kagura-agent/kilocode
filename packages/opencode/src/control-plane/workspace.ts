@@ -10,6 +10,7 @@ import { WorkspaceTable } from "./workspace.sql"
 import { getAdaptor } from "./adaptors"
 import { WorkspaceInfo } from "./types"
 import { parseSSE } from "./sse"
+import { ProcessLifecycle } from "@/kilocode/process-lifecycle" // kilocode_change
 
 export namespace Workspace {
   export const Event = {
@@ -112,22 +113,27 @@ export namespace Workspace {
   const log = Log.create({ service: "workspace-sync" })
 
   async function workspaceEventLoop(space: Info, stop: AbortSignal) {
+    // kilocode_change start - exponential backoff for workspace SSE reconnects
+    const retry = { delay: 1000 }
     while (!stop.aborted) {
       const adaptor = await getAdaptor(space.type)
       const res = await adaptor.fetch(space, "/event", { method: "GET", signal: stop }).catch(() => undefined)
       if (!res || !res.ok || !res.body) {
-        await Bun.sleep(1000)
+        await ProcessLifecycle.sleep(retry.delay, stop)
+        retry.delay = ProcessLifecycle.nextBackoff(retry.delay)
         continue
       }
+      retry.delay = 250
       await parseSSE(res.body, stop, (event) => {
         GlobalBus.emit("event", {
           directory: space.id,
           payload: event,
         })
       })
-      // Wait 250ms and retry if SSE connection fails
-      await Bun.sleep(250)
+      await ProcessLifecycle.sleep(retry.delay, stop)
+      retry.delay = ProcessLifecycle.nextBackoff(retry.delay)
     }
+    // kilocode_change end
   }
 
   export function startSyncing(project: Project.Info) {

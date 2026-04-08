@@ -10,7 +10,7 @@ import { GlobalBus } from "@/bus/global"
 import { createKiloClient, type Event } from "@kilocode/sdk/v2"
 import type { BunWebSocketData } from "hono/bun"
 import { Flag } from "@/flag/flag"
-import { setTimeout as sleep } from "node:timers/promises"
+import { ProcessLifecycle } from "@/kilocode/process-lifecycle" // kilocode_change
 
 await Log.init({
   print: process.argv.includes("--print-logs"),
@@ -66,6 +66,8 @@ const startEventStream = (input: { directory: string; workspaceID?: string }) =>
   })
 
   ;(async () => {
+    // kilocode_change start - exponential backoff for event stream reconnects
+    const retry = { delay: 250 }
     while (!signal.aborted) {
       const events = await Promise.resolve(
         sdk.event.subscribe(
@@ -77,18 +79,22 @@ const startEventStream = (input: { directory: string; workspaceID?: string }) =>
       ).catch(() => undefined)
 
       if (!events) {
-        await sleep(250)
+        await ProcessLifecycle.sleep(retry.delay, signal)
+        retry.delay = ProcessLifecycle.nextBackoff(retry.delay)
         continue
       }
 
       for await (const event of events.stream) {
+        retry.delay = 250
         Rpc.emit("event", event as Event)
       }
 
       if (!signal.aborted) {
-        await sleep(250)
+        await ProcessLifecycle.sleep(retry.delay, signal)
+        retry.delay = ProcessLifecycle.nextBackoff(retry.delay)
       }
     }
+    // kilocode_change end
   })().catch((error) => {
     Log.Default.error("event stream error", {
       error: error instanceof Error ? error.message : error,

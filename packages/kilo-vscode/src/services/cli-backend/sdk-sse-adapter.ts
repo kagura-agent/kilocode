@@ -4,6 +4,13 @@ export type SSEEventHandler = (event: Event) => void
 export type SSEErrorHandler = (error: Error) => void
 export type SSEStateHandler = (state: "connecting" | "connected" | "disconnected") => void
 
+export const SSE_RECONNECT_DELAY_MS = 250
+export const SSE_RECONNECT_MAX_DELAY_MS = 60_000
+
+export function nextSSEReconnectDelay(delay: number): number {
+  return Math.min(delay * 2, SSE_RECONNECT_MAX_DELAY_MS)
+}
+
 /**
  * SSE adapter that consumes the SDK's `client.global.event()` AsyncGenerator
  * and distributes events to subscribers via a pub/sub interface.
@@ -39,7 +46,6 @@ export class SdkSSEAdapter {
   // every 10s, so this gives a 5s grace window before forcing a reconnect.
   // Reduced from 90s: with 90s a dead connection could linger for ~1.5 minutes.
   private static readonly HEARTBEAT_TIMEOUT_MS = 15_000
-  private static readonly RECONNECT_DELAY_MS = 250
 
   constructor(private readonly client: KiloClient) {}
 
@@ -129,6 +135,7 @@ export class SdkSSEAdapter {
    * Main reconnection loop — mirrors the pattern in `global-sdk.tsx`.
    */
   private async consumeLoop(signal: AbortSignal): Promise<void> {
+    const retry = { delay: SSE_RECONNECT_DELAY_MS }
     while (!signal.aborted) {
       const attempt = new AbortController()
 
@@ -172,6 +179,7 @@ export class SdkSSEAdapter {
           }
 
           this.resetHeartbeat(attempt)
+          retry.delay = SSE_RECONNECT_DELAY_MS
 
           // The SDK yields GlobalEvent = { directory, payload: Event }.
           const globalEvent = event as GlobalEvent
@@ -198,12 +206,32 @@ export class SdkSSEAdapter {
         break
       }
 
-      console.log(`[Kilo New] SSE: 🔄 Reconnecting in ${SdkSSEAdapter.RECONNECT_DELAY_MS}ms...`)
+      console.log(`[Kilo New] SSE: 🔄 Reconnecting in ${retry.delay}ms...`)
       this.notifyState("connecting")
-      await new Promise((resolve) => setTimeout(resolve, SdkSSEAdapter.RECONNECT_DELAY_MS))
+      await this.sleep(retry.delay, signal)
+      retry.delay = nextSSEReconnectDelay(retry.delay)
     }
 
     this.notifyState("disconnected")
+  }
+
+  private sleep(delay: number, signal: AbortSignal): Promise<void> {
+    return new Promise((resolve) => {
+      const timer = setTimeout(done, delay)
+
+      function done(): void {
+        clearTimeout(timer)
+        signal.removeEventListener("abort", done)
+        resolve()
+      }
+
+      if (signal.aborted) {
+        done()
+        return
+      }
+
+      signal.addEventListener("abort", done, { once: true })
+    })
   }
 
   /**

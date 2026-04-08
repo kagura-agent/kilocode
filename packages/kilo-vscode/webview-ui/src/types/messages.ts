@@ -213,6 +213,13 @@ export interface SlashCommandInfo {
   hints: string[]
 }
 
+// A single resolved permission rule from the CLI backend (matches PermissionNext.Rule)
+export interface PermissionRuleItem {
+  permission: string
+  pattern: string
+  action: PermissionLevel
+}
+
 // Agent/mode info from CLI backend
 export interface AgentInfo {
   name: string
@@ -223,6 +230,7 @@ export interface AgentInfo {
   hidden?: boolean
   deprecated?: boolean
   color?: string
+  permission?: PermissionRuleItem[]
 }
 
 // Server info
@@ -656,6 +664,7 @@ export interface ProvidersLoadedMessage {
 export interface AgentsLoadedMessage {
   type: "agentsLoaded"
   agents: AgentInfo[]
+  allAgents: AgentInfo[]
   defaultAgent: string
 }
 
@@ -805,6 +814,17 @@ export interface WorktreeState {
   prUrl?: string
   /** Cached PR state for correct badge color on reload (open/merged/closed/draft). */
   prState?: string
+  /** Section this worktree belongs to, or undefined for ungrouped. */
+  sectionId?: string
+}
+
+export interface SectionState {
+  id: string
+  name: string
+  /** Color label (e.g. "Red", "Blue") or null for default. */
+  color: string | null
+  order: number
+  collapsed: boolean
 }
 
 // ---------------------------------------------------------------------------
@@ -885,6 +905,7 @@ export interface AgentManagerStateMessage {
   type: "agentManager.state"
   worktrees: WorktreeState[]
   sessions: ManagedSessionState[]
+  sections?: SectionState[]
   staleWorktreeIds?: string[]
   tabOrder?: Record<string, string[]>
   worktreeOrder?: string[]
@@ -1262,6 +1283,10 @@ export interface ClearPendingPromptsMessage {
   type: "clearPendingPrompts"
 }
 
+export interface ExtensionDataReadyMessage {
+  type: "extensionDataReady"
+}
+
 // ============================================
 // Marketplace Messages
 // ============================================
@@ -1454,6 +1479,7 @@ export type ExtensionMessage =
   | WorktreeStatsLoadedMessage
   | McpStatusLoadedMessage
   | ClearPendingPromptsMessage
+  | ExtensionDataReadyMessage
 
 // ============================================
 // Messages FROM webview TO extension
@@ -2162,6 +2188,48 @@ export interface ContinueInWorktreeRequest {
   sessionId: string
 }
 
+// Section CRUD messages (webview → extension)
+export interface CreateSectionRequest {
+  type: "agentManager.createSection"
+  name: string
+  color?: string
+  worktreeIds?: string[]
+}
+
+export interface RenameSectionRequest {
+  type: "agentManager.renameSection"
+  sectionId: string
+  name: string
+}
+
+export interface DeleteSectionRequest {
+  type: "agentManager.deleteSection"
+  sectionId: string
+}
+
+export interface SetSectionColorRequest {
+  type: "agentManager.setSectionColor"
+  sectionId: string
+  color: string | null
+}
+
+export interface ToggleSectionCollapsedRequest {
+  type: "agentManager.toggleSectionCollapsed"
+  sectionId: string
+}
+
+export interface MoveToSectionRequest {
+  type: "agentManager.moveToSection"
+  worktreeIds: string[]
+  sectionId: string | null
+}
+
+export interface MoveSectionRequest {
+  type: "agentManager.moveSection"
+  sectionId: string
+  dir: -1 | 1
+}
+
 export type ContinueInWorktreeStatus =
   | "capturing"
   | "creating"
@@ -2307,6 +2375,13 @@ export type WebviewMessage =
   | ToggleFavoriteRequest
   | RequestFavoritesMessage
   | ContinueInWorktreeRequest
+  | CreateSectionRequest
+  | RenameSectionRequest
+  | DeleteSectionRequest
+  | SetSectionColorRequest
+  | ToggleSectionCollapsedRequest
+  | MoveToSectionRequest
+  | MoveSectionRequest
 
 // ============================================
 // VS Code API type

@@ -26,27 +26,23 @@ export namespace ProcessMonitor {
     () => {
       const entries = new Map<number, Tracked>()
       let active = false
-      const timer =
-        process.platform !== "win32"
-          ? setInterval(() => {
-              if (active) return
-              active = true
-              poll(entries).finally(() => {
-                active = false
-              })
-            }, POLL_MS)
-          : undefined
-      if (timer) timer.unref()
+      const timer = setInterval(() => {
+        if (active) return
+        active = true
+        poll(entries).finally(() => {
+          active = false
+        })
+      }, POLL_MS)
+      timer.unref()
       return { entries, timer }
     },
     async (s) => {
-      if (s.timer) clearInterval(s.timer)
+      clearInterval(s.timer)
       s.entries.clear()
     },
   )
 
   export function register(entry: Entry) {
-    if (process.platform === "win32") return
     state().entries.set(entry.pid, {
       ...entry,
       warned: false,
@@ -61,7 +57,6 @@ export namespace ProcessMonitor {
   }
 
   export function unregister(pid: number) {
-    if (process.platform === "win32") return
     state().entries.delete(pid)
   }
 
@@ -136,8 +131,12 @@ export namespace ProcessMonitor {
   }
 
   async function getRSS(pids: number[]): Promise<Map<number, number>> {
+    if (pids.length === 0) return new Map()
+    return process.platform === "win32" ? getRSSWindows(pids) : getRSSUnix(pids)
+  }
+
+  async function getRSSUnix(pids: number[]): Promise<Map<number, number>> {
     const result = new Map<number, number>()
-    if (pids.length === 0) return result
 
     try {
       const proc = Bun.spawn(["ps", "-o", "pid=,rss=", "-p", pids.join(",")], {
@@ -151,7 +150,7 @@ export namespace ProcessMonitor {
       // If ps fails with multiple PIDs (some may have exited), query individually
       if (code !== 0 && pids.length > 1) {
         for (const pid of pids) {
-          const one = await getRSS([pid])
+          const one = await getRSSUnix([pid])
           for (const [k, v] of one) result.set(k, v)
         }
         return result
@@ -163,6 +162,42 @@ export namespace ProcessMonitor {
         const p = parseInt(parts[0], 10)
         const kb = parseInt(parts[1], 10)
         if (!isNaN(p) && !isNaN(kb)) result.set(p, kb * 1024) // KB to bytes
+      }
+    } catch (err) {
+      log.error("rss query failed", { error: err })
+    }
+
+    return result
+  }
+
+  async function getRSSWindows(pids: number[]): Promise<Map<number, number>> {
+    const result = new Map<number, number>()
+    const wanted = new Set(pids)
+
+    try {
+      const proc = Bun.spawn(["tasklist", "/FO", "CSV", "/NH"], {
+        stdout: "pipe",
+        stderr: "pipe",
+        windowsHide: true,
+      })
+      const [code, out] = await Promise.all([proc.exited, new Response(proc.stdout).text()]).catch(
+        () => [-1, ""] as const,
+      )
+
+      if (code !== 0) return result
+
+      // Format: "name.exe","1234","Console","1","52,428 K"
+      for (const line of out.trim().split("\n")) {
+        const cols = line.trim().split('","')
+        if (cols.length < 5) continue
+        const pid = parseInt(cols[1], 10)
+        if (!wanted.has(pid)) continue
+        const mem = cols[4]
+          .replace(/"/g, "")
+          .replace(/,/g, "")
+          .replace(/\s*K\s*$/i, "")
+        const kb = parseInt(mem, 10)
+        if (!isNaN(pid) && !isNaN(kb)) result.set(pid, kb * 1024) // KB to bytes
       }
     } catch (err) {
       log.error("rss query failed", { error: err })

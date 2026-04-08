@@ -396,6 +396,7 @@ export namespace PermissionNext {
 
       for (const [id, entry] of Object.entries(s.pending)) {
         if (input.sessionID && entry.info.sessionID !== input.sessionID) continue
+        if (ConfigProtection.isRequest(entry.info)) continue
         delete s.pending[id]
         Bus.publish(Event.Replied, {
           sessionID: entry.info.sessionID,

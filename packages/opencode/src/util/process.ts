@@ -1,4 +1,4 @@
-import { type ChildProcess } from "child_process"
+import { type ChildProcess, spawnSync } from "child_process"
 import launch from "cross-spawn"
 import { buffer } from "node:stream/consumers"
 
@@ -55,10 +55,10 @@ export namespace Process {
     if (cmd.length === 0) throw new Error("Command is required")
     opts.abort?.throwIfAborted()
 
-    const proc = launch(cmd[0], cmd.slice(1), {
+    const proc = launch(cmd[0]!, cmd.slice(1), {
       cwd: opts.cwd,
       shell: opts.shell,
-      env: opts.env === null ? {} : opts.env ? { ...process.env, ...opts.env } : undefined,
+      env: (opts.env === null ? {} : opts.env ? { ...process.env, ...opts.env } : undefined) as NodeJS.ProcessEnv | undefined,
       stdio: [opts.stdin ?? "ignore", opts.stdout ?? "ignore", opts.stderr ?? "ignore"],
       windowsHide: process.platform === "win32",
     })
@@ -66,16 +66,34 @@ export namespace Process {
     let closed = false
     let timer: ReturnType<typeof setTimeout> | undefined
 
+    const killTree = (pid: number) => {
+      spawnSync("taskkill", ["/pid", String(pid), "/T", "/F"], {
+        windowsHide: true,
+        stdio: "ignore",
+      })
+    }
+
     const abort = () => {
       if (closed) return
       if (proc.exitCode !== null || proc.signalCode !== null) return
       closed = true
 
-      proc.kill(opts.kill ?? "SIGTERM")
+      if (process.platform === "win32" && proc.pid) {
+        killTree(proc.pid)
+      } else {
+        proc.kill(opts.kill ?? "SIGTERM")
+      }
 
       const ms = opts.timeout ?? 5_000
       if (ms <= 0) return
-      timer = setTimeout(() => proc.kill("SIGKILL"), ms)
+      timer = setTimeout(() => {
+        if (proc.exitCode !== null || proc.signalCode !== null) return
+        if (process.platform === "win32" && proc.pid) {
+          killTree(proc.pid)
+        } else {
+          proc.kill("SIGKILL")
+        }
+      }, ms)
     }
 
     const exited = new Promise<number>((resolve, reject) => {

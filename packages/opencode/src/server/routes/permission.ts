@@ -2,8 +2,6 @@ import { Hono } from "hono"
 import { describeRoute, validator, resolver } from "hono-openapi"
 import z from "zod"
 import { PermissionNext } from "@/permission/next"
-import { Session } from "@/session" // kilocode_change
-import { Config } from "@/config/config" // kilocode_change
 import { errors } from "../error"
 import { lazy } from "../../util/lazy"
 
@@ -91,76 +89,6 @@ export const PermissionRoutes = lazy(() =>
           approvedAlways: json.approvedAlways,
           deniedAlways: json.deniedAlways,
         })
-        return c.json(true)
-      },
-    )
-    // kilocode_change end
-    // kilocode_change start
-    .post(
-      "/allow-everything",
-      describeRoute({
-        summary: "Allow everything",
-        description: "Enable or disable allowing all permissions without prompts.",
-        operationId: "permission.allowEverything",
-        responses: {
-          200: {
-            description: "Success",
-            content: {
-              "application/json": {
-                schema: resolver(z.boolean()),
-              },
-            },
-          },
-          ...errors(400, 404),
-        },
-      }),
-      validator(
-        "json",
-        z.object({
-          enable: z.boolean(),
-          requestID: z.string().optional(),
-          sessionID: z.string().optional(),
-        }),
-      ),
-      async (c) => {
-        const json = c.req.valid("json")
-        const rules: PermissionNext.Ruleset = [{ permission: "*", pattern: "*", action: "allow" }]
-
-        if (!json.enable) {
-          if (json.sessionID) {
-            const session = await Session.get(json.sessionID)
-            await Session.setPermission({
-              sessionID: json.sessionID,
-              permission: (session.permission ?? []).filter(
-                (rule) => !(rule.permission === "*" && rule.pattern === "*" && rule.action === "allow"),
-              ),
-            })
-            await PermissionNext.allowEverything({ enable: false, sessionID: json.sessionID })
-            return c.json(true)
-          }
-
-          await Config.updateGlobal({ permission: { "*": { "*": null } } }, { dispose: false })
-          await PermissionNext.allowEverything({ enable: false })
-          return c.json(true)
-        }
-
-        if (json.sessionID) {
-          const session = await Session.get(json.sessionID)
-          const existing = session.permission ?? []
-          await Session.setPermission({
-            sessionID: json.sessionID,
-            permission: [...existing, ...rules],
-          })
-        } else {
-          await Config.updateGlobal({ permission: PermissionNext.toConfig(rules) }, { dispose: false })
-        }
-
-        await PermissionNext.allowEverything({
-          enable: true,
-          requestID: json.requestID,
-          sessionID: json.sessionID,
-        })
-
         return c.json(true)
       },
     )

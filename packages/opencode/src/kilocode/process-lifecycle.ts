@@ -32,6 +32,7 @@ export namespace ProcessLifecycle {
     const parent = input.parent ?? process.ppid
     const timer = setInterval(() => {
       if (!parentGone({ parent, ppid: input.ppid?.() })) return
+      clearInterval(timer)
       input.onExit()
     }, input.interval ?? 1000)
     timer.unref?.()

@@ -81,6 +81,43 @@ describe("kilocode/process-lifecycle", () => {
     expect(Date.now() - started).toBeLessThan(250)
   })
 
+  test("watchParent fires onExit when parent is gone", async () => {
+    const state = { exited: false, tick: 0 }
+    const unwatch = ProcessLifecycle.watchParent({
+      onExit: () => {
+        state.exited = true
+      },
+      interval: 10,
+      parent: 42,
+      ppid: () => {
+        state.tick++
+        return state.tick >= 2 ? 1 : 42
+      },
+    })
+
+    await Bun.sleep(100)
+    unwatch()
+
+    expect(state.exited).toBe(true)
+  })
+
+  test("watchParent unwatch stops polling", async () => {
+    const state = { calls: 0 }
+    const unwatch = ProcessLifecycle.watchParent({
+      onExit: () => {
+        state.calls++
+      },
+      interval: 10,
+      parent: 42,
+      ppid: () => 42,
+    })
+
+    unwatch()
+    await Bun.sleep(50)
+
+    expect(state.calls).toBe(0)
+  })
+
   test("forceExit can be cancelled", async () => {
     const state = { exited: false }
     const cancel = ProcessLifecycle.forceExit({

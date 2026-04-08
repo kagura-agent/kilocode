@@ -1044,7 +1044,7 @@ export function Prompt(props: PromptProps) {
         </box>
         <box
           height={1}
-          flexShrink={0}
+          flexShrink={0} {/* kilocode_change - prevent border box from shrinking in narrow terminals */}
           border={["left"]}
           borderColor={highlight()}
           customBorderChars={{

@@ -7,7 +7,6 @@ import { MessageV2 } from "../../session/message-v2"
 import { SessionPrompt } from "../../session/prompt"
 import { SessionCompaction } from "../../session/compaction"
 import { SessionRevert } from "../../session/revert"
-import { ToolRevert } from "../../kilocode/tool-revert" // kilocode_change
 import { SessionStatus } from "@/session/status"
 import { SessionSummary } from "@/session/summary"
 import { Todo } from "../../session/todo"
@@ -896,13 +895,11 @@ export const SessionRoutes = lazy(() =>
       validator("json", SessionRevert.RevertInput.omit({ sessionID: true })),
       async (c) => {
         const sessionID = c.req.valid("param").sessionID
-        const body = c.req.valid("json")
-        log.info("revert", body)
-        // kilocode_change start — route to per-tool revert when partID targets a tool part
-        const session = body.partID
-          ? await ToolRevert.revert({ sessionID, partID: body.partID })
-          : await SessionRevert.revert({ sessionID, ...body })
-        // kilocode_change end
+        log.info("revert", c.req.valid("json"))
+        const session = await SessionRevert.revert({
+          sessionID,
+          ...c.req.valid("json"),
+        })
         return c.json(session)
       },
     )

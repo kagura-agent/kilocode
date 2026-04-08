@@ -55,16 +55,44 @@ export namespace SessionRevert {
     }
 
     if (revert) {
-      const session = await Session.get(input.sessionID)
       revert.snapshot = session.revert?.snapshot ?? (await Snapshot.track())
 
-      // kilocode_change start - compute diffs BEFORE reverting files so the diff
-      // reflects changes being undone (files on disk still have AI modifications)
       const rangeMessages = all.filter((msg) => msg.info.id >= revert!.messageID)
-      const diffs = await SessionSummary.computeDiff({ messages: rangeMessages })
-      await Snapshot.revert(patches)
-      if (revert.snapshot) revert.diff = await Snapshot.diff(revert.snapshot)
+
+      // kilocode_change start — per-tool snapshot revert: collect tool-level snapshots
+      // from the revert boundary onward and use them instead of step-level patches.
+      const toolPatches: Snapshot.Patch[] = []
+      for (const msg of rangeMessages) {
+        const boundary = msg.info.id === revert!.messageID
+        for (const part of msg.parts) {
+          // For the boundary message, skip parts before the target partID
+          if (boundary && revert!.partID && part.id < revert!.partID) continue
+          if (part.type === "tool" && part.snapshot) {
+            if (part.state.status === "completed" || part.state.status === "error") {
+              toolPatches.push({ hash: part.snapshot, files: [] })
+            }
+          }
+        }
+      }
+
+      let diffs: Snapshot.FileDiff[]
+      if (toolPatches.length > 0) {
+        // Per-tool revert: compute diffs BEFORE reverting (files on disk still
+        // have AI modifications), then surgically restore changed files.
+        const hash = toolPatches[0]!.hash
+        const changed = await Snapshot.patch(hash)
+        diffs = changed.files.length > 0 ? await SessionSummary.computeDiff({ messages: rangeMessages }) : []
+        if (changed.files.length > 0) {
+          await Snapshot.revert([changed])
+        }
+      } else {
+        // Fallback: patch-based revert (message-level)
+        diffs = await SessionSummary.computeDiff({ messages: rangeMessages })
+        await Snapshot.revert(patches)
+      }
       // kilocode_change end
+
+      if (revert.snapshot) revert.diff = await Snapshot.diff(revert.snapshot)
       await Storage.write(["session_diff", input.sessionID], diffs)
       Bus.publish(Session.Event.Diff, {
         sessionID: input.sessionID,

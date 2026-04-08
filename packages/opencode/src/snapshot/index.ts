@@ -211,7 +211,7 @@ export namespace Snapshot {
 
   async function diffFullUncached(from: string, to: string): Promise<FileDiff[]> {
     const git = await KiloSnapshot.prepare() // kilocode_change
-  // kilocode_change end
+    // kilocode_change end
     const result: FileDiff[] = []
     const status = new Map<string, "added" | "deleted" | "modified">()
 

@@ -159,11 +159,16 @@ export namespace SessionProcessor {
                     toolcalls[value.toolCallId] = created as MessageV2.ToolPart
                   }
                   // kilocode_change end
+                  // kilocode_change start — snapshot before file-modifying tools for per-tool revert.
+                  const FILE_TOOLS = ["edit", "write", "multiedit", "apply_patch"]
+                  const toolSnapshot = FILE_TOOLS.includes(value.toolName) ? await Snapshot.track() : undefined
+                  // kilocode_change end
                   const match = toolcalls[value.toolCallId]
                   if (match) {
                     const part = await Session.updatePart({
                       ...match,
                       tool: value.toolName,
+                      snapshot: toolSnapshot, // kilocode_change
                       state: {
                         status: "running",
                         input: value.input,

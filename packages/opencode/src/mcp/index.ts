@@ -32,6 +32,7 @@ import { BusEvent } from "../bus/bus-event"
 import { Bus } from "@/bus"
 import { TuiEvent } from "@/cli/cmd/tui/event"
 import open from "open"
+import { spawnSync } from "child_process" // kilocode_change
 
 export namespace MCP {
   const log = Log.create({ service: "mcp" })
@@ -178,20 +179,24 @@ export namespace MCP {
     return ["run", "--rm", ...args.slice(1)]
   }
 
+  // kilocode_change start — support Windows descendant discovery via wmic
   async function descendants(pid: number): Promise<number[]> {
-    if (process.platform === "win32") return []
     const pids: number[] = []
     const queue = [pid]
     while (queue.length > 0) {
       const current = queue.shift()!
-      const proc = Bun.spawn(["pgrep", "-P", String(current)], { stdout: "pipe", stderr: "pipe" })
+      const cmd =
+        process.platform === "win32"
+          ? ["wmic", "process", "where", `(ParentProcessId=${current})`, "get", "ProcessId"]
+          : ["pgrep", "-P", String(current)]
+      const proc = Bun.spawn(cmd, { stdout: "pipe", stderr: "pipe", windowsHide: true })
       const [code, out] = await Promise.all([proc.exited, new Response(proc.stdout).text()]).catch(
         () => [-1, ""] as const,
       )
       if (code !== 0) continue
       for (const tok of out.trim().split(/\s+/)) {
         const cpid = parseInt(tok, 10)
-        if (!isNaN(cpid) && pids.indexOf(cpid) === -1) {
+        if (!isNaN(cpid) && cpid !== current && pids.indexOf(cpid) === -1) {
           pids.push(cpid)
           queue.push(cpid)
         }
@@ -199,6 +204,7 @@ export namespace MCP {
     }
     return pids
   }
+  // kilocode_change end
 
   const state = Instance.state(
     async () => {
@@ -247,7 +253,16 @@ export namespace MCP {
         if (typeof pid !== "number") continue
         for (const dpid of await descendants(pid)) {
           try {
-            process.kill(dpid, "SIGTERM")
+            // kilocode_change start — use taskkill on Windows since SIGTERM is a no-op
+            if (process.platform === "win32") {
+              spawnSync("taskkill", ["/pid", String(dpid), "/F"], {
+                windowsHide: true,
+                stdio: "ignore",
+              })
+            } else {
+              process.kill(dpid, "SIGTERM")
+            }
+            // kilocode_change end
           } catch {}
         }
       }

@@ -1792,9 +1792,9 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
       // Use global scope when removed from global (or both) so the global
       // config cache is also invalidated; project scope is a subset.
       const scope = global.success ? "global" : "project"
-      await this.disposeCliInstance(scope)
-      this.cachedConfigMessage = null
-      await this.fetchAndSendConfig()
+      this.cachedMcpStatusMessage = null
+      await this.invalidateAfterMarketplaceChange(scope)
+      await this.fetchAndSendMcpStatus()
     } else {
       console.error("[Kilo New] KiloProvider: Failed to remove MCP server:", name)
     }

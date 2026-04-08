@@ -68,7 +68,7 @@ function addedLines(file: string): Set<number> {
 }
 
 // Matches the start of a kilocode_change marker in both JS (//) and JSX ({/* */}) comments
-const MARKER_PREFIX = /(?:\/\/|\{?\s*\/\*)\s*kilocode_change/
+const MARKER_PREFIX = /(?:\/\/|\{?\s*\/\*)\s*kilocode_change\b/
 
 function hasMarker(line: string) {
   return MARKER_PREFIX.test(line)

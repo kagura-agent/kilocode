@@ -12,7 +12,7 @@ function isSource(file: string) {
   return SOURCE_EXTS.has(path.extname(file))
 }
 
-const MARKER_PREFIX = /(?:\/\/|\{?\s*\/\*)\s*kilocode_change/
+const MARKER_PREFIX = /(?:\/\/|\{?\s*\/\*)\s*kilocode_change\b/
 
 function hasMarker(line: string) {
   return MARKER_PREFIX.test(line)
@@ -99,6 +99,12 @@ describe("hasMarker", () => {
     ["// some other comment", false],
     ["{/* just a comment */}", false],
     ["/* something else */", false],
+    // typo variants — should NOT match (missing word boundary)
+    ["// kilocode_changes", false],
+    ["// kilocode_changelog", false],
+    ["/* kilocode_change_log */", false],
+    ["{/* kilocode_changes */}", false],
+    ["// kilocode_changeable", false],
     ["", false],
     ["  ", false],
   ]
@@ -453,6 +459,13 @@ describe("MARKER_PREFIX regex edge cases", () => {
 
   test("does not match /* without kilocode_change", () => {
     expect(hasMarker("/* just a comment */")).toBe(false)
+  })
+
+  test("does not match kilocode_changes (word boundary)", () => {
+    expect(hasMarker("// kilocode_changes")).toBe(false)
+    expect(hasMarker("// kilocode_changelog")).toBe(false)
+    expect(hasMarker("{/* kilocode_changes */}")).toBe(false)
+    expect(hasMarker("// kilocode_changeable")).toBe(false)
   })
 })
 

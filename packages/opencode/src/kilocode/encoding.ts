@@ -3,15 +3,19 @@ import { readFileSync } from "fs"
 import { readFile, writeFile, mkdir } from "fs/promises"
 import { dirname } from "path"
 import { existsSync } from "fs"
+import jschardet from "jschardet"
+import iconv from "iconv-lite"
 
 /**
  * Text encoding detection and preservation.
- * Detects file encoding from raw bytes (BOM + heuristics) and provides
- * round-trip read/write that preserves the original encoding.
+ * Uses jschardet for statistical encoding detection and iconv-lite for
+ * encode/decode, supporting CJK and other non-Latin encodings.
+ * BOM detection is handled explicitly to ensure round-trip fidelity.
  */
 export namespace Encoding {
   export interface Info {
-    encoding: "utf-8" | "utf-16le" | "utf-16be" | "latin1"
+    /** The iconv-lite compatible encoding name. */
+    encoding: string
     bom: boolean
   }
 
@@ -21,127 +25,102 @@ export namespace Encoding {
 
   export const DEFAULT: Info = { encoding: "utf-8", bom: false }
 
+  /** Map jschardet names to iconv-lite compatible names. */
+  function normalize(name: string): string {
+    const lower = name.toLowerCase().replace(/[^a-z0-9]/g, "")
+    const map: Record<string, string> = {
+      utf8: "utf-8",
+      utf16le: "utf-16le",
+      utf16be: "utf-16be",
+      utf32le: "utf-32le",
+      utf32be: "utf-32be",
+      ascii: "ascii",
+      iso88591: "iso-8859-1",
+      iso88592: "iso-8859-2",
+      iso88595: "iso-8859-5",
+      iso88597: "iso-8859-7",
+      iso88598: "iso-8859-8",
+      iso88599: "iso-8859-9",
+      windows1250: "windows-1250",
+      windows1251: "windows-1251",
+      windows1252: "windows-1252",
+      windows1253: "windows-1253",
+      windows1255: "windows-1255",
+      shiftjis: "Shift_JIS",
+      eucjp: "euc-jp",
+      iso2022jp: "iso-2022-jp",
+      euckr: "euc-kr",
+      iso2022kr: "iso-2022-kr",
+      big5: "big5",
+      gb2312: "gb2312",
+      gb18030: "gb18030",
+      hzgb2312: "hz-gb-2312",
+      euctw: "euc-tw",
+      iso2022cn: "iso-2022-cn",
+      koi8r: "koi8-r",
+      maccyrillic: "x-mac-cyrillic",
+      ibm855: "cp855",
+      ibm866: "cp866",
+      tis620: "tis-620",
+    }
+    return map[lower] ?? name
+  }
+
   export function detect(bytes: Buffer): Info {
-    // BOM detection (most reliable signal)
+    if (bytes.length === 0) return DEFAULT
+
+    // BOM detection (highest priority — never delegate to heuristics)
     if (bytes.length >= 3 && bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) {
       return { encoding: "utf-8", bom: true }
     }
     if (bytes.length >= 2 && bytes[0] === 0xfe && bytes[1] === 0xff) {
       return { encoding: "utf-16be", bom: true }
     }
-    // Disambiguate UTF-32 LE (FF FE 00 00) from UTF-16 LE (FF FE).
-    // UTF-32 is extremely rare in practice — treat it as UTF-16 LE only
-    // when the next two bytes are NOT both zero.
     if (bytes.length >= 2 && bytes[0] === 0xff && bytes[1] === 0xfe) {
+      // Disambiguate UTF-32 LE (FF FE 00 00) from UTF-16 LE (FF FE)
       if (bytes.length >= 4 && bytes[2] === 0x00 && bytes[3] === 0x00) {
-        // Looks like a UTF-32 LE BOM — unsupported, fall through to
-        // heuristic detection which will treat it as binary/latin1.
-      } else {
-        return { encoding: "utf-16le", bom: true }
+        return { encoding: "utf-32le", bom: true }
+      }
+      return { encoding: "utf-16le", bom: true }
+    }
+    if (bytes.length >= 4 && bytes[0] === 0x00 && bytes[1] === 0x00 && bytes[2] === 0xfe && bytes[3] === 0xff) {
+      return { encoding: "utf-32be", bom: true }
+    }
+
+    // Statistical detection via jschardet
+    const result = jschardet.detect(bytes)
+    if (result.encoding && result.confidence > 0.5) {
+      const enc = normalize(result.encoding)
+      // Treat ascii as utf-8 — ASCII is a strict subset
+      if (enc === "ascii") return DEFAULT
+      if (iconv.encodingExists(enc)) {
+        return { encoding: enc, bom: false }
       }
     }
 
-    // Heuristic: detect BOM-less UTF-16 by looking for null-byte patterns.
-    // Guard against misdetecting UTF-32 by checking for 4-byte null patterns first.
-    if (bytes.length >= 4) {
-      // Check for UTF-32 pattern (every codepoint is 4 bytes, ASCII range has 3 null bytes)
-      const aligned = Math.min(bytes.length & ~3, 512)
-      if (aligned >= 8) {
-        let utf32le = 0
-        let utf32be = 0
-        const quads = aligned / 4
-        for (let i = 0; i < aligned; i += 4) {
-          if (bytes[i] !== 0 && bytes[i + 1] === 0 && bytes[i + 2] === 0 && bytes[i + 3] === 0) utf32le++
-          if (bytes[i] === 0 && bytes[i + 1] === 0 && bytes[i + 2] === 0 && bytes[i + 3] !== 0) utf32be++
-        }
-        // If >25% of 4-byte groups match UTF-32 pattern, it's likely UTF-32 (unsupported)
-        if (utf32le > quads / 4 || utf32be > quads / 4) {
-          return { encoding: "latin1", bom: false }
-        }
-      }
-
-      let le = 0
-      let be = 0
-      const sample = Math.min(bytes.length & ~1, 512) // even number of bytes
-      for (let i = 0; i < sample; i += 2) {
-        if (bytes[i] !== 0 && bytes[i + 1] === 0) le++
-        if (bytes[i] === 0 && bytes[i + 1] !== 0) be++
-      }
-      const pairs = sample / 2
-      if (le > pairs / 4) return { encoding: "utf-16le", bom: false }
-      if (be > pairs / 4) return { encoding: "utf-16be", bom: false }
-    }
-
-    // Check if valid UTF-8; if not, fall back to Latin-1
-    if (!isUtf8(bytes)) {
-      return { encoding: "latin1", bom: false }
-    }
-
-    return DEFAULT
+    // Fallback: check UTF-8 validity, then latin1
+    if (isUtf8(bytes)) return DEFAULT
+    return { encoding: "iso-8859-1", bom: false }
   }
 
   export function decode(bytes: Buffer, info: Info): string {
-    const start = info.bom ? (info.encoding === "utf-8" ? 3 : 2) : 0
+    const start = info.bom ? bomSize(info.encoding) : 0
     const data = start > 0 ? bytes.subarray(start) : bytes
-
-    switch (info.encoding) {
-      case "utf-8":
-        return data.toString("utf-8")
-      case "utf-16le":
-        return data.toString("utf16le")
-      case "utf-16be": {
-        const swapped = Buffer.allocUnsafe(data.length)
-        for (let i = 0; i < data.length - 1; i += 2) {
-          swapped[i] = data[i + 1]
-          swapped[i + 1] = data[i]
-        }
-        return swapped.toString("utf16le")
-      }
-      case "latin1":
-        return data.toString("latin1")
-    }
+    return iconv.decode(data, info.encoding)
   }
 
   export function encode(text: string, info: Info): Buffer {
-    let body: Buffer
-    switch (info.encoding) {
-      case "utf-8":
-        body = Buffer.from(text, "utf-8")
-        break
-      case "utf-16le":
-        body = Buffer.from(text, "utf16le")
-        break
-      case "utf-16be": {
-        const le = Buffer.from(text, "utf16le")
-        body = Buffer.allocUnsafe(le.length)
-        for (let i = 0; i < le.length - 1; i += 2) {
-          body[i] = le[i + 1]
-          body[i + 1] = le[i]
-        }
-        break
-      }
-      case "latin1":
-        body = Buffer.from(text, "latin1")
-        break
-    }
-
+    const body = iconv.encode(text, info.encoding)
     if (!info.bom) return body
 
-    const bom =
-      info.encoding === "utf-8"
-        ? UTF8_BOM
-        : info.encoding === "utf-16le"
-          ? UTF16_LE_BOM
-          : info.encoding === "utf-16be"
-            ? UTF16_BE_BOM
-            : Buffer.alloc(0)
-
+    const bom = bomBytes(info.encoding)
+    if (bom.length === 0) return body
     return Buffer.concat([bom, body])
   }
 
   /** Read a file preserving its encoding info. */
   export async function read(path: string): Promise<{ text: string; info: Info }> {
-    const bytes = await readFile(path)
+    const bytes = Buffer.from(await readFile(path))
     const info = detect(bytes)
     return { text: decode(bytes, info), info }
   }
@@ -161,6 +140,24 @@ export namespace Encoding {
       await mkdir(dir, { recursive: true })
     }
     await writeFile(path, bytes)
+  }
+
+  function bomSize(encoding: string): number {
+    const lower = encoding.toLowerCase()
+    if (lower === "utf-8") return 3
+    if (lower === "utf-16le" || lower === "utf-16be") return 2
+    if (lower === "utf-32le" || lower === "utf-32be") return 4
+    return 0
+  }
+
+  function bomBytes(encoding: string): Buffer {
+    const lower = encoding.toLowerCase()
+    if (lower === "utf-8") return UTF8_BOM
+    if (lower === "utf-16le") return UTF16_LE_BOM
+    if (lower === "utf-16be") return UTF16_BE_BOM
+    if (lower === "utf-32le") return Buffer.from([0xff, 0xfe, 0x00, 0x00])
+    if (lower === "utf-32be") return Buffer.from([0x00, 0x00, 0xfe, 0xff])
+    return Buffer.alloc(0)
   }
 
   function isUtf8(bytes: Buffer): boolean {

@@ -45,7 +45,7 @@ export namespace Filesystem {
 
   // kilocode_change start - encoding-aware read/write for tool file operations
   export async function readEncoded(p: string): Promise<{ text: string; encoding: Encoding.Info }> {
-    const bytes = await readFile(p)
+    const bytes = Buffer.from(await readFile(p))
     const info = Encoding.detect(bytes)
     return { text: Encoding.decode(bytes, info), encoding: info }
   }

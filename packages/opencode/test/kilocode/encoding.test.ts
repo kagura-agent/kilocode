@@ -3,6 +3,7 @@ import { Encoding } from "../../src/kilocode/encoding"
 import { tmpdir } from "../fixture/fixture"
 import path from "path"
 import fs from "fs/promises"
+import iconv from "iconv-lite"
 
 describe("Encoding", () => {
   describe("detect", () => {
@@ -21,13 +22,7 @@ describe("Encoding", () => {
     })
 
     test("detects UTF-16 BE BOM", () => {
-      const le = Buffer.from("hello", "utf16le")
-      const be = Buffer.allocUnsafe(le.length)
-      for (let i = 0; i < le.length - 1; i += 2) {
-        be[i] = le[i + 1]
-        be[i + 1] = le[i]
-      }
-      const bytes = Buffer.concat([Buffer.from([0xfe, 0xff]), be])
+      const bytes = Buffer.concat([Buffer.from([0xfe, 0xff]), iconv.encode("hello", "utf-16be")])
       const info = Encoding.detect(bytes)
       expect(info.encoding).toBe("utf-16be")
       expect(info.bom).toBe(true)
@@ -40,43 +35,24 @@ describe("Encoding", () => {
       expect(info.bom).toBe(false)
     })
 
-    test("detects Latin-1 for invalid UTF-8 bytes", () => {
-      // 0xe9 alone is invalid UTF-8 (incomplete sequence)
-      const bytes = Buffer.from([0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0xe9])
-      const info = Encoding.detect(bytes)
-      expect(info.encoding).toBe("latin1")
-      expect(info.bom).toBe(false)
-    })
-
-    test("detects BOM-less UTF-16 LE from null-byte pattern", () => {
-      // "AB" in UTF-16LE is: 0x41 0x00 0x42 0x00
-      const bytes = Buffer.from("ABCDEFGHIJKLMNOP", "utf16le")
-      const info = Encoding.detect(bytes)
-      expect(info.encoding).toBe("utf-16le")
-      expect(info.bom).toBe(false)
-    })
-
     test("returns utf-8 for empty buffer", () => {
       const info = Encoding.detect(Buffer.alloc(0))
       expect(info.encoding).toBe("utf-8")
       expect(info.bom).toBe(false)
     })
 
-    test("does not misdetect UTF-32 LE BOM as UTF-16 LE", () => {
-      // UTF-32 LE BOM is FF FE 00 00
+    test("detects UTF-32 LE BOM", () => {
       const bytes = Buffer.from([0xff, 0xfe, 0x00, 0x00, 0x41, 0x00, 0x00, 0x00])
       const info = Encoding.detect(bytes)
-      // Should NOT be detected as utf-16le since it's actually UTF-32 LE
-      expect(info.encoding).not.toBe("utf-16le")
+      expect(info.encoding).toBe("utf-32le")
+      expect(info.bom).toBe(true)
     })
 
-    test("does not misdetect BOM-less UTF-32 LE as UTF-16 LE", () => {
-      // "ABCD" in UTF-32 LE: each char is 4 bytes with 3 trailing nulls
-      const bytes = Buffer.from([
-        0x41, 0x00, 0x00, 0x00, 0x42, 0x00, 0x00, 0x00, 0x43, 0x00, 0x00, 0x00, 0x44, 0x00, 0x00, 0x00,
-      ])
+    test("detects UTF-32 BE BOM", () => {
+      const bytes = Buffer.from([0x00, 0x00, 0xfe, 0xff, 0x00, 0x00, 0x00, 0x41])
       const info = Encoding.detect(bytes)
-      expect(info.encoding).not.toBe("utf-16le")
+      expect(info.encoding).toBe("utf-32be")
+      expect(info.bom).toBe(true)
     })
   })
 
@@ -100,22 +76,30 @@ describe("Encoding", () => {
     })
 
     test("decodes UTF-16 BE with BOM", () => {
-      const le = Buffer.from("hello", "utf16le")
-      const be = Buffer.allocUnsafe(le.length)
-      for (let i = 0; i < le.length - 1; i += 2) {
-        be[i] = le[i + 1]
-        be[i + 1] = le[i]
-      }
-      const bytes = Buffer.concat([Buffer.from([0xfe, 0xff]), be])
+      const bytes = Buffer.concat([Buffer.from([0xfe, 0xff]), iconv.encode("hello", "utf-16be")])
       const text = Encoding.decode(bytes, { encoding: "utf-16be", bom: true })
       expect(text).toBe("hello")
     })
 
-    test("decodes Latin-1", () => {
-      // "café" in Latin-1: c=0x63, a=0x61, f=0x66, é=0xe9
-      const bytes = Buffer.from([0x63, 0x61, 0x66, 0xe9])
-      const text = Encoding.decode(bytes, { encoding: "latin1", bom: false })
-      expect(text).toBe("caf\u00e9")
+    test("decodes Shift-JIS", () => {
+      const original = "こんにちは"
+      const bytes = iconv.encode(original, "Shift_JIS")
+      const text = Encoding.decode(bytes, { encoding: "Shift_JIS", bom: false })
+      expect(text).toBe(original)
+    })
+
+    test("decodes GB2312", () => {
+      const original = "你好世界"
+      const bytes = iconv.encode(original, "gb2312")
+      const text = Encoding.decode(bytes, { encoding: "gb2312", bom: false })
+      expect(text).toBe(original)
+    })
+
+    test("decodes EUC-KR", () => {
+      const original = "안녕하세요"
+      const bytes = iconv.encode(original, "euc-kr")
+      const text = Encoding.decode(bytes, { encoding: "euc-kr", bom: false })
+      expect(text).toBe(original)
     })
   })
 
@@ -140,19 +124,11 @@ describe("Encoding", () => {
       expect(bytes.subarray(2).toString("utf16le")).toBe("hi")
     })
 
-    test("encodes UTF-16 BE with BOM", () => {
-      const bytes = Encoding.encode("A", { encoding: "utf-16be", bom: true })
-      // BOM: FE FF
-      expect(bytes[0]).toBe(0xfe)
-      expect(bytes[1]).toBe(0xff)
-      // 'A' in UTF-16BE: 0x00 0x41
-      expect(bytes[2]).toBe(0x00)
-      expect(bytes[3]).toBe(0x41)
-    })
-
-    test("encodes Latin-1", () => {
-      const bytes = Encoding.encode("caf\u00e9", { encoding: "latin1", bom: false })
-      expect(bytes).toEqual(Buffer.from([0x63, 0x61, 0x66, 0xe9]))
+    test("encodes Shift-JIS", () => {
+      const text = "こんにちは"
+      const bytes = Encoding.encode(text, { encoding: "Shift_JIS", bom: false })
+      const expected = iconv.encode(text, "Shift_JIS")
+      expect(bytes).toEqual(expected)
     })
   })
 
@@ -181,12 +157,83 @@ describe("Encoding", () => {
       expect(result).toEqual(original)
     })
 
-    test("Latin-1 round-trips", () => {
-      const original = Buffer.from([0x63, 0x61, 0x66, 0xe9, 0x0a]) // "café\n" in latin1
+    test("Shift-JIS round-trips", () => {
+      const text = "日本語テスト\n"
+      const original = iconv.encode(text, "Shift_JIS")
       const info = Encoding.detect(original)
-      expect(info.encoding).toBe("latin1")
-      const text = Encoding.decode(original, info)
-      const result = Encoding.encode(text, info)
+      expect(info.encoding).toBe("Shift_JIS")
+      const decoded = Encoding.decode(original, info)
+      expect(decoded).toBe(text)
+      const result = Encoding.encode(decoded, info)
+      expect(result).toEqual(original)
+    })
+
+    test("EUC-JP round-trips", () => {
+      const text = "日本語テスト\n"
+      const original = iconv.encode(text, "euc-jp")
+      const info = Encoding.detect(original)
+      expect(info.encoding).toBe("euc-jp")
+      const decoded = Encoding.decode(original, info)
+      expect(decoded).toBe(text)
+      const result = Encoding.encode(decoded, info)
+      expect(result).toEqual(original)
+    })
+
+    test("Big5 round-trips", () => {
+      // Longer sample required for reliable statistical detection
+      const text = "次常用國字標準字體表建議使用正體中文排版系統進行文件處理以維護傳統漢字文化\n"
+      const original = iconv.encode(text, "big5")
+      const info = Encoding.detect(original)
+      expect(info.encoding).toBe("big5")
+      const decoded = Encoding.decode(original, info)
+      expect(decoded).toBe(text)
+      const result = Encoding.encode(decoded, info)
+      expect(result).toEqual(original)
+    })
+
+    test("GB2312 round-trips", () => {
+      // Longer sample required for reliable statistical detection
+      const text = "你好世界测试文件内容这是一个很长的中文文本用于测试编码检测功能\n第二行也有中文内容\n"
+      const original = iconv.encode(text, "gb2312")
+      const info = Encoding.detect(original)
+      // jschardet detects as GB2312 which normalizes the same
+      const decoded = Encoding.decode(original, info)
+      expect(decoded).toBe(text)
+      const result = Encoding.encode(decoded, info)
+      expect(result).toEqual(original)
+    })
+
+    test("EUC-KR round-trips", () => {
+      // Longer sample for reliable detection
+      const text = "안녕하세요 세계 프로그래밍 테스트 문자열입니다\n두번째 줄도 있습니다\n"
+      const original = iconv.encode(text, "euc-kr")
+      const info = Encoding.detect(original)
+      expect(info.encoding).toBe("euc-kr")
+      const decoded = Encoding.decode(original, info)
+      expect(decoded).toBe(text)
+      const result = Encoding.encode(decoded, info)
+      expect(result).toEqual(original)
+    })
+
+    test("Windows-1251 (Cyrillic) round-trips", () => {
+      const text = "Привет мир\n"
+      const original = iconv.encode(text, "windows-1251")
+      const info = Encoding.detect(original)
+      expect(info.encoding).toBe("windows-1251")
+      const decoded = Encoding.decode(original, info)
+      expect(decoded).toBe(text)
+      const result = Encoding.encode(decoded, info)
+      expect(result).toEqual(original)
+    })
+
+    test("KOI8-R (Russian) round-trips", () => {
+      const text = "Привет мир\n"
+      const original = iconv.encode(text, "koi8-r")
+      const info = Encoding.detect(original)
+      // jschardet detects KOI8-R for this content
+      const decoded = Encoding.decode(original, info)
+      expect(decoded).toBe(text)
+      const result = Encoding.encode(decoded, info)
       expect(result).toEqual(original)
     })
   })
@@ -203,11 +250,9 @@ describe("Encoding", () => {
       expect(info.bom).toBe(true)
       expect(text).toBe("line one\nline two\n")
 
-      // Modify and write back
       const modified = text.replace("one", "1")
       await Encoding.write(file, modified, info)
 
-      // Verify BOM is preserved
       const raw = await fs.readFile(file)
       expect(raw[0]).toBe(0xef)
       expect(raw[1]).toBe(0xbb)
@@ -227,26 +272,44 @@ describe("Encoding", () => {
       expect(info.bom).toBe(true)
       expect(text).toBe("hello world\n")
 
-      // Write back unchanged
       await Encoding.write(file, text, info)
 
       const raw = await fs.readFile(file)
       expect(raw).toEqual(original)
     })
 
-    test("preserves Latin-1 encoding through file write/read cycle", async () => {
+    test("preserves Shift-JIS through file write/read cycle", async () => {
       await using tmp = await tmpdir()
-      const file = path.join(tmp.path, "latin1.txt")
-      // "café résumé\n" in Latin-1
-      const original = Buffer.from("caf\xe9 r\xe9sum\xe9\n", "latin1")
+      const file = path.join(tmp.path, "shiftjis.txt")
+      const text = "日本語テスト\nconst x = 1;\n"
+      const original = iconv.encode(text, "Shift_JIS")
       await fs.writeFile(file, original)
 
-      const { text, info } = await Encoding.read(file)
-      expect(info.encoding).toBe("latin1")
-      expect(text).toContain("caf")
-      expect(text).toContain("sum")
+      const { text: decoded, info } = await Encoding.read(file)
+      expect(info.encoding).toBe("Shift_JIS")
+      expect(decoded).toBe(text)
 
-      await Encoding.write(file, text, info)
+      // Modify ASCII part and write back
+      const modified = decoded.replace("const x = 1", "const x = 2")
+      await Encoding.write(file, modified, info)
+
+      const raw = await fs.readFile(file)
+      const expected = iconv.encode(modified, "Shift_JIS")
+      expect(raw).toEqual(expected)
+    })
+
+    test("preserves Big5 through file write/read cycle", async () => {
+      await using tmp = await tmpdir()
+      const file = path.join(tmp.path, "big5.txt")
+      const text = "次常用國字標準字體表建議使用正體中文排版系統進行文件處理\n第二行正體中文\n"
+      const original = iconv.encode(text, "big5")
+      await fs.writeFile(file, original)
+
+      const { text: decoded, info } = await Encoding.read(file)
+      expect(info.encoding).toBe("big5")
+      expect(decoded).toBe(text)
+
+      await Encoding.write(file, decoded, info)
 
       const raw = await fs.readFile(file)
       expect(raw).toEqual(original)

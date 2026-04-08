@@ -67,16 +67,22 @@ export class ServerManager {
     // Resolve the workspace directory so it is visible in process listings
     // (ps aux) and environment dumps, helping users identify which VS Code
     // window spawned a runaway kilo process.
-    const workspace = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? process.cwd()
+    // Only use the path if the folder scheme is "file" (local) and the
+    // directory actually exists — avoids spawn failures on remote/virtual
+    // workspaces, missing directories, and Windows UNC edge-cases.
+    const folder = vscode.workspace.workspaceFolders?.[0]
+    const workspace = folder?.uri.scheme === "file" && fs.existsSync(folder.uri.fsPath) ? folder.uri.fsPath : undefined
 
     return new Promise((resolve, reject) => {
       // Args after "--" bypass yargs strict mode and appear in `ps aux`,
       // making the spawn source and workspace directory easy to spot.
-      const args = ["serve", "--port", "0", "--", `--source=vscode`, `--workspace=${workspace}`]
+      const args = ["serve", "--port", "0", "--", "--source=vscode"]
+      if (workspace) {
+        args.push(`--workspace=${workspace}`)
+      }
       console.log("[Kilo New] ServerManager: 🎬 Spawning CLI process:", cliPath, args)
       const claudeCompat = vscode.workspace.getConfiguration("kilo-code.new").get<boolean>("claudeCodeCompat", false)
       const serverProcess = spawn(cliPath, args, {
-        cwd: workspace,
         env: {
           ...process.env,
           KILO_SERVER_PASSWORD: password,
@@ -91,7 +97,7 @@ export class ServerManager {
           KILO_APP_VERSION: this.context.extension.packageJSON.version,
           KILO_VSCODE_VERSION: vscode.version,
           KILO_SPAWN_SOURCE: "vscode",
-          KILO_WORKSPACE_DIR: workspace,
+          ...(workspace && { KILO_WORKSPACE_DIR: workspace }),
           ...(!claudeCompat && { KILO_DISABLE_CLAUDE_CODE: "true" }),
         },
         stdio: ["ignore", "pipe", "pipe"],

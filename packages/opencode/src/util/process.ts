@@ -66,21 +66,12 @@ export namespace Process {
     let closed = false
     let timer: ReturnType<typeof setTimeout> | undefined
 
-    const killTree = (pid: number) => {
-      spawnSync("taskkill", ["/pid", String(pid), "/T", "/F"], {
-        windowsHide: true,
-        stdio: "ignore",
-      })
-    }
-
     const abort = () => {
       if (closed) return
       if (proc.exitCode !== null || proc.signalCode !== null) return
       closed = true
 
-      if (process.platform === "win32" && proc.pid) {
-        killTree(proc.pid)
-      } else {
+      if (!(proc.pid && killpid(proc.pid))) {
         proc.kill(opts.kill ?? "SIGTERM")
       }
 
@@ -88,9 +79,7 @@ export namespace Process {
       if (ms <= 0) return
       timer = setTimeout(() => {
         if (proc.exitCode !== null || proc.signalCode !== null) return
-        if (process.platform === "win32" && proc.pid) {
-          killTree(proc.pid)
-        } else {
+        if (!(proc.pid && killpid(proc.pid))) {
           proc.kill("SIGKILL")
         }
       }, ms)
@@ -149,21 +138,23 @@ export namespace Process {
     throw new RunFailedError(cmd, out.code, out.stdout, out.stderr)
   }
 
+  // kilocode_change start — synchronous Windows process tree kill helper.
+  // Centralises the taskkill pattern used by abort(), stop(), pty, ts-check, and mcp.
+  // On non-Windows this is a no-op and returns false so callers can fall back to signals.
+  export function killpid(pid: number, tree = true): boolean {
+    if (process.platform !== "win32") return false
+    const args = ["/pid", String(pid), "/F"]
+    if (tree) args.push("/T")
+    const r = spawnSync("taskkill", args, { windowsHide: true, stdio: "ignore" })
+    return r.status === 0
+  }
+  // kilocode_change end
+
   // Duplicated in `packages/sdk/js/src/process.ts` because the SDK cannot import
   // `opencode` without creating a cycle. Keep both copies in sync.
-  export async function stop(proc: ChildProcess) {
+  export function stop(proc: ChildProcess) {
     if (proc.exitCode !== null || proc.signalCode !== null) return
-
-    if (process.platform !== "win32" || !proc.pid) {
-      proc.kill()
-      return
-    }
-
-    const out = await run(["taskkill", "/pid", String(proc.pid), "/T", "/F"], {
-      nothrow: true,
-    })
-
-    if (out.code === 0) return
+    if (proc.pid && killpid(proc.pid)) return
     proc.kill()
   }
 }

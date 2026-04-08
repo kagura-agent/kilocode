@@ -1,9 +1,10 @@
 import { Flag } from "@/flag/flag"
 import { lazy } from "@/util/lazy"
 import { Filesystem } from "@/util/filesystem"
+import { Process } from "@/util/process" // kilocode_change
 import { which } from "@/util/which"
 import path from "path"
-import { spawn, type ChildProcess } from "child_process"
+import { type ChildProcess } from "child_process"
 import { setTimeout as sleep } from "node:timers/promises"
 
 const SIGKILL_TIMEOUT_MS = 200
@@ -13,14 +14,9 @@ export namespace Shell {
     const pid = proc.pid
     if (!pid || opts?.exited?.()) return
 
-    if (process.platform === "win32") {
-      await new Promise<void>((resolve) => {
-        const killer = spawn("taskkill", ["/pid", String(pid), "/f", "/t"], { stdio: "ignore", windowsHide: true })
-        killer.once("exit", () => resolve())
-        killer.once("error", () => resolve())
-      })
-      return
-    }
+    // kilocode_change start — use Process.killpid on Windows
+    if (Process.killpid(pid)) return
+    // kilocode_change end
 
     try {
       process.kill(-pid, "SIGTERM")

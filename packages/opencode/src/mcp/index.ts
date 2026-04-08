@@ -32,7 +32,7 @@ import { BusEvent } from "../bus/bus-event"
 import { Bus } from "@/bus"
 import { TuiEvent } from "@/cli/cmd/tui/event"
 import open from "open"
-import { spawnSync } from "child_process" // kilocode_change
+import { Process } from "../util/process" // kilocode_change
 
 export namespace MCP {
   const log = Log.create({ service: "mcp" })
@@ -253,16 +253,10 @@ export namespace MCP {
         if (typeof pid !== "number") continue
         for (const dpid of await descendants(pid)) {
           try {
-            // kilocode_change start — use taskkill on Windows since SIGTERM is a no-op
-            if (process.platform === "win32") {
-              spawnSync("taskkill", ["/pid", String(dpid), "/F"], {
-                windowsHide: true,
-                stdio: "ignore",
-              })
-            } else {
+            // kilocode_change — use Process.killpid on Windows since SIGTERM is a no-op
+            if (!Process.killpid(dpid, false)) {
               process.kill(dpid, "SIGTERM")
             }
-            // kilocode_change end
           } catch {}
         }
       }

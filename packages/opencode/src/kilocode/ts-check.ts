@@ -2,7 +2,7 @@
 import type { Diagnostic } from "vscode-languageserver-types"
 import { Log } from "../util/log"
 import { Filesystem } from "../util/filesystem"
-import { spawnSync } from "child_process"
+import { Process } from "../util/process"
 import path from "path"
 import fs from "fs/promises"
 
@@ -44,12 +44,7 @@ export namespace TsCheck {
     ])
     if (settled.timedOut) {
       log.warn("ts check timed out, killing process", { elapsed: Date.now() - start })
-      if (process.platform === "win32" && proc.pid) {
-        spawnSync("taskkill", ["/pid", String(proc.pid), "/T", "/F"], {
-          windowsHide: true,
-          stdio: "ignore",
-        })
-      } else {
+      if (!(proc.pid && Process.killpid(proc.pid))) {
         proc.kill()
       }
     }

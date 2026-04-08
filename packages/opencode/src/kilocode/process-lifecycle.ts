@@ -9,7 +9,7 @@ export namespace ProcessLifecycle {
   export function once(fn: () => void | Promise<void>) {
     const state: { promise?: Promise<void> } = {}
     return () => {
-      if (!state.promise) state.promise = Promise.resolve(fn())
+      if (!state.promise) state.promise = (async () => fn())()
       return state.promise
     }
   }

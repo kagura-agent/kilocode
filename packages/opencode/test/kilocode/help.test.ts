@@ -1,4 +1,5 @@
 import { describe, test, expect } from "bun:test"
+import path from "path"
 import { generateHelp, generateCommandTable } from "../../src/kilocode/help"
 import { AcpCommand } from "../../src/cli/cmd/acp"
 import { McpCommand } from "../../src/cli/cmd/mcp"
@@ -153,5 +154,30 @@ describe("generateCommandTable", () => {
   test("contains kilo help row", async () => {
     const output = await generateCommandTable({ commands })
     expect(output).toContain("`kilo help")
+  })
+})
+
+describe("commands barrel sync", () => {
+  // Parses index.ts source text to extract active .command(XyzCommand) names,
+  // then verifies each one appears in the commands barrel. This catches drift
+  // when a new command is added to index.ts but not to commands.ts.
+  //
+  // Intentionally excluded:
+  //  - Commented-out commands (e.g. WebCommand, GithubCommand)
+  //  - Conditional commands behind `if` guards (e.g. WorkspaceServeCommand)
+  //  - CompletionCommand (synthetic entry in barrel, not in index.ts)
+
+  test("every active command in index.ts is present in the barrel", async () => {
+    const src = path.resolve(import.meta.dir, "../../src")
+    const index = await Bun.file(path.join(src, "index.ts")).text()
+    const barrel = await Bun.file(path.join(src, "kilocode/commands.ts")).text()
+
+    // Match uncommented .command(XyzCommand) calls in the main chain.
+    // Skip lines starting with // (commented out) and conditional assignments
+    // like `cli = cli.command(...)` which are behind runtime guards.
+    const active = [...index.matchAll(/^\s*\.command\((\w+)\)/gm)].map((m) => m[1]!)
+    const missing = active.filter((name) => !barrel.includes(name))
+
+    expect(missing).toEqual([])
   })
 })

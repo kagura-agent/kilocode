@@ -41,6 +41,7 @@ import { getBusySessionCount, seedSessionStatuses } from "./session-status"
 import { retry } from "./services/cli-backend/retry"
 import { slimPart, slimParts } from "./kilo-provider/slim-metadata"
 import { matchFollowup, recordFollowup, type Followup } from "./kilo-provider/followup-session"
+import { childID } from "./kilo-provider/task-session"
 import { retryable, backoff, MAX_RETRIES } from "./util/retry"
 // legacy-migration start
 import {
@@ -1343,7 +1344,6 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
 
     this.syncedChildSessions.add(sessionID)
     this.trackedSessionIds.add(sessionID)
-
     // Inherit the parent's worktree directory so permission responses use
     // the correct backend Instance. Without this, child sessions in Agent
     // Manager worktrees fall back to workspace root and fail to find the
@@ -2835,7 +2835,6 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
     }
 
     const sessionID = this.connectionService.resolveEventSessionId(event)
-
     // Events without sessionID (server.connected, server.heartbeat) → always forward
     // Events with sessionID → only forward if this webview tracks that session
     // message.part.updated and message.part.delta are always session-scoped; drop if session unknown.
@@ -2888,9 +2887,10 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
         type?: string
         tool?: string
         metadata?: { sessionId?: string }
+        state?: { metadata?: { sessionId?: string } }
         sessionID?: string
       }
-      const childId = part.type === "tool" && part.tool === "task" ? part.metadata?.sessionId : undefined
+      const childId = childID(part)
       if (childId && !this.trackedSessionIds.has(childId)) {
         console.log("[Kilo New] KiloProvider: 🔗 Auto-adopting child session from task tool", { childId })
         void this.handleSyncSession(childId, part.sessionID ?? sessionID)

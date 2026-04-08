@@ -11,6 +11,16 @@ import { defer } from "@/util/defer"
 import { Config } from "../config/config"
 import { PermissionNext } from "@/permission/next"
 
+// kilocode_change start — metadata type for self-loop early return compatibility
+type Meta = {
+  sessionId?: string
+  model?: {
+    modelID: string
+    providerID: string
+  }
+}
+// kilocode_change end
+
 const parameters = z.object({
   description: z.string().describe("A short (3-5 words) description of the task"),
   prompt: z.string().describe("The task for the agent to perform"),
@@ -24,7 +34,7 @@ const parameters = z.object({
   command: z.string().describe("The command that triggered this task").optional(),
 })
 
-export const TaskTool = Tool.define("task", async (ctx) => {
+export const TaskTool = Tool.define<typeof parameters, Meta>("task", async (ctx) => { // kilocode_change
   const agents = await Agent.list().then((x) => x.filter((a) => a.mode !== "primary"))
 
   // Filter agents by permissions if agent provided
@@ -43,6 +53,19 @@ export const TaskTool = Tool.define("task", async (ctx) => {
     description,
     parameters,
     async execute(params: z.infer<typeof parameters>, ctx) {
+      // kilocode_change start — block same-agent recursive delegation to prevent hang loops
+      if (ctx.agent === params.subagent_type) {
+        return {
+          title: params.description,
+          metadata: {},
+          output: [
+            "<task_result>",
+            `Delegation to @${params.subagent_type} was blocked to prevent recursive hangs. Continue the investigation in the current agent or choose a different subagent.`,
+            "</task_result>",
+          ].join("\n"),
+        }
+      }
+      // kilocode_change end
       const config = await Config.get()
 
       // Skip permission check when user explicitly invoked via @ or command subtask

@@ -589,8 +589,8 @@ export namespace Server {
                 }),
               })
 
+              // kilocode_change start - clean up SSE subscriptions when writes fail
               await new Promise<void>((resolve) => {
-                // kilocode_change start - clean up SSE subscriptions when writes fail
                 const state: {
                   heartbeat?: ReturnType<typeof setInterval>
                   unsub?: () => void
@@ -635,8 +635,8 @@ export namespace Server {
                 stream.onAbort(() => {
                   void cleanup()
                 })
-                // kilocode_change end
               })
+              // kilocode_change end
             })
           },
         )

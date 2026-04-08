@@ -123,8 +123,8 @@ export namespace Workspace {
         retry.delay = ProcessLifecycle.nextBackoff(retry.delay)
         continue
       }
-      retry.delay = 250
       await parseSSE(res.body, stop, (event) => {
+        retry.delay = 250
         GlobalBus.emit("event", {
           directory: space.id,
           payload: event,

@@ -2668,7 +2668,7 @@ body.vscode-light
     align-items: center;
     justify-content: space-between;
     gap: 8px;
-    padding: 10px 10px 6px 14px;
+    padding: 6px 8px 4px 12px;
     cursor: pointer;
   }
 
@@ -2770,34 +2770,34 @@ body.vscode-light
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 2px;
     padding-bottom: 2px;
   }
 
   /* ── Body content ── */
   [data-slot="question-text"] {
     font-family: var(--font-family-sans);
-    font-size: 14px;
+    font-size: 13px;
     font-weight: var(--font-weight-medium);
     line-height: var(--line-height-large);
     color: var(--text-strong);
-    padding: 0 14px;
+    padding: 0 12px;
   }
 
   [data-slot="question-hint"] {
     font-family: var(--font-family-sans);
-    font-size: 13px;
+    font-size: 12px;
     font-weight: var(--font-weight-regular);
     line-height: var(--line-height-large);
     color: var(--text-weak);
-    padding: 0 14px;
+    padding: 0 12px;
   }
 
   [data-slot="question-options"] {
     display: flex;
     flex-direction: column;
     gap: 2px;
-    padding: 4px 4px;
+    padding: 2px 4px;
     max-height: 40vh;
     overflow-y: auto;
     scrollbar-width: none;
@@ -2811,7 +2811,7 @@ body.vscode-light
     display: flex;
     align-items: flex-start;
     gap: 12px;
-    padding: 8px 10px;
+    padding: 6px 8px;
     background-color: transparent;
     border: none;
     border-radius: 6px;
@@ -2903,7 +2903,7 @@ body.vscode-light
 
   [data-slot="option-label"] {
     font-family: var(--font-family-sans);
-    font-size: 14px;
+    font-size: 13px;
     font-weight: var(--font-weight-medium);
     line-height: var(--line-height-large);
     color: var(--text-strong);
@@ -2911,7 +2911,7 @@ body.vscode-light
 
   [data-slot="option-description"] {
     font-family: var(--font-family-sans);
-    font-size: 14px;
+    font-size: 12px;
     font-weight: var(--font-weight-regular);
     line-height: var(--line-height-large);
     color: var(--text-base);
@@ -2996,7 +2996,7 @@ body.vscode-light
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 6px 10px 10px;
+    padding: 4px 8px 6px;
   }
 
   [data-slot="question-footer-actions"] {

@@ -48,6 +48,8 @@ interface GitStatsPollerOptions {
   intervalMs?: number
   /** Shared concurrency gate for child process spawning. */
   semaphore?: Semaphore
+  visibleIntervalMs?: number
+  hiddenIntervalMs?: number
 }
 
 export class GitStatsPoller {
@@ -62,12 +64,26 @@ export class GitStatsPoller {
     { files: number; additions: number; deletions: number; ahead: number; behind: number }
   > = {}
   private readonly intervalMs: number
+  private readonly hiddenIntervalMs: number
   private readonly git: GitOps
   private skipWorktreeIds = new Set<string>()
+  private consecutiveNoChanges = 0
+  private visible = true
 
   constructor(private readonly options: GitStatsPollerOptions) {
     this.intervalMs = options.intervalMs ?? 5000
+    this.hiddenIntervalMs = options.hiddenIntervalMs ?? 60000
     this.git = options.git
+  }
+
+  setVisible(visible: boolean): void {
+    if (this.visible === visible) return
+    this.visible = visible
+    if (this.active && this.timer) {
+      clearTimeout(this.timer)
+      this.timer = undefined
+      this.schedule(this.getAdaptiveInterval())
+    }
   }
 
   skipWorktree(id: string): void {
@@ -98,12 +114,30 @@ export class GitStatsPoller {
     this.lastLocalHash = undefined
     this.lastLocalStats = undefined
     this.lastStats = {}
+    this.consecutiveNoChanges = 0
   }
 
   private start(): void {
     this.stop()
     this.active = true
+    this.consecutiveNoChanges = 0
     void this.poll()
+  }
+
+  private getAdaptiveInterval(): number {
+    if (!this.visible) {
+      return this.hiddenIntervalMs
+    }
+    if (this.consecutiveNoChanges > 10) {
+      return 60000
+    }
+    if (this.consecutiveNoChanges > 5) {
+      return 30000
+    }
+    if (this.consecutiveNoChanges > 2) {
+      return 10000
+    }
+    return this.intervalMs
   }
 
   private schedule(delay: number): void {
@@ -119,7 +153,8 @@ export class GitStatsPoller {
     this.busy = true
     return this.fetch().finally(() => {
       this.busy = false
-      this.schedule(this.intervalMs)
+      const interval = this.getAdaptiveInterval()
+      this.schedule(interval)
     })
   }
 
@@ -199,7 +234,10 @@ export class GitStatsPoller {
         (item) => `${item.worktreeId}:${item.files}:${item.additions}:${item.deletions}:${item.ahead}:${item.behind}`,
       )
       .join("|")
-    if (hash === this.lastHash) return
+    if (hash === this.lastHash) {
+      this.consecutiveNoChanges++
+      return
+    }
     this.lastHash = hash
     this.lastStats = stats.reduce(
       (acc, item) => {
@@ -296,9 +334,11 @@ export class GitStatsPoller {
 
       const hash = `local:${branch}:${files}:${additions}:${deletions}:${ahead}:${behind}`
       if (hash === this.lastLocalHash) {
+        this.consecutiveNoChanges++
         this.options.log(`Local stats: unchanged (${hash})`)
         return
       }
+      this.consecutiveNoChanges = 0
       this.lastLocalHash = hash
 
       this.options.log(`Local stats: emitting files=${files} +${additions} -${deletions} ↑${ahead} ↓${behind}`)

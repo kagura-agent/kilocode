@@ -11,6 +11,7 @@ import { spawn } from "child_process"
 import { Instance } from "../project/instance"
 import { Flag } from "@/flag/flag"
 import { TsClient } from "../kilocode/ts-client" // kilocode_change
+import { ProcessMonitor } from "@/util/process-monitor" // kilocode_change
 
 export namespace LSP {
   const log = Log.create({ service: "lsp" })
@@ -197,6 +198,22 @@ export namespace LSP {
       if (!handle) return undefined
       log.info("spawned lsp server", { serverID: server.id })
 
+      // kilocode_change start — detect process exit early (before the 45s init)
+      const pid = handle.process.pid
+      let exited = false
+      handle.process.on("exit", (code) => {
+        exited = true
+        if (pid) ProcessMonitor.unregister(pid)
+        const idx = s.clients.findIndex((x) => x.root === root && x.serverID === server.id)
+        if (idx !== -1) {
+          s.clients.splice(idx, 1)
+          s.broken.delete(key)
+          Bus.publish(Event.Updated, {})
+        }
+        log.warn("LSP server exited", { serverID: server.id, code, key })
+      })
+      // kilocode_change end
+
       const client = await LSPClient.create({
         serverID: server.id,
         server: handle,
@@ -212,12 +229,27 @@ export namespace LSP {
         handle.process.kill()
         return undefined
       }
+      if (exited) return undefined // kilocode_change — process died during init
 
       const existing = s.clients.find((x) => x.root === root && x.serverID === server.id)
       if (existing) {
         handle.process.kill()
         return existing
       }
+
+      // kilocode_change start — register with process monitor
+      if (pid) {
+        const cfg = await Config.get()
+        const lspCfg = typeof cfg.lsp === "object" ? cfg.lsp?.[server.id] : undefined
+        const limit = (lspCfg && "memoryLimit" in lspCfg ? lspCfg.memoryLimit : undefined) ?? 1024
+        ProcessMonitor.register({
+          pid,
+          label: `lsp:${server.id}`,
+          subsystem: "lsp",
+          limit: limit * 1024 * 1024,
+        })
+      }
+      // kilocode_change end
 
       s.clients.push(client)
       return client

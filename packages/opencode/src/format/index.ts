@@ -9,6 +9,7 @@ import { Config } from "../config/config"
 import { mergeDeep } from "remeda"
 import { Instance } from "../project/instance"
 import { Process } from "../util/process"
+import { ProcessMonitor } from "../util/process-monitor" // kilocode_change
 
 export namespace Format {
   const log = Log.create({ service: "format" })
@@ -111,6 +112,11 @@ export namespace Format {
       for (const item of await getFormatter(ext)) {
         log.info("running", { command: item.command })
         try {
+          // kilocode_change start — add timeout and process monitoring
+          const ctrl = new AbortController()
+          const ms = (item.timeout ?? 30) * 1000
+          const timer = setTimeout(() => ctrl.abort(), ms)
+          // kilocode_change end
           const proc = Process.spawn(
             item.command.map((x) => x.replace("$FILE", file)),
             {
@@ -118,9 +124,23 @@ export namespace Format {
               env: { ...process.env, ...item.environment },
               stdout: "ignore",
               stderr: "ignore",
+              abort: ctrl.signal, // kilocode_change
             },
           )
+          // kilocode_change start — register short-lived formatter with monitor
+          const pid = proc.pid
+          if (pid) {
+            ProcessMonitor.register({
+              pid,
+              label: `fmt:${item.name}`,
+              subsystem: "formatter",
+              limit: 256 * 1024 * 1024,
+            })
+          }
+          // kilocode_change end
           const exit = await proc.exited
+          clearTimeout(timer) // kilocode_change
+          if (pid) ProcessMonitor.unregister(pid) // kilocode_change
           if (exit !== 0)
             log.error("failed", {
               command: item.command,

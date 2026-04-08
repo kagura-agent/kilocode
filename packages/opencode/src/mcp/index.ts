@@ -32,10 +32,17 @@ import { BusEvent } from "../bus/bus-event"
 import { Bus } from "@/bus"
 import { TuiEvent } from "@/cli/cmd/tui/event"
 import open from "open"
+import { ProcessMonitor } from "@/util/process-monitor" // kilocode_change
 
 export namespace MCP {
   const log = Log.create({ service: "mcp" })
   const DEFAULT_TIMEOUT = 30_000
+  // kilocode_change start — reconnect infrastructure
+  const DEFAULT_MCP_MEMORY_MB = 512
+  const MAX_RECONNECT = 3
+  const closing = new Set<string>() // names being intentionally closed
+  const reconnecting = new Set<string>() // names with active reconnect cycles
+  // kilocode_change end
 
   export const Resource = z
     .object({
@@ -192,6 +199,76 @@ export namespace MCP {
     return pids
   }
 
+  // kilocode_change start — wire up process monitoring and auto-reconnect for an MCP client
+  function wireClient(name: string, client: MCPClient, mcp: Config.Mcp) {
+    const pid = (client.transport as any)?.pid as number | undefined
+    const limit = mcp.type === "local" ? (mcp.memoryLimit ?? DEFAULT_MCP_MEMORY_MB) * 1024 * 1024 : 0
+    const reconnect = mcp.autoReconnect ?? true
+
+    if (pid && limit > 0) {
+      ProcessMonitor.register({
+        pid,
+        label: `mcp:${name}`,
+        subsystem: "mcp",
+        limit,
+        onExceeded: () => {
+          log.warn("killing MCP server due to memory limit", { name })
+        },
+      })
+    }
+
+    client.onclose = () => {
+      if (pid) ProcessMonitor.unregister(pid)
+      if (closing.has(name)) {
+        closing.delete(name)
+        return
+      }
+      if (!reconnect) {
+        state().then((s) => {
+          delete s.clients[name]
+          s.toolsCache.delete(name)
+          s.status[name] = { status: "failed", error: "Server disconnected" }
+        })
+        return
+      }
+      scheduleReconnect(name).catch((err) => {
+        log.error("reconnect error", { name, error: err })
+      })
+    }
+  }
+
+  async function scheduleReconnect(name: string) {
+    if (reconnecting.has(name)) return
+    reconnecting.add(name)
+
+    for (let attempt = 1; attempt <= MAX_RECONNECT; attempt++) {
+      const delay = Math.min(1000 * Math.pow(2, attempt - 1), 30_000)
+      log.info("reconnecting", { name, attempt, delay })
+      const s = await state()
+      s.status[name] = {
+        status: "failed",
+        error: `Reconnecting (attempt ${attempt}/${MAX_RECONNECT})...`,
+      }
+
+      await new Promise((r) => setTimeout(r, delay))
+      if (!reconnecting.has(name)) return // cancelled (e.g. user disconnected)
+
+      await connect(name)
+      const s2 = await state()
+      if (s2.status[name]?.status === "connected") {
+        reconnecting.delete(name)
+        log.info("reconnected", { name })
+        return
+      }
+    }
+
+    reconnecting.delete(name)
+    const s = await state()
+    s.status[name] = { status: "failed", error: "Reconnection failed after 3 attempts" }
+    log.error("reconnect failed", { name })
+  }
+  // kilocode_change end
+
   const state = Instance.state(
     async () => {
       const cfg = await Config.get()
@@ -219,6 +296,7 @@ export namespace MCP {
 
           if (result.mcpClient) {
             clients[key] = result.mcpClient
+            if (isMcpConfigured(mcp)) wireClient(key, result.mcpClient, mcp) // kilocode_change
           }
         }),
       )
@@ -234,7 +312,8 @@ export namespace MCP {
       // (e.g. Chrome) that the SDK never reaches, leaving them orphaned.
       // Kill the full descendant tree first so the server exits promptly
       // and no processes are left behind.
-      for (const client of Object.values(state.clients)) {
+      for (const [name, client] of Object.entries(state.clients)) {
+        closing.add(name) // kilocode_change — prevent onclose reconnect during dispose
         const pid = (client.transport as any)?.pid
         if (typeof pid !== "number") continue
         for (const dpid of await descendants(pid)) {
@@ -325,12 +404,14 @@ export namespace MCP {
     // Close existing client if present to prevent memory leaks
     const existingClient = s.clients[name]
     if (existingClient) {
+      closing.add(name) // kilocode_change — prevent onclose reconnect
       await existingClient.close().catch((error) => {
         log.error("Failed to close existing MCP client", { name, error })
       })
     }
     s.clients[name] = result.mcpClient
     s.status[name] = result.status
+    wireClient(name, result.mcpClient, mcp) // kilocode_change
 
     return {
       status: s.status,
@@ -593,19 +674,23 @@ export namespace MCP {
       // Close existing client if present to prevent memory leaks
       const existingClient = s.clients[name]
       if (existingClient) {
+        closing.add(name) // kilocode_change — prevent onclose reconnect
         await existingClient.close().catch((error) => {
           log.error("Failed to close existing MCP client", { name, error })
         })
       }
       s.clients[name] = result.mcpClient
+      wireClient(name, result.mcpClient, mcp) // kilocode_change
     }
   }
 
   export async function disconnect(name: string) {
+    reconnecting.delete(name) // kilocode_change — cancel any pending reconnect
     const s = await state()
     s.toolsCache.delete(name) // kilocode_change
     const client = s.clients[name]
     if (client) {
+      closing.add(name) // kilocode_change — prevent onclose reconnect
       await client.close().catch((error) => {
         log.error("Failed to close MCP client", { name, error })
       })

@@ -677,6 +677,15 @@ export namespace Config {
         .positive()
         .optional()
         .describe("Timeout in ms for MCP server requests. Defaults to 5000 (5 seconds) if not specified."),
+      // kilocode_change start
+      memoryLimit: z
+        .number()
+        .int()
+        .positive()
+        .optional()
+        .describe("Memory limit in MB for the MCP server process. Kills the process if exceeded. Default: 512"),
+      autoReconnect: z.boolean().optional().describe("Automatically reconnect when the server crashes. Default: true"),
+      // kilocode_change end
     })
     .strict()
     .meta({
@@ -716,6 +725,12 @@ export namespace Config {
         .positive()
         .optional()
         .describe("Timeout in ms for MCP server requests. Defaults to 5000 (5 seconds) if not specified."),
+      // kilocode_change start
+      autoReconnect: z
+        .boolean()
+        .optional()
+        .describe("Automatically reconnect when the server disconnects. Default: true"),
+      // kilocode_change end
     })
     .strict()
     .meta({
@@ -1249,6 +1264,7 @@ export namespace Config {
               command: z.array(z.string()).optional(),
               environment: z.record(z.string(), z.string()).optional(),
               extensions: z.array(z.string()).optional(),
+              timeout: z.number().int().positive().optional(), // kilocode_change - execution timeout in seconds
             }),
           ),
         ])
@@ -1268,6 +1284,7 @@ export namespace Config {
                 disabled: z.boolean().optional(),
                 env: z.record(z.string(), z.string()).optional(),
                 initialization: z.record(z.string(), z.any()).optional(),
+                memoryLimit: z.number().int().positive().optional(), // kilocode_change - memory limit in MB
               }),
             ]),
           ),

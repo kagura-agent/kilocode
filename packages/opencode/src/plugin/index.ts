@@ -120,10 +120,16 @@ export namespace Plugin {
     for (const hook of await state().then((x) => x.hooks)) {
       const fn = hook[name]
       if (!fn) continue
-      // @ts-expect-error if you feel adventurous, please fix the typing, make sure to bump the try-counter if you
-      // give up.
-      // try-counter: 2
-      await fn(input, output)
+      // kilocode_change start — wrap in try/catch to prevent one bad plugin from crashing the agent
+      try {
+        // @ts-expect-error if you feel adventurous, please fix the typing, make sure to bump the try-counter if you
+        // give up.
+        // try-counter: 2
+        await fn(input, output)
+      } catch (err) {
+        log.error("plugin hook failed", { hook: name, error: err })
+      }
+      // kilocode_change end
     }
     return output
   }

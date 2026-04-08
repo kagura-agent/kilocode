@@ -11,6 +11,7 @@ export interface Info {
   command: string[]
   environment?: Record<string, string>
   extensions: string[]
+  timeout?: number // kilocode_change - execution timeout in seconds
   enabled(): Promise<boolean>
 }
 

@@ -25,8 +25,8 @@ import { useSession } from "../../context/session"
 // so the user can see what the AI set up.
 export const UPSTREAM_SUPPRESSED_TOOLS = new Set(["todowrite", "todoread"])
 
-/** Tools whose execution modifies files on disk. */
-const FILE_MODIFYING_TOOLS = new Set(["edit", "write", "multiedit", "apply_patch"])
+/** Tools whose execution may modify files on disk. */
+const FILE_MODIFYING_TOOLS = new Set(["edit", "write", "multiedit", "apply_patch", "bash"])
 
 function isFileModifying(part: SDKPart): boolean {
   if (part.type !== "tool") return false
@@ -98,6 +98,20 @@ export const AssistantMessage: Component<AssistantMessageProps> = (props) => {
 
   const reverted = () => !!session.revert()
 
+  // IDs of parts that should get a checkpoint divider: only the first
+  // file-modifying tool in each consecutive group (so concurrent edits
+  // share one divider).
+  const checkpoints = createMemo(() => {
+    const ids = new Set<string>()
+    const list = parts()
+    for (let i = 0; i < list.length; i++) {
+      if (!isFileModifying(list[i]!)) continue
+      const prev = i > 0 ? list[i - 1] : undefined
+      if (!prev || !isFileModifying(prev)) ids.add(list[i]!.id)
+    }
+    return ids
+  })
+
   return (
     <>
       <For each={parts()}>
@@ -108,8 +122,8 @@ export const AssistantMessage: Component<AssistantMessageProps> = (props) => {
             part.type === "tool" && UPSTREAM_SUPPRESSED_TOOLS.has((part as SDKPart & { tool: string }).tool)
           return (
             <Show when={isUpstreamSuppressed || PART_MAPPING[part.type]}>
-              {/* Checkpoint divider before file-modifying tools — restore to state before this edit */}
-              <Show when={isFileModifying(part) && !reverted()}>
+              {/* Checkpoint divider before the first file-modifying tool in a consecutive group */}
+              <Show when={checkpoints().has(part.id) && !reverted()}>
                 <CheckpointDivider
                   messageID={props.message.id}
                   partID={part.id}

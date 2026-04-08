@@ -104,6 +104,8 @@ import type {
   PartUpdateErrors,
   PartUpdateResponses,
   PathGetResponses,
+  PermissionAllowEverythingErrors,
+  PermissionAllowEverythingResponses,
   PermissionListResponses,
   PermissionReplyErrors,
   PermissionReplyResponses,
@@ -1096,6 +1098,8 @@ export class Session extends HeyApiClient {
     parameters?: {
       directory?: string
       workspace?: string
+      projectID?: string
+      worktrees?: boolean
       roots?: boolean
       start?: number
       cursor?: number
@@ -1112,6 +1116,8 @@ export class Session extends HeyApiClient {
           args: [
             { in: "query", key: "directory" },
             { in: "query", key: "workspace" },
+            { in: "query", key: "projectID" },
+            { in: "query", key: "worktrees" },
             { in: "query", key: "roots" },
             { in: "query", key: "start" },
             { in: "query", key: "cursor" },
@@ -2610,6 +2616,51 @@ export class Permission extends HeyApiClient {
       ThrowOnError
     >({
       url: "/permission/{requestID}/always-rules",
+      ...options,
+      ...params,
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+        ...params.headers,
+      },
+    })
+  }
+
+  /**
+   * Allow everything
+   *
+   * Enable or disable allowing all permissions without prompts.
+   */
+  public allowEverything<ThrowOnError extends boolean = false>(
+    parameters?: {
+      directory?: string
+      workspace?: string
+      enable?: boolean
+      requestID?: string
+      sessionID?: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "query", key: "directory" },
+            { in: "query", key: "workspace" },
+            { in: "body", key: "enable" },
+            { in: "body", key: "requestID" },
+            { in: "body", key: "sessionID" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).post<
+      PermissionAllowEverythingResponses,
+      PermissionAllowEverythingErrors,
+      ThrowOnError
+    >({
+      url: "/permission/allow-everything",
       ...options,
       ...params,
       headers: {

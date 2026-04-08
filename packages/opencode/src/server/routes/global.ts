@@ -10,6 +10,7 @@ import { Log } from "../../util/log"
 import { lazy } from "../../util/lazy"
 import { Config } from "../../config/config"
 import { errors } from "../error"
+import { ProcessLifecycle } from "@/kilocode/process-lifecycle" // kilocode_change
 
 const log = Log.create({ service: "server" })
 
@@ -64,48 +65,64 @@ export const GlobalRoutes = lazy(() =>
           },
         },
       }),
+      // kilocode_change start - guarded SSE write + idempotent cleanup
       async (c) => {
         log.info("global event connected")
         c.header("X-Accel-Buffering", "no")
         c.header("X-Content-Type-Options", "nosniff")
         return streamSSE(c, async (stream) => {
-          stream.writeSSE({
-            data: JSON.stringify({
+          await new Promise<void>((resolve) => {
+            const state: {
+              heartbeat?: ReturnType<typeof setInterval>
+              handler?: (event: any) => void
+            } = {}
+            const cleanup = ProcessLifecycle.once(async () => {
+              if (state.heartbeat) clearInterval(state.heartbeat)
+              if (state.handler) GlobalBus.off("event", state.handler)
+              resolve()
+              log.info("global event disconnected")
+            })
+            const write = async (data: unknown) => {
+              try {
+                await stream.writeSSE({ data: JSON.stringify(data) })
+                return true
+              } catch (error) {
+                log.warn("global event stream write failed", { error })
+                stream.close()
+                await cleanup()
+                return false
+              }
+            }
+
+            void write({
               payload: {
                 type: "server.connected",
                 properties: {},
               },
-            }),
-          })
-          async function handler(event: any) {
-            await stream.writeSSE({
-              data: JSON.stringify(event),
             })
-          }
-          GlobalBus.on("event", handler)
 
-          // Send heartbeat every 10s to prevent stalled proxy streams.
-          const heartbeat = setInterval(() => {
-            stream.writeSSE({
-              data: JSON.stringify({
+            state.handler = (event: any) => {
+              void write(event)
+            }
+            GlobalBus.on("event", state.handler)
+
+            state.heartbeat = setInterval(() => {
+              void write({
                 payload: {
                   type: "server.heartbeat",
                   properties: {},
                 },
-              }),
-            })
-          }, 10_000)
+              })
+            }, 10_000)
+            state.heartbeat.unref?.()
 
-          await new Promise<void>((resolve) => {
             stream.onAbort(() => {
-              clearInterval(heartbeat)
-              GlobalBus.off("event", handler)
-              resolve()
-              log.info("global event disconnected")
+              void cleanup()
             })
           })
         })
       },
+      // kilocode_change end
     )
     .get(
       "/config",

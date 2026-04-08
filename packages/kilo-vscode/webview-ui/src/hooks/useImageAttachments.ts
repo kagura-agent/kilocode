@@ -74,6 +74,8 @@ export function useImageAttachments() {
     if (!types) return
     // Accept file drops and VS Code URI-list drops (explorer, editor tabs).
     // Do NOT accept bare text/plain here — that would intercept normal text drags.
+    // NOTE: VS Code disables webview pointer-events during drag. Users must hold
+    // Shift while dragging to re-enable drops into the webview (VS Code 1.91+).
     const acceptable = types.includes("Files") || types.includes("application/vnd.code.uri-list")
     if (!acceptable) return
     event.preventDefault()

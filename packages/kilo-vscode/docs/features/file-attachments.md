@@ -14,7 +14,11 @@ The following image formats are supported for paste and drag-and-drop:
 - GIF (`image/gif`)
 - WebP (`image/webp`)
 
-**Known Issue:** Drag-and-drop may not work for images dragged from external sources (file explorer, browsers). See [#8451](https://github.com/Kilo-Org/kilocode/issues/8451).
+## Drag-and-Drop
+
+VS Code disables webview pointer-events during drag operations so it can handle drops in the editor area. To drop images (or files) into the chat input, **hold Shift while dragging**. This re-enables the webview to receive drop events (VS Code 1.91+, see [microsoft/vscode#182449](https://github.com/microsoft/vscode/issues/182449)).
+
+On Windows, dragged files from File Explorer may have an empty MIME type. The extension infers the correct type from the file extension automatically.
 
 ## Remaining Work
 

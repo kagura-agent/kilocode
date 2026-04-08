@@ -29,6 +29,7 @@ import {
   sanitizeName,
 } from "./model-selector-utils"
 import { ModelPreview } from "./ModelPreview"
+import { matchModel } from "./model-search"
 
 // ---------------------------------------------------------------------------
 // Row / group key helpers — single source of truth for key formatting
@@ -167,11 +168,11 @@ export const ModelSelectorBase: Component<ModelSelectorBaseProps> = (props) => {
 
   // Flat filtered list for keyboard navigation
   const filtered = createMemo(() => {
-    const q = debouncedSearch().toLowerCase()
+    const q = debouncedSearch()
     if (!q) {
       return visibleModels()
     }
-    return visibleModels().filter((m) => m.name.toLowerCase().includes(q))
+    return visibleModels().filter((m) => matchModel(q, m.name, m.providerName, m.providerID, m.id))
   })
 
   // Live set of favorited keys — drives star icon visual state (filled vs outline).

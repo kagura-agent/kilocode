@@ -78,22 +78,23 @@ For detailed help on every command and subcommand, see the [CLI Command Referenc
 
 #### Session Commands
 
-| Command       | Aliases                | Description               |
-| ------------- | ---------------------- | ------------------------- |
-| `/sessions`   | `/resume`, `/continue` | Switch session            |
-| `/new`        | `/clear`               | New session               |
-| `/share`      | -                      | Share session             |
-| `/unshare`    | -                      | Unshare session           |
-| `/rename`     | -                      | Rename session            |
-| `/timeline`   | -                      | Jump to message           |
-| `/fork`       | -                      | Fork from message         |
-| `/compact`    | `/summarize`           | Compact/summarize session |
-| `/undo`       | -                      | Undo previous message     |
-| `/redo`       | -                      | Redo message              |
-| `/copy`       | -                      | Copy session transcript   |
-| `/export`     | -                      | Export session transcript |
-| `/timestamps` | `/toggle-timestamps`   | Show/hide timestamps      |
-| `/thinking`   | `/toggle-thinking`     | Show/hide thinking blocks |
+| Command       | Aliases                | Description                               |
+| ------------- | ---------------------- | ----------------------------------------- |
+| `/sessions`   | `/resume`, `/continue` | Switch session                            |
+| `/new`        | `/clear`               | New session                               |
+| `/share`      | -                      | Share session                             |
+| `/unshare`    | -                      | Unshare session                           |
+| `/rename`     | -                      | Rename session                            |
+| `/timeline`   | -                      | Jump to message                           |
+| `/fork`       | -                      | Fork from message                         |
+| `/compact`    | `/summarize`           | Compact/summarize session                 |
+| `/undo`       | -                      | Undo previous message                     |
+| `/redo`       | -                      | Redo message                              |
+| `/copy`       | -                      | Copy session transcript                   |
+| `/export`     | -                      | Export session transcript                 |
+| `/timestamps` | `/toggle-timestamps`   | Show/hide timestamps                      |
+| `/thinking`   | `/toggle-thinking`     | Show/hide thinking blocks                 |
+| `/remote`     | -                      | Toggle remote mode for Cloud Agent access |
 
 #### Agent & Model Commands
 
@@ -442,6 +443,68 @@ kilo --continue
 - Cannot be used with a prompt argument
 - Only works when there's at least one previous session in the workspace
 
+## Remote Connections
+
+Remote Connections let you access your local CLI sessions from the Cloud Agents web interface. Start a session locally, leave your desk, and check in from your phone or browser.
+
+### How It Works
+
+When remote mode is enabled, your local sessions appear in the Cloud Agents dashboard. You get a two-way connection:
+
+- View and interact with your local session from any device
+- Answer agent questions wherever you are
+- Approve or deny permission requests through the web interface
+- Full editing capabilities work remotely
+
+Your computer handles the compute. The cloud provides the window into it.
+
+### Enabling Remote Mode
+
+**Toggle during a session:**
+
+```
+/remote
+```
+
+Run this command to turn remote mode on or off for the current session.
+
+**Enable by default:**
+
+Add to your config file (`~/.config/kilo/opencode.json`):
+
+```json
+{
+  "remote_control": true
+}
+```
+
+### Using Remote Mode
+
+1. Start a session in the CLI with remote enabled
+2. Open [Cloud Agents](https://app.kilo.ai/cloud) in your browser
+3. Your local session appears in the dashboard
+4. Click to connect and interact
+
+### Requirements
+
+- Same Kilo account on both CLI and Cloud Agent
+- Active internet connection on the local machine
+- CLI must remain running
+
+{% callout type="warning" title="Security Warning" %}
+Anyone with access to your Kilo account can send messages to your computer when remote mode is enabled. The connection allows full agent capabilities including code execution and file modifications.
+{% /callout %}
+
+### When Remote Connection Stops
+
+The remote connection will disconnect if:
+
+- The CLI exits
+- Your computer goes to sleep
+- The network connection is lost
+
+Sessions remain available in the dashboard but cannot be interacted with until the CLI reconnects.
+
 ## Environment Variable Overrides
 
 The CLI supports overriding config values with environment variables. The supported environment variables are:
@@ -464,6 +527,6 @@ Your selection is persisted locally so it carries over to future sessions.
 
 There is no `--org` or `--team` flag on `kilo run`. Instead, the organization is determined from the following sources, in order of priority (highest first):
 
-1. **`KILO_ORG_ID` environment variable** — Best for non-interactive and CI environments. 
+1. **`KILO_ORG_ID` environment variable** — Best for non-interactive and CI environments.
 
 2. **`Persisted selection from the last `/teams` pick`** — If you've run an interactive session and selected an organization via `/teams`, that selection is stored in the CLI auth file and reused automatically.

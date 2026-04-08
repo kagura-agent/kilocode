@@ -102,6 +102,66 @@ Cloud Agents support project-level [skills](/docs/code-with-ai/platforms/cli#ski
 Global skills (`~/.kilocode/skills/`) are not available in Cloud Agents since there is no persistent user home directory.
 {% /callout %}
 
+## Remote Connections
+
+Remote Connections let you access and control local CLI sessions from the Cloud Agents web interface. Your computer handles the compute while the cloud gives you a window into it from any device.
+
+### How It Works
+
+When you enable remote mode in the CLI, your active local sessions appear in the Cloud Agents dashboard. You can interact with them from your browser or phone — watching progress, answering questions, and approving actions — without being tied to your machine.
+
+### Enabling Remote Mode
+
+**Temporary (per session):**
+
+In an active CLI session, run:
+
+```
+/remote
+```
+
+This toggles remote mode on or off for that session.
+
+**Permanent:**
+
+Add the following to your Kilo config file (`~/.config/kilo/opencode.json`):
+
+```json
+{
+  "remote_control": true
+}
+```
+
+With this setting, all new sessions automatically have remote mode enabled.
+
+### Using Remote Connections
+
+Once remote mode is enabled:
+
+1. Start a session in the Kilo CLI
+2. Open the [Cloud Agents dashboard](https://app.kilo.ai/cloud)
+3. Your local session appears alongside cloud sessions
+4. Click to connect and interact with it
+
+The connection is two-way:
+
+- **Messages and responses** sync between CLI and cloud in real-time
+- **Questions from the agent** appear both places — answer wherever you are
+- **Permission dialogs** route to your active connection
+- **Full editing capabilities** work through the remote connection
+
+### Requirements
+
+- Same Kilo account for both CLI and Cloud Agent
+- Active internet connection on the local machine
+- CLI must be running (remote connection stops if CLI exits or computer sleeps)
+
+### Security Considerations
+
+{% callout type="warning" title="Security Warning" %}
+Anyone with access to your Kilo account can send messages to your computer when remote mode is enabled. Use caution when enabling remote on shared or sensitive systems.
+{% /callout %}
+
 ## Perfect For
 
 Cloud Agents are great for:

@@ -1,11 +1,13 @@
 // kilocode_change - new file
 import { $ } from "bun"
+import * as Effect from "effect/Effect"
 import fs from "node:fs/promises"
 import path from "node:path"
 import z from "zod"
 import { FileIgnore } from "@/file/ignore"
 import { Snapshot } from "@/snapshot"
 import { Log } from "@/util/log"
+import { git } from "./effect-git"
 
 export namespace WorktreeDiff {
   export const Item = Snapshot.FileDiff.extend({
@@ -35,28 +37,25 @@ export namespace WorktreeDiff {
   }
 
   async function ancestor(dir: string, base: string, log: Log.Logger) {
-    const result = await $`git merge-base HEAD ${base}`.cwd(dir).quiet().nothrow()
-    if (result.exitCode !== 0) {
+    const result = await Effect.runPromise(git(["merge-base", "HEAD", base], dir))
+    if (result.code !== 0) {
       log.warn("git merge-base failed", {
-        exitCode: result.exitCode,
-        stderr: result.stderr.toString().trim(),
+        exitCode: result.code,
+        stderr: result.stderr.trim(),
         dir,
         base,
       })
       return
     }
-    return result.stdout.toString().trim()
+    return result.text.trim()
   }
 
   async function stats(dir: string, ancestor: string) {
-    const result = await $`git -c core.quotepath=false diff --numstat --no-renames ${ancestor}`
-      .cwd(dir)
-      .quiet()
-      .nothrow()
+    const result = await Effect.runPromise(git(["-c", "core.quotepath=false", "diff", "--numstat", "--no-renames", ancestor], dir))
     const map = new Map<string, { additions: number; deletions: number }>()
-    if (result.exitCode !== 0) return map
+    if (result.code !== 0) return map
 
-    for (const line of result.stdout.toString().trim().split("\n")) {
+    for (const line of result.text.trim().split("\n")) {
       if (!line) continue
       const parts = line.split("\t")
       const add = parts[0]
@@ -73,17 +72,14 @@ export namespace WorktreeDiff {
   }
 
   async function list(dir: string, ancestor: string, log: Log.Logger): Promise<Meta[]> {
-    const nameStatus = await $`git -c core.quotepath=false diff --name-status --no-renames ${ancestor}`
-      .cwd(dir)
-      .quiet()
-      .nothrow()
-    if (nameStatus.exitCode !== 0) return []
+    const nameStatus = await Effect.runPromise(git(["-c", "core.quotepath=false", "diff", "--name-status", "--no-renames", ancestor], dir))
+    if (nameStatus.code !== 0) return []
 
     const result: Meta[] = []
     const seen = new Set<string>()
     const stat = await stats(dir, ancestor)
 
-    for (const line of nameStatus.stdout.toString().trim().split("\n")) {
+    for (const line of nameStatus.text.trim().split("\n")) {
       if (!line) continue
       const parts = line.split("\t")
       const code = parts[0]
@@ -104,16 +100,16 @@ export namespace WorktreeDiff {
       })
     }
 
-    const untracked = await $`git ls-files --others --exclude-standard`.cwd(dir).quiet().nothrow()
-    if (untracked.exitCode !== 0) {
+    const untracked = await Effect.runPromise(git(["ls-files", "--others", "--exclude-standard"], dir))
+    if (untracked.code !== 0) {
       log.warn("git ls-files failed", {
-        exitCode: untracked.exitCode,
-        stderr: untracked.stderr.toString().trim(),
+        exitCode: untracked.code,
+        stderr: untracked.stderr.trim(),
       })
       return result
     }
 
-    const files = untracked.stdout.toString().trim()
+    const files = untracked.text.trim()
     if (files) {
       log.info("untracked files found", { count: files.split("\n").length })
     }

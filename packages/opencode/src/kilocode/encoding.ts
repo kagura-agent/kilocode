@@ -41,8 +41,25 @@ export namespace Encoding {
       }
     }
 
-    // Heuristic: detect BOM-less UTF-16 by looking for null-byte patterns
+    // Heuristic: detect BOM-less UTF-16 by looking for null-byte patterns.
+    // Guard against misdetecting UTF-32 by checking for 4-byte null patterns first.
     if (bytes.length >= 4) {
+      // Check for UTF-32 pattern (every codepoint is 4 bytes, ASCII range has 3 null bytes)
+      const aligned = Math.min(bytes.length & ~3, 512)
+      if (aligned >= 8) {
+        let utf32le = 0
+        let utf32be = 0
+        const quads = aligned / 4
+        for (let i = 0; i < aligned; i += 4) {
+          if (bytes[i] !== 0 && bytes[i + 1] === 0 && bytes[i + 2] === 0 && bytes[i + 3] === 0) utf32le++
+          if (bytes[i] === 0 && bytes[i + 1] === 0 && bytes[i + 2] === 0 && bytes[i + 3] !== 0) utf32be++
+        }
+        // If >25% of 4-byte groups match UTF-32 pattern, it's likely UTF-32 (unsupported)
+        if (utf32le > quads / 4 || utf32be > quads / 4) {
+          return { encoding: "latin1", bom: false }
+        }
+      }
+
       let le = 0
       let be = 0
       const sample = Math.min(bytes.length & ~1, 512) // even number of bytes

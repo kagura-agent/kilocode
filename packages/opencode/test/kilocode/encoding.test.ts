@@ -69,6 +69,15 @@ describe("Encoding", () => {
       // Should NOT be detected as utf-16le since it's actually UTF-32 LE
       expect(info.encoding).not.toBe("utf-16le")
     })
+
+    test("does not misdetect BOM-less UTF-32 LE as UTF-16 LE", () => {
+      // "ABCD" in UTF-32 LE: each char is 4 bytes with 3 trailing nulls
+      const bytes = Buffer.from([
+        0x41, 0x00, 0x00, 0x00, 0x42, 0x00, 0x00, 0x00, 0x43, 0x00, 0x00, 0x00, 0x44, 0x00, 0x00, 0x00,
+      ])
+      const info = Encoding.detect(bytes)
+      expect(info.encoding).not.toBe("utf-16le")
+    })
   })
 
   describe("decode", () => {

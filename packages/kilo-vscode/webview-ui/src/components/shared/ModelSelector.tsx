@@ -28,6 +28,7 @@ import {
   buildTriggerLabel,
   sanitizeName,
 } from "./model-selector-utils"
+import { wordBoundaryMatch } from "../../lib/word-boundary-search"
 import { ModelPreview } from "./ModelPreview"
 
 // ---------------------------------------------------------------------------
@@ -165,13 +166,16 @@ export const ModelSelectorBase: Component<ModelSelectorBaseProps> = (props) => {
     onCleanup(() => clearTimeout(t))
   })
 
-  // Flat filtered list for keyboard navigation
+  // Flat filtered list for keyboard navigation.
+  // Search string includes display name, raw model ID, and provider name so
+  // users can type e.g. "openai" or "gpt-5.4" and get relevant results.
   const filtered = createMemo(() => {
-    const q = debouncedSearch().toLowerCase()
-    if (!q) {
-      return visibleModels()
-    }
-    return visibleModels().filter((m) => m.name.toLowerCase().includes(q))
+    const q = debouncedSearch()
+    if (!q.trim()) return visibleModels()
+    return visibleModels().filter((m) => {
+      const text = `${m.name} ${m.id} ${m.providerName}`
+      return wordBoundaryMatch(text, q)
+    })
   })
 
   // Live set of favorited keys — drives star icon visual state (filled vs outline).

@@ -110,9 +110,6 @@ export const dict = {
 
   "agentManager.diff.toggle": "Prebaci diff",
   "agentManager.diff.openFile": "Otvori datoteku",
-  "agentManager.diff.revertFile": "Vrati datoteku",
-  "agentManager.diff.revertSuccess": "Datoteka vraćena",
-  "agentManager.diff.revertError": "Vraćanje neuspješno",
   "agentManager.open.button": "Otvori",
   "agentManager.open.tooltip": "Otvori ovaj worktree u VS Code-u",
   "agentManager.apply.button": "Primijeni lokalno",

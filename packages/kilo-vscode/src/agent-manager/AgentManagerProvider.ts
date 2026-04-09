@@ -392,10 +392,6 @@ export class AgentManagerProvider implements Disposable {
       void this.onApplyWorktreeDiff(m.worktreeId, selectedFiles)
       return null
     }
-    if (m.type === "agentManager.revertWorktreeFile") {
-      void this.onRevertWorktreeFile(m.sessionId, m.file)
-      return null
-    }
     if (m.type === "agentManager.startDiffWatch") {
       this.startDiffPolling(m.sessionId)
       return null
@@ -1642,66 +1638,6 @@ export class AgentManagerProvider implements Disposable {
       this.postApplyResult(worktreeId, "error", message)
     } finally {
       this.applyingWorktreeId = undefined
-    }
-  }
-
-  /** Revert a single file in a worktree back to the merge-base state. */
-  private async onRevertWorktreeFile(sessionId: string, file: string): Promise<void> {
-    if (!file) return
-    if (this.stateReady) {
-      await this.stateReady.catch((err) => this.log("stateReady rejected, continuing revert resolve:", err))
-    }
-
-    const target =
-      this.cachedDiffTarget?.sessionId === sessionId ? this.cachedDiffTarget : await this.resolveDiffTarget(sessionId)
-    if (!target) {
-      this.postToWebview({
-        type: "agentManager.revertWorktreeFileResult",
-        sessionId,
-        file,
-        status: "error",
-        message: "Could not resolve diff target",
-      })
-      return
-    }
-
-    // Look up the file status from the cached diffs so we know if it's added/modified/deleted
-    let status: "added" | "deleted" | "modified" | undefined
-    try {
-      const client = this.connectionService.getClient()
-      const { data } = await client.worktree.diffFile(
-        { directory: target.directory, base: target.baseBranch, file },
-        { throwOnError: true },
-      )
-      status = data?.status
-    } catch (err) {
-      this.log("Failed to look up file status for revert:", err)
-    }
-
-    try {
-      const result = await this.gitOps.revertFile(target.directory, target.baseBranch, file, status)
-      this.postToWebview({
-        type: "agentManager.revertWorktreeFileResult",
-        sessionId,
-        file,
-        status: result.ok ? "success" : "error",
-        message: result.message,
-      })
-
-      // After successful revert, trigger a diff refresh so the UI updates
-      if (result.ok) {
-        void this.onRequestWorktreeDiff(sessionId)
-      }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err)
-      this.log("Failed to revert worktree file:", message)
-      this.postToWebview({
-        type: "agentManager.revertWorktreeFileResult",
-        sessionId,
-        file,
-        status: "error",
-        message,
-      })
     }
   }
 

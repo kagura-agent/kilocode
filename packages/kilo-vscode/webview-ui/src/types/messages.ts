@@ -1043,15 +1043,6 @@ export interface AgentManagerApplyWorktreeDiffResultMessage {
   conflicts?: AgentManagerApplyWorktreeDiffConflict[]
 }
 
-// Agent Manager: Revert single file result (extension → webview)
-export interface AgentManagerRevertWorktreeFileResultMessage {
-  type: "agentManager.revertWorktreeFileResult"
-  sessionId: string
-  file: string
-  status: "success" | "error"
-  message: string
-}
-
 // Per-worktree git stats: diff additions/deletions and ahead/behind counts
 export interface WorktreeGitStats {
   worktreeId: string
@@ -1471,7 +1462,6 @@ export type ExtensionMessage =
   | AgentManagerWorktreeDiffFileMessage
   | AgentManagerWorktreeDiffLoadingMessage
   | AgentManagerApplyWorktreeDiffResultMessage
-  | AgentManagerRevertWorktreeFileResultMessage
   | AgentManagerWorktreeStatsMessage
   | AgentManagerLocalStatsMessage
   | AgentManagerPRStatusMessage
@@ -2092,13 +2082,6 @@ export interface ApplyWorktreeDiffMessage {
   selectedFiles?: string[]
 }
 
-// Agent Manager: Revert a single file in a worktree (webview → extension)
-export interface RevertWorktreeFileMessage {
-  type: "agentManager.revertWorktreeFile"
-  sessionId: string
-  file: string
-}
-
 // Variant persistence (webview → extension)
 export interface PersistVariantRequest {
   type: "persistVariant"
@@ -2390,7 +2373,6 @@ export type WebviewMessage =
   | FinalizeLegacyMigrationMessage
   // legacy-migration end
   | ApplyWorktreeDiffMessage
-  | RevertWorktreeFileMessage
   | EnhancePromptRequest
   | OpenChangesRequest
   | OpenDiffVirtualRequest

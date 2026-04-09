@@ -108,9 +108,6 @@ export const dict = {
 
   "agentManager.diff.toggle": "差分を切り替え",
   "agentManager.diff.openFile": "ファイルを開く",
-  "agentManager.diff.revertFile": "ファイルを元に戻す",
-  "agentManager.diff.revertSuccess": "ファイルを元に戻しました",
-  "agentManager.diff.revertError": "元に戻せませんでした",
   "agentManager.open.button": "開く",
   "agentManager.open.tooltip": "このWorktreeをVS Codeで開く",
   "agentManager.apply.button": "ローカルに適用",

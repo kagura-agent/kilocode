@@ -109,9 +109,6 @@ export const dict = {
 
   "agentManager.diff.toggle": "Alternar diff",
   "agentManager.diff.openFile": "Abrir archivo",
-  "agentManager.diff.revertFile": "Revertir archivo",
-  "agentManager.diff.revertSuccess": "Archivo revertido",
-  "agentManager.diff.revertError": "Error al revertir",
   "agentManager.open.button": "Abrir",
   "agentManager.open.tooltip": "Abrir este Worktree en VS Code",
   "agentManager.apply.button": "Aplicar en local",

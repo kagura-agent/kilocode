@@ -42,11 +42,11 @@ export default [
   },
   {
     files: ["webview-ui/agent-manager/AgentManagerApp.tsx"],
-    rules: { complexity: ["error", 74], "max-lines": ["error", 3100] },
+    rules: { complexity: ["error", 73] },
   },
   {
     files: ["src/agent-manager/AgentManagerProvider.ts"],
-    rules: { complexity: ["error", 64] },
+    rules: { complexity: ["error", 63] },
   },
   {
     files: ["webview-ui/src/components/chat/PromptInput.tsx"],

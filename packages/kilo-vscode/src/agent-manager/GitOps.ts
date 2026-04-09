@@ -286,55 +286,6 @@ export class GitOps {
     }
   }
 
-  /**
-   * Revert a single file in a worktree back to the merge-base state.
-   * For modified/deleted files: restores the file from the merge-base commit.
-   * For added (new) files: removes the file from the worktree.
-   */
-  async revertFile(
-    cwd: string,
-    baseBranch: string,
-    file: string,
-    status?: "added" | "deleted" | "modified",
-  ): Promise<{ ok: boolean; message: string }> {
-    // Validate path: no absolute paths, no ".." traversal
-    if (nodePath.isAbsolute(file) || file.split(/[\\/]/).includes("..")) {
-      return { ok: false, message: "Invalid file path" }
-    }
-
-    const base = (await this.raw(["merge-base", "HEAD", baseBranch], cwd).catch(() => "")).trim()
-    if (!base) {
-      return { ok: false, message: "Could not resolve merge-base" }
-    }
-
-    if (status === "added") {
-      // New file — remove it from disk and unstage
-      const full = nodePath.resolve(cwd, file)
-      const root = await fs.realpath(cwd)
-      const resolved = await fs.realpath(full).catch(() => full)
-      if (resolved !== root && !resolved.startsWith(root + nodePath.sep)) {
-        return { ok: false, message: "File path outside worktree" }
-      }
-      await fs.rm(full, { force: true })
-      // Also remove from git index in case it was staged
-      await this.raw(["rm", "--cached", "--force", "--ignore-unmatch", "--", file], cwd).catch(() => "")
-      return { ok: true, message: "Removed added file" }
-    }
-
-    // Modified or deleted file — restore from merge-base
-    const result = await this.exec(["checkout", base, "--", file], cwd)
-    if (result.code !== 0) {
-      return { ok: false, message: result.stderr.trim() || "Failed to revert file" }
-    }
-    // Only unstage for modified files. For deleted files the checkout already
-    // restored the file into the index correctly — resetting to HEAD would drop
-    // it from the index and make it appear as a new untracked file.
-    if (status === "modified") {
-      await this.raw(["reset", "HEAD", "--", file], cwd).catch(() => "")
-    }
-    return { ok: true, message: "Reverted file to base" }
-  }
-
   async checkApplyPatch(targetPath: string, patch: string): Promise<ApplyCheckResult> {
     if (!patch.trim()) {
       return { ok: true, conflicts: [], message: "No changes to apply" }

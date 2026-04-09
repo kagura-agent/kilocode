@@ -108,9 +108,6 @@ export const dict = {
 
   "agentManager.diff.toggle": "차이점 전환",
   "agentManager.diff.openFile": "파일 열기",
-  "agentManager.diff.revertFile": "파일 되돌리기",
-  "agentManager.diff.revertSuccess": "파일이 되돌려졌습니다",
-  "agentManager.diff.revertError": "되돌리기 실패",
   "agentManager.open.button": "열기",
   "agentManager.open.tooltip": "이 Worktree를 VS Code에서 열기",
   "agentManager.apply.button": "로컬에 적용",

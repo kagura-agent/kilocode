@@ -105,9 +105,6 @@ export const dict = {
 
   "agentManager.diff.toggle": "切换差异",
   "agentManager.diff.openFile": "打开文件",
-  "agentManager.diff.revertFile": "还原文件",
-  "agentManager.diff.revertSuccess": "文件已还原",
-  "agentManager.diff.revertError": "还原失败",
   "agentManager.open.button": "打开",
   "agentManager.open.tooltip": "在 VS Code 中打开此 Worktree",
   "agentManager.apply.button": "应用到本地",

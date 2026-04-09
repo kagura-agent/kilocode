@@ -50,6 +50,10 @@ export const CodeWithAiNav: NavSection[] = [
         platform: "new",
       },
       {
+        href: "/code-with-ai/agents/free-and-budget-models",
+        children: "Free & Budget Models",
+      },
+      {
         href: "/code-with-ai/agents/using-agents",
         children: "Agents",
         subLinks: [

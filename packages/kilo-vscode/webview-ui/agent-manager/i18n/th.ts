@@ -106,9 +106,6 @@ export const dict = {
 
   "agentManager.diff.toggle": "สลับ diff",
   "agentManager.diff.openFile": "เปิดไฟล์",
-  "agentManager.diff.revertFile": "ย้อนกลับไฟล์",
-  "agentManager.diff.revertSuccess": "ย้อนกลับไฟล์แล้ว",
-  "agentManager.diff.revertError": "ย้อนกลับล้มเหลว",
   "agentManager.open.button": "เปิด",
   "agentManager.open.tooltip": "เปิด Worktree นี้ใน VS Code",
   "agentManager.apply.button": "นำไปใช้ในเครื่อง",

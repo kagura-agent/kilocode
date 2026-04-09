@@ -833,7 +833,12 @@ export type Session = {
     additions: number
     deletions: number
     files: number
-    diffs?: Array<FileDiff>
+    diffs?: Array<{
+      file: string
+      additions: number
+      deletions: number
+      status?: "added" | "deleted" | "modified"
+    }>
   }
   share?: {
     url: string
@@ -1749,7 +1754,12 @@ export type GlobalSession = {
     additions: number
     deletions: number
     files: number
-    diffs?: Array<FileDiff>
+    diffs?: Array<{
+      file: string
+      additions: number
+      deletions: number
+      status?: "added" | "deleted" | "modified"
+    }>
   }
   share?: {
     url: string
@@ -1770,6 +1780,7 @@ export type GlobalSession = {
     diff?: string
   }
   project: ProjectSummary | null
+  worktreeName?: string
 }
 
 export type McpResource = {
@@ -2452,6 +2463,29 @@ export type ConfigUpdateResponses = {
 
 export type ConfigUpdateResponse = ConfigUpdateResponses[keyof ConfigUpdateResponses]
 
+export type ConfigWarningsData = {
+  body?: never
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/config/warnings"
+}
+
+export type ConfigWarningsResponses = {
+  /**
+   * Config warnings
+   */
+  200: Array<{
+    path: string
+    message: string
+    detail?: string
+  }>
+}
+
+export type ConfigWarningsResponse = ConfigWarningsResponses[keyof ConfigWarningsResponses]
+
 export type ConfigProvidersData = {
   body?: never
   path?: never
@@ -2833,6 +2867,14 @@ export type ExperimentalSessionListData = {
      */
     directory?: string
     workspace?: string
+    /**
+     * Filter sessions by project ID
+     */
+    projectID?: string
+    /**
+     * Restrict sessions to the current repo worktree family or current directory
+     */
+    worktrees?: boolean
     /**
      * Only return root sessions (no parentID)
      */
@@ -4063,6 +4105,43 @@ export type PermissionListResponses = {
 
 export type PermissionListResponse = PermissionListResponses[keyof PermissionListResponses]
 
+export type PermissionAllowEverythingData = {
+  body?: {
+    enable: boolean
+    requestID?: string
+    sessionID?: string
+  }
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/permission/allow-everything"
+}
+
+export type PermissionAllowEverythingErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+  /**
+   * Not found
+   */
+  404: NotFoundError
+}
+
+export type PermissionAllowEverythingError = PermissionAllowEverythingErrors[keyof PermissionAllowEverythingErrors]
+
+export type PermissionAllowEverythingResponses = {
+  /**
+   * Success
+   */
+  200: boolean
+}
+
+export type PermissionAllowEverythingResponse =
+  PermissionAllowEverythingResponses[keyof PermissionAllowEverythingResponses]
+
 export type QuestionListData = {
   body?: never
   path?: never
@@ -4581,6 +4660,7 @@ export type KilocodeSessionImportSessionData = {
   body?: {
     id: string
     projectID: string
+    force?: boolean
     workspaceID?: string
     parentID?: string
     slug: string
@@ -5167,6 +5247,63 @@ export type KiloCloudSessionImportResponses = {
    */
   200: unknown
 }
+
+export type KiloClawStatusData = {
+  body?: never
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/kilo/claw/status"
+}
+
+export type KiloClawStatusResponses = {
+  /**
+   * Instance status
+   */
+  200: {
+    status: "provisioned" | "starting" | "restarting" | "running" | "stopped" | "destroying" | null
+    sandboxId?: string
+    flyRegion?: string
+    machineSize?: {
+      cpus: number
+      memory_mb: number
+    }
+    openclawVersion?: string | null
+    lastStartedAt?: string | null
+    lastStoppedAt?: string | null
+    channelCount?: number
+    secretCount?: number
+    userId?: string
+  }
+}
+
+export type KiloClawStatusResponse = KiloClawStatusResponses[keyof KiloClawStatusResponses]
+
+export type KiloClawChatCredentialsData = {
+  body?: never
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/kilo/claw/chat-credentials"
+}
+
+export type KiloClawChatCredentialsResponses = {
+  /**
+   * Stream Chat credentials or null
+   */
+  200: {
+    apiKey: string
+    userId: string
+    userToken: string
+    channelId: string
+  } | null
+}
+
+export type KiloClawChatCredentialsResponse = KiloClawChatCredentialsResponses[keyof KiloClawChatCredentialsResponses]
 
 export type KiloCloudSessionsData = {
   body?: never

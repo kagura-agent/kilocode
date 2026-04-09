@@ -48,6 +48,7 @@ import { errors } from "./error"
 import { CommitMessageRoutes } from "./routes/commit-message" // kilocode_change
 import { EnhancePromptRoutes } from "./routes/enhance-prompt" // kilocode_change
 import { KilocodeRoutes } from "./routes/kilocode" // kilocode_change
+import { PermissionKilocodeRoutes } from "../kilocode/permission/routes" // kilocode_change
 import { Filesystem } from "@/util/filesystem"
 import { QuestionRoutes } from "./routes/question"
 import { PermissionRoutes } from "./routes/permission"
@@ -101,7 +102,16 @@ export namespace Server {
           return basicAuth({ username, password })(c, next)
         })
         .use(async (c, next) => {
-          const skipLogging = c.req.path === "/log" || c.req.path === "/telemetry/capture" // kilocode_change
+          // kilocode_change start
+          // kilocode change add telemetry because it is high volume
+          // add early return to prevent logging timing
+          const skipLogging =
+            c.req.path === "/log" || c.req.path === "/telemetry/capture" || c.req.path === "/global/health"
+          if (skipLogging) {
+            await next()
+            return
+          }
+          // kilocode_change end
           if (!skipLogging) {
             log.info("request", {
               method: c.req.method,
@@ -268,6 +278,7 @@ export namespace Server {
         .route("/experimental", ExperimentalRoutes())
         .route("/session", SessionRoutes())
         .route("/permission", PermissionRoutes())
+        .route("/permission", PermissionKilocodeRoutes()) // kilocode_change
         .route("/question", QuestionRoutes())
         .route("/provider", ProviderRoutes())
         .route("/telemetry", TelemetryRoutes()) // kilocode_change

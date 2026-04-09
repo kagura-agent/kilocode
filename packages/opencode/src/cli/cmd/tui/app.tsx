@@ -43,9 +43,20 @@ import open from "open"
 import { writeHeapSnapshot } from "v8"
 import { PromptRefProvider, usePromptRef } from "./context/prompt"
 import { registerKiloCommands } from "@/kilocode/kilo-commands" // kilocode_change
+import { KiloClawView } from "@/kilocode/claw/view" // kilocode_change
 import { initializeTUIDependencies } from "@kilocode/kilo-gateway/tui" // kilocode_change
 import { TuiConfigProvider } from "./context/tui-config"
 import { TuiConfig } from "@/config/tui"
+
+// kilocode_change start
+function isAllowEverything(permission: unknown): boolean {
+  if (typeof permission !== "object" || permission === null) return false
+  const wildcard = (permission as Record<string, unknown>)["*"]
+  if (typeof wildcard === "string") return wildcard === "allow"
+  if (typeof wildcard === "object" && wildcard !== null) return (wildcard as Record<string, unknown>)["*"] === "allow"
+  return false
+}
+// kilocode_change end
 
 async function getTerminalBackgroundColor(): Promise<"dark" | "light"> {
   // can't set raw mode if not a TTY
@@ -301,6 +312,12 @@ function App() {
       const title = session.title.length > 40 ? session.title.slice(0, 37) + "..." : session.title
       renderer.setTerminalTitle(`${titleDefault} | ${title}`) // kilocode_change
     }
+
+    // kilocode_change start
+    if (route.data.type === "kiloclaw") {
+      renderer.setTerminalTitle(`${titleDefault} | KiloClaw`)
+    }
+    // kilocode_change end
   })
 
   const args = useArgs()
@@ -702,6 +719,27 @@ function App() {
         dialog.clear()
       },
     },
+    // kilocode_change start
+    {
+      get title() {
+        return isAllowEverything(sync.data.config.permission) ? "Disable auto-approve mode" : "Enable auto-approve mode"
+      },
+      value: "permission.allow_everything",
+      category: "System",
+      onSelect: async (dialog) => {
+        const enabled = isAllowEverything(sync.data.config.permission)
+        const result = await sdk.client.permission.allowEverything({ enable: !enabled })
+        if (result.error) {
+          toast.show({
+            variant: "error",
+            message: `Failed to ${!enabled ? "enable" : "disable"} auto-approve mode`,
+          })
+          return
+        }
+        dialog.clear()
+      },
+    },
+    // kilocode_change end
   ])
 
   // kilocode_change start - Initialize TUI dependencies for kilo-gateway
@@ -812,6 +850,11 @@ function App() {
         <Match when={route.data.type === "session"}>
           <Session />
         </Match>
+        {/* kilocode_change start */}
+        <Match when={route.data.type === "kiloclaw"}>
+          <KiloClawView />
+        </Match>
+        {/* kilocode_change end */}
       </Switch>
     </box>
   )

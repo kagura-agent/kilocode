@@ -21,6 +21,7 @@ import type {
   ConfigProvidersResponses,
   ConfigUpdateErrors,
   ConfigUpdateResponses,
+  ConfigWarningsResponses,
   EnhancePromptEnhanceErrors,
   EnhancePromptEnhanceResponses,
   EventSubscribeResponses,
@@ -51,6 +52,8 @@ import type {
   GlobalEventResponses,
   GlobalHealthResponses,
   InstanceDisposeResponses,
+  KiloClawChatCredentialsResponses,
+  KiloClawStatusResponses,
   KiloCloudSessionGetErrors,
   KiloCloudSessionGetResponses,
   KiloCloudSessionImportErrors,
@@ -101,6 +104,8 @@ import type {
   PartUpdateErrors,
   PartUpdateResponses,
   PathGetResponses,
+  PermissionAllowEverythingErrors,
+  PermissionAllowEverythingResponses,
   PermissionListResponses,
   PermissionReplyErrors,
   PermissionReplyResponses,
@@ -842,6 +847,36 @@ export class Config2 extends HeyApiClient {
   }
 
   /**
+   * Get config warnings
+   *
+   * Get warnings generated during config loading (e.g., invalid JSON, schema errors).
+   */
+  public warnings<ThrowOnError extends boolean = false>(
+    parameters?: {
+      directory?: string
+      workspace?: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "query", key: "directory" },
+            { in: "query", key: "workspace" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).get<ConfigWarningsResponses, unknown, ThrowOnError>({
+      url: "/config/warnings",
+      ...options,
+      ...params,
+    })
+  }
+
+  /**
    * List config providers
    *
    * Get a list of all configured AI providers and their default models.
@@ -1063,6 +1098,8 @@ export class Session extends HeyApiClient {
     parameters?: {
       directory?: string
       workspace?: string
+      projectID?: string
+      worktrees?: boolean
       roots?: boolean
       start?: number
       cursor?: number
@@ -1079,6 +1116,8 @@ export class Session extends HeyApiClient {
           args: [
             { in: "query", key: "directory" },
             { in: "query", key: "workspace" },
+            { in: "query", key: "projectID" },
+            { in: "query", key: "worktrees" },
             { in: "query", key: "roots" },
             { in: "query", key: "start" },
             { in: "query", key: "cursor" },
@@ -2616,6 +2655,51 @@ export class Permission extends HeyApiClient {
       ...params,
     })
   }
+
+  /**
+   * Allow everything
+   *
+   * Enable or disable allowing all permissions without prompts.
+   */
+  public allowEverything<ThrowOnError extends boolean = false>(
+    parameters?: {
+      directory?: string
+      workspace?: string
+      enable?: boolean
+      requestID?: string
+      sessionID?: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "query", key: "directory" },
+            { in: "query", key: "workspace" },
+            { in: "body", key: "enable" },
+            { in: "body", key: "requestID" },
+            { in: "body", key: "sessionID" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).post<
+      PermissionAllowEverythingResponses,
+      PermissionAllowEverythingErrors,
+      ThrowOnError
+    >({
+      url: "/permission/allow-everything",
+      ...options,
+      ...params,
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+        ...params.headers,
+      },
+    })
+  }
 }
 
 export class Question extends HeyApiClient {
@@ -3178,6 +3262,7 @@ export class SessionImport extends HeyApiClient {
       workspace?: string
       id?: string
       projectID?: string
+      force?: boolean
       workspaceID?: string
       parentID?: string
       slug?: string
@@ -3222,6 +3307,7 @@ export class SessionImport extends HeyApiClient {
             { in: "query", key: "workspace" },
             { in: "body", key: "id" },
             { in: "body", key: "projectID" },
+            { in: "body", key: "force" },
             { in: "body", key: "workspaceID" },
             { in: "body", key: "parentID" },
             { in: "body", key: "slug" },
@@ -3693,6 +3779,68 @@ export class Cloud extends HeyApiClient {
   }
 }
 
+export class Claw extends HeyApiClient {
+  /**
+   * Get KiloClaw instance status
+   *
+   * Fetch the user's KiloClaw instance status via the KiloClaw worker
+   */
+  public status<ThrowOnError extends boolean = false>(
+    parameters?: {
+      directory?: string
+      workspace?: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "query", key: "directory" },
+            { in: "query", key: "workspace" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).get<KiloClawStatusResponses, unknown, ThrowOnError>({
+      url: "/kilo/claw/status",
+      ...options,
+      ...params,
+    })
+  }
+
+  /**
+   * Get KiloClaw chat credentials
+   *
+   * Fetch Stream Chat credentials for the user's KiloClaw instance
+   */
+  public chatCredentials<ThrowOnError extends boolean = false>(
+    parameters?: {
+      directory?: string
+      workspace?: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "query", key: "directory" },
+            { in: "query", key: "workspace" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).get<KiloClawChatCredentialsResponses, unknown, ThrowOnError>({
+      url: "/kilo/claw/chat-credentials",
+      ...options,
+      ...params,
+    })
+  }
+}
+
 export class Kilo extends HeyApiClient {
   /**
    * Get Kilo Gateway profile
@@ -3873,6 +4021,11 @@ export class Kilo extends HeyApiClient {
   private _cloud?: Cloud
   get cloud(): Cloud {
     return (this._cloud ??= new Cloud({ client: this.client }))
+  }
+
+  private _claw?: Claw
+  get claw(): Claw {
+    return (this._claw ??= new Claw({ client: this.client }))
   }
 }
 

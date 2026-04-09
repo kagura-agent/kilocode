@@ -17,7 +17,6 @@ import simpleGit from "simple-git"
 import { RemoteWS } from "@/kilo-sessions/remote-ws"
 import { RemoteSender } from "@/kilo-sessions/remote-sender"
 import { SessionStatus } from "@/session/status"
-import { Telemetry } from "@kilocode/kilo-telemetry"
 
 export namespace KiloSessions {
   const log = Log.create({ service: "kilo-sessions" })
@@ -294,7 +293,6 @@ export namespace KiloSessions {
 
       remote = { conn, sender, heartbeat }
       log.info("remote connection enabled")
-      Telemetry.trackRemoteConnectionOpened()
     })().finally(() => {
       if (remoteSeq === seq) enabling = undefined
     })

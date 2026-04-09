@@ -945,10 +945,6 @@ export const dict = {
   "session.status.retrying": "Повторна спроба (спроба {{ attempt }})… {{ message }}",
   "session.status.working": "Працює...",
 
-  "ui.sessionTurn.cancel": "Скасувати",
-  "ui.sessionTurn.status.thinking": "Думаю...",
-  "ui.sessionTurn.status.consideringNextSteps": "Обдумую наступні кроки...",
-
   "dialog.model.noProviders": "Немає провайдерів",
 
   "prompt.placeholder.connecting": "Підключення до сервера...",
@@ -1031,6 +1027,8 @@ export const dict = {
   "common.add": "Додати",
   "common.choose": "Вибрати…",
 
+  "settings.autocomplete.model.title": "Модель автодоповнення",
+  "settings.autocomplete.model.description": "Виберіть модель для вбудованих доповнень коду",
   "settings.autocomplete.autoTrigger.title": "Увімкнути автоматичні підказки",
   "settings.autocomplete.autoTrigger.description": "Автоматично показувати підказки під час введення",
   "settings.autocomplete.smartKeybinding.title": "Увімкнути розумне прив'язування клавіш",
@@ -1348,7 +1346,6 @@ export const dict = {
   "notifications.action.next": "Далі",
   "notifications.action.close": "Закрити",
   "notifications.action.tryModel": "Спробувати {{model}}",
-  "notifications.action.tryModelGeneric": "Спробувати модель",
   // Missing translations - English fallbacks until translated
   "profile.switchingAccount": "Перемикання акаунту…",
   "settings.agentBehaviour.createMode": "Створити новий режим",
@@ -1372,20 +1369,9 @@ export const dict = {
   "settings.agentBehaviour.editMode": "Редагувати режим",
   "settings.agentBehaviour.editMode.back": "Назад до списку",
   "settings.agentBehaviour.editMode.description": "Опис",
-  "settings.agentBehaviour.editMode.native":
-    "Це вбудований режим. Його базове визначення неможливо змінити, але ви можете налаштувати перевизначення нижче.",
+  "settings.agentBehaviour.editMode.native": "Вбудований режим (визначення лише для читання)",
   "settings.agentBehaviour.editMode.prompt": "Системний запит",
   "settings.agentBehaviour.editMode.promptOverride":
     "Власне перевизначення системного запиту для цього вбудованого режиму",
-  "settings.agentBehaviour.badge.subagent": "субагент",
-  "settings.agentBehaviour.permissions.title": "Обчислені дозволи",
-  "settings.agentBehaviour.permissions.count": "{{count}} правил",
-  "settings.agentBehaviour.permissions.effective": "Ефективні (шаблон):",
-  "settings.agentBehaviour.permissions.col.tool": "Інструмент",
-  "settings.agentBehaviour.permissions.col.pattern": "Шаблон",
-  "settings.agentBehaviour.permissions.col.action": "Дія",
-  "settings.agentBehaviour.permissions.copy": "Копіювати дозволи як JSON",
-  "settings.agentBehaviour.permissions.hint":
-    "Правила оцінюються по порядку — останнє відповідне правило має пріоритет. Це розрахований набір правил з CLI бекенду.",
   "settings.agentBehaviour.editMode.save": "Готово",
 }

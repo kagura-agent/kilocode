@@ -1216,7 +1216,6 @@ export namespace LSPServer {
         process: spawn(
           java,
           [
-            "-Djava.import.generatesMetadataFilesAtProjectRoot=false", // kilocode_change
             "-jar",
             launcherJar,
             "-configuration",

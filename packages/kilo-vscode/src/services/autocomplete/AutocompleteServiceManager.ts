@@ -26,6 +26,7 @@ function readSettings(): AutocompleteServiceSettings {
     enableAutoTrigger: config.get<boolean>("enableAutoTrigger") ?? true,
     enableSmartInlineTaskKeybinding: config.get<boolean>("enableSmartInlineTaskKeybinding") ?? true,
     enableChatAutocomplete: config.get<boolean>("enableChatAutocomplete") ?? true,
+    model: config.get<string>("model") ?? "mistralai/codestral-2508",
     snoozeUntil: config.get<number>("snoozeUntil"),
   }
 }
@@ -117,6 +118,10 @@ export class AutocompleteServiceManager {
 
   public async load() {
     this.settings = readSettings()
+
+    if (this.settings.model) {
+      this.model.setModel(this.settings.model)
+    }
 
     await this.updateGlobalContext()
     this.updateStatusBar()

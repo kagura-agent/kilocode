@@ -4,8 +4,7 @@
  * Selection is now per-session — see session.tsx.
  */
 
-import { createContext, useContext, createSignal, createMemo, onCleanup } from "solid-js"
-import type { ParentComponent, Accessor } from "solid-js"
+import { createContext, useContext, createSignal, createMemo, onCleanup, ParentComponent, Accessor } from "solid-js"
 import { useVSCode } from "./vscode"
 import type { Provider, ProviderModel, ModelSelection, ExtensionMessage, ProviderAuthState } from "../types/messages"
 import type { ProviderAuthMethod } from "@kilocode/sdk/v2/client"
@@ -65,29 +64,25 @@ export const ProviderProvider: ParentComponent = (props) => {
 
   onCleanup(unsubscribe)
 
-  // Request providers immediately; if the extension's httpClient is not yet ready,
-  // extensionDataReady will fire once initialization completes and we retry once.
+  // Request providers in case the initial push was missed.
+  // Retry a few times because the extension's httpClient may
+  // not be ready yet when the first request arrives.
+  let retries = 0
+  const maxRetries = 5
+  const retryMs = 500
+
   vscode.postMessage({ type: "requestProviders" })
 
-  const fallback = setTimeout(() => {
-    if (Object.keys(providers()).length === 0) {
-      vscode.postMessage({ type: "requestProviders" })
+  const retryTimer = setInterval(() => {
+    retries++
+    if (Object.keys(providers()).length > 0 || retries >= maxRetries) {
+      clearInterval(retryTimer)
+      return
     }
-  }, 3000)
+    vscode.postMessage({ type: "requestProviders" })
+  }, retryMs)
 
-  const unsubReady = vscode.onMessage((message: ExtensionMessage) => {
-    if (message.type !== "extensionDataReady") return
-    unsubReady()
-    clearTimeout(fallback)
-    if (Object.keys(providers()).length === 0) {
-      vscode.postMessage({ type: "requestProviders" })
-    }
-  })
-
-  onCleanup(() => {
-    unsubReady()
-    clearTimeout(fallback)
-  })
+  onCleanup(() => clearInterval(retryTimer))
 
   const value: ProviderContextValue = {
     providers,

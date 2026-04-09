@@ -3,7 +3,7 @@ import * as fs from "fs"
 import * as os from "os"
 import * as path from "path"
 import type { KiloClient } from "@kilocode/sdk/v2/client"
-import { GitStatsPoller, type WorktreePresenceResult } from "../../src/agent-manager/GitStatsPoller"
+import { GitStatsPoller } from "../../src/agent-manager/GitStatsPoller"
 import { GitOps } from "../../src/agent-manager/GitOps"
 import type { Worktree } from "../../src/agent-manager/WorktreeStateManager"
 
@@ -128,7 +128,7 @@ describe("GitStatsPoller", () => {
     const wtPath = path.join(root, "wt-a")
     fs.mkdirSync(wtPath, { recursive: true })
 
-    const presence: WorktreePresenceResult[] = []
+    const presence: Array<{ worktrees: Array<{ worktreeId: string; missing: boolean }>; degraded: boolean }> = []
 
     const poller = new GitStatsPoller({
       getWorktrees: () => [{ ...worktree("a"), path: wtPath }],
@@ -154,10 +154,7 @@ describe("GitStatsPoller", () => {
     poller.stop()
     fs.rmSync(root, { recursive: true, force: true })
 
-    expect(presence[0]).toEqual({
-      worktrees: [{ worktreeId: "a", missing: false, branch: "branch-a" }],
-      degraded: false,
-    })
+    expect(presence[0]).toEqual({ worktrees: [{ worktreeId: "a", missing: false }], degraded: false })
   })
 
   it("emits degraded probe when git worktree listing fails", async () => {
@@ -165,7 +162,7 @@ describe("GitStatsPoller", () => {
     const wtPath = path.join(root, "wt-a")
     fs.mkdirSync(wtPath, { recursive: true })
 
-    const presence: WorktreePresenceResult[] = []
+    const presence: Array<{ worktrees: Array<{ worktreeId: string; missing: boolean }>; degraded: boolean }> = []
 
     const poller = new GitStatsPoller({
       getWorktrees: () => [{ ...worktree("a"), path: wtPath }],
@@ -202,7 +199,7 @@ describe("GitStatsPoller", () => {
 
     const calls: string[] = []
     const emitted: Array<Array<{ worktreeId: string; additions: number; deletions: number; commits: number }>> = []
-    const presence: WorktreePresenceResult[] = []
+    const presence: Array<{ worktrees: Array<{ worktreeId: string; missing: boolean }>; degraded: boolean }> = []
 
     const client = {
       worktree: {
@@ -243,8 +240,8 @@ describe("GitStatsPoller", () => {
     expect(calls.some((cwd) => cwd === wtBPath)).toBe(false)
     expect(presence[0]).toEqual({
       worktrees: [
-        { worktreeId: "a", missing: false, branch: "branch-a" },
-        { worktreeId: "b", missing: true, branch: undefined },
+        { worktreeId: "a", missing: false },
+        { worktreeId: "b", missing: true },
       ],
       degraded: false,
     })

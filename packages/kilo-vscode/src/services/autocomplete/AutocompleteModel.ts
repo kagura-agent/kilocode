@@ -2,7 +2,11 @@ import { ResponseMetaData } from "./types"
 import type { KiloConnectionService } from "../cli-backend"
 
 const DEFAULT_MODEL = "mistralai/codestral-2508"
-const PROVIDER_DISPLAY_NAME = "Kilo Gateway"
+
+const MODEL_PROVIDERS: Record<string, string> = {
+  "mistralai/codestral-2508": "Mistral AI",
+  "inception/mercury-edit": "Inception",
+}
 
 /** Chunk from an LLM streaming response */
 export type ApiStreamChunk =
@@ -18,6 +22,7 @@ export type ApiStreamChunk =
 
 export class AutocompleteModel {
   private connectionService: KiloConnectionService | null = null
+  private currentModel: string = DEFAULT_MODEL
   public profileName: string | null = null
   public profileType: string | null = null
 
@@ -25,6 +30,10 @@ export class AutocompleteModel {
     if (connectionService) {
       this.connectionService = connectionService
     }
+  }
+
+  public setModel(model: string): void {
+    this.currentModel = model
   }
 
   /**
@@ -69,11 +78,12 @@ export class AutocompleteModel {
     // client catches HTTP errors (402, 401, 429, 5xx) internally and silently
     // ends the stream. Without this, errors never reach ErrorBackoff.
     let sseError: Error | undefined
+
     const { stream } = await client.kilo.fim(
       {
         prefix,
         suffix,
-        model: DEFAULT_MODEL,
+        model: this.currentModel,
         maxTokens: 256,
         temperature: 0.2,
       },
@@ -87,7 +97,9 @@ export class AutocompleteModel {
     )
 
     for await (const chunk of stream) {
-      const content = chunk.choices?.[0]?.delta?.content
+      // Support both chat-style (delta.content) and text-completion-style (text) streaming formats
+      const choice = chunk.choices?.[0] as any
+      const content = choice?.delta?.content ?? choice?.text
       if (content) onChunk(content)
       if (chunk.usage) {
         inputTokens = chunk.usage.prompt_tokens ?? 0
@@ -122,11 +134,11 @@ export class AutocompleteModel {
   }
 
   public getModelName(): string {
-    return DEFAULT_MODEL
+    return this.currentModel
   }
 
   public getProviderDisplayName(): string {
-    return PROVIDER_DISPLAY_NAME
+    return MODEL_PROVIDERS[this.currentModel] ?? "Kilo Gateway"
   }
 
   /**

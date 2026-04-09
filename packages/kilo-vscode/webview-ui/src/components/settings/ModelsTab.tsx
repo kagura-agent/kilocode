@@ -1,16 +1,37 @@
-import { Component, For, createMemo } from "solid-js"
+import { Component, For, createMemo, createSignal, onCleanup } from "solid-js"
 import { Card } from "@kilocode/kilo-ui/card"
+import { Select } from "@kilocode/kilo-ui/select"
 import { useConfig } from "../../context/config"
 import { useLanguage } from "../../context/language"
 import { useSession } from "../../context/session"
+import { useVSCode } from "../../context/vscode"
 import { parseModelString } from "../../../../src/shared/provider-model"
 import { ModelSelectorBase } from "../shared/ModelSelector"
 import SettingsRow from "./SettingsRow"
+import type { ExtensionMessage } from "../../types/messages"
+
+const AUTOCOMPLETE_MODELS = [
+  { id: "mistralai/codestral-2508", label: "Codestral (Mistral AI)" },
+  { id: "inception/mercury-edit", label: "Mercury Edit (Inception)" },
+] as const
+
+type AutocompleteModelId = (typeof AUTOCOMPLETE_MODELS)[number]["id"]
 
 const ModelsTab: Component = () => {
   const { config, updateConfig } = useConfig()
   const language = useLanguage()
   const session = useSession()
+  const vscode = useVSCode()
+
+  const [autocompleteModel, setAutocompleteModel] = createSignal<string>("mistralai/codestral-2508")
+
+  const unsubscribe = vscode.onMessage((message: ExtensionMessage) => {
+    if (message.type === "autocompleteSettingsLoaded") {
+      setAutocompleteModel(message.settings.model)
+    }
+  })
+  onCleanup(unsubscribe)
+  vscode.postMessage({ type: "requestAutocompleteSettings" })
 
   function handleModelSelect(configKey: "model" | "small_model") {
     return (providerID: string, modelID: string) => {
@@ -52,7 +73,6 @@ const ModelsTab: Component = () => {
         <SettingsRow
           title={language.t("settings.providers.smallModel.title")}
           description={language.t("settings.providers.smallModel.description")}
-          last
         >
           <ModelSelectorBase
             value={parseModelString(config().small_model ?? undefined)}
@@ -61,6 +81,25 @@ const ModelsTab: Component = () => {
             allowClear
             clearLabel={language.t("settings.providers.notSet")}
             includeAutoSmall
+          />
+        </SettingsRow>
+        <SettingsRow
+          title={language.t("settings.autocomplete.model.title")}
+          description={language.t("settings.autocomplete.model.description")}
+          last
+        >
+          <Select
+            options={AUTOCOMPLETE_MODELS.map((m) => m.id)}
+            current={autocompleteModel() as AutocompleteModelId}
+            label={(opt: AutocompleteModelId) => AUTOCOMPLETE_MODELS.find((m) => m.id === opt)?.label ?? opt}
+            value={(opt: AutocompleteModelId) => opt}
+            onSelect={(opt) => {
+              if (opt !== undefined) {
+                setAutocompleteModel(opt)
+                vscode.postMessage({ type: "updateAutocompleteSetting", key: "model", value: opt })
+              }
+            }}
+            triggerVariant="settings"
           />
         </SettingsRow>
       </Card>

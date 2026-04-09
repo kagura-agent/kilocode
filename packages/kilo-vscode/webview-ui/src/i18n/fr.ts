@@ -955,10 +955,6 @@ export const dict = {
   "session.status.retrying": "Nouvelle tentative (essai {{ attempt }})… {{ message }}",
   "session.status.working": "En cours…",
 
-  "ui.sessionTurn.cancel": "Annuler",
-  "ui.sessionTurn.status.thinking": "Réflexion...",
-  "ui.sessionTurn.status.consideringNextSteps": "Envisage les prochaines étapes...",
-
   "dialog.model.noProviders": "Aucun fournisseur",
 
   "prompt.placeholder.connecting": "Connexion au serveur...",
@@ -1044,6 +1040,8 @@ export const dict = {
   "common.add": "Ajouter",
   "common.choose": "Choisir…",
 
+  "settings.autocomplete.model.title": "Modèle d'autocomplétion",
+  "settings.autocomplete.model.description": "Sélectionner le modèle utilisé pour les complétions de code en ligne",
   "settings.autocomplete.autoTrigger.title": "Activer la complétion automatique en ligne",
   "settings.autocomplete.autoTrigger.description":
     "Afficher automatiquement les suggestions de complétion lors de la saisie",
@@ -1153,16 +1151,6 @@ export const dict = {
   "settings.agentBehaviour.editMode.native":
     "Il s'agit d'un mode intégré. Sa définition de base ne peut pas être modifiée, mais vous pouvez configurer des surcharges ci-dessous.",
   "settings.agentBehaviour.editMode.promptOverride": "Remplacement de prompt personnalisé pour ce mode intégré",
-  "settings.agentBehaviour.badge.subagent": "sous-agent",
-  "settings.agentBehaviour.permissions.title": "Permissions calculées",
-  "settings.agentBehaviour.permissions.count": "{{count}} règles",
-  "settings.agentBehaviour.permissions.effective": "Effectif (wildcard) :",
-  "settings.agentBehaviour.permissions.col.tool": "Outil",
-  "settings.agentBehaviour.permissions.col.pattern": "Motif",
-  "settings.agentBehaviour.permissions.col.action": "Action",
-  "settings.agentBehaviour.permissions.copy": "Copier les permissions en JSON",
-  "settings.agentBehaviour.permissions.hint":
-    "Les règles sont évaluées dans l'ordre — la dernière règle correspondante l'emporte. Il s'agit de l'ensemble de règles résolu depuis le backend CLI.",
   "settings.agentBehaviour.removeMode.title": "Supprimer le mode",
   "settings.agentBehaviour.removeMode.confirm":
     'Supprimer le mode "{{name}}" ? Cela désactivera le mode en mettant à jour votre configuration.',
@@ -1392,5 +1380,4 @@ export const dict = {
   "notifications.action.next": "Suivant",
   "notifications.action.close": "Fermer",
   "notifications.action.tryModel": "Essayer {{model}}",
-  "notifications.action.tryModelGeneric": "Essayer le modèle",
 }

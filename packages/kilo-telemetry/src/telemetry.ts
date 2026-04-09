@@ -184,11 +184,6 @@ export namespace Telemetry {
     track(TelemetryEvent.MCP_SERVER_ERROR, { server, error })
   }
 
-  // Remote
-  export function trackRemoteConnectionOpened() {
-    track(TelemetryEvent.REMOTE_CONNECTION_OPENED)
-  }
-
   // Auth
   export function trackAuthSuccess(provider: string) {
     track(TelemetryEvent.AUTH_SUCCESS, { provider })

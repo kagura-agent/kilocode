@@ -1,5 +1,6 @@
 import path from "path"
 import fs from "fs/promises"
+import syncfs from "fs" // kilocode_change — sync write for instant flush
 import { Global } from "../global"
 import z from "zod"
 import { Glob } from "./glob"
@@ -80,10 +81,14 @@ export namespace Log {
     stream.on("warning", (err: Error) => {
       process.stderr.write("log stream warning: " + err.message + "\n")
     })
+    // kilocode_change start — sync write so logs flush line-by-line for tail -f
+    const fd = syncfs.openSync(logpath, "a")
     write = (msg: any) => {
       stream.write(msg)
+      syncfs.writeSync(fd, msg)
       return msg.length
     }
+    // kilocode_change end
     // kilocode_change end
   }
 

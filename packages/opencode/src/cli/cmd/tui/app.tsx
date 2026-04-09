@@ -48,16 +48,6 @@ import { initializeTUIDependencies } from "@kilocode/kilo-gateway/tui" // kiloco
 import { TuiConfigProvider } from "./context/tui-config"
 import { TuiConfig } from "@/config/tui"
 
-// kilocode_change start
-function isAllowEverything(permission: unknown): boolean {
-  if (typeof permission !== "object" || permission === null) return false
-  const wildcard = (permission as Record<string, unknown>)["*"]
-  if (typeof wildcard === "string") return wildcard === "allow"
-  if (typeof wildcard === "object" && wildcard !== null) return (wildcard as Record<string, unknown>)["*"] === "allow"
-  return false
-}
-// kilocode_change end
-
 async function getTerminalBackgroundColor(): Promise<"dark" | "light"> {
   // can't set raw mode if not a TTY
   if (!process.stdin.isTTY) return "dark"
@@ -410,7 +400,7 @@ function App() {
         dialog.replace(() => <DialogSessionList />)
       },
     },
-    ...(Flag.KILO_EXPERIMENTAL_WORKSPACES_TUI
+    ...(Flag.KILO_EXPERIMENTAL_WORKSPACES
       ? [
           {
             title: "Manage workspaces",
@@ -440,9 +430,12 @@ function App() {
         const current = promptRef.current
         // Don't require focus - if there's any text, preserve it
         const currentPrompt = current?.current?.input ? current.current : undefined
+        const workspaceID =
+          route.data.type === "session" ? sync.session.get(route.data.sessionID)?.workspaceID : undefined
         route.navigate({
           type: "home",
           initialPrompt: currentPrompt,
+          workspaceID,
         })
         dialog.clear()
       },
@@ -719,27 +712,6 @@ function App() {
         dialog.clear()
       },
     },
-    // kilocode_change start
-    {
-      get title() {
-        return isAllowEverything(sync.data.config.permission) ? "Disable auto-approve mode" : "Enable auto-approve mode"
-      },
-      value: "permission.allow_everything",
-      category: "System",
-      onSelect: async (dialog) => {
-        const enabled = isAllowEverything(sync.data.config.permission)
-        const result = await sdk.client.permission.allowEverything({ enable: !enabled })
-        if (result.error) {
-          toast.show({
-            variant: "error",
-            message: `Failed to ${!enabled ? "enable" : "disable"} auto-approve mode`,
-          })
-          return
-        }
-        dialog.clear()
-      },
-    },
-    // kilocode_change end
   ])
 
   // kilocode_change start - Initialize TUI dependencies for kilo-gateway

@@ -90,25 +90,11 @@ import {
   saveCustomProvider as saveCustomProviderAction,
 } from "./provider-actions"
 import { fetchOpenAIModels, FetchModelsError } from "./shared/fetch-models"
-import type { Agent } from "@kilocode/sdk/v2/client"
 
 type KiloProviderOptions = {
   projectDirectory?: string | null
   slimEditMetadata?: boolean
 }
-
-// Helper to map agent data to the subset of fields sent to the webview
-const mapAgent = (a: Agent) => ({
-  name: a.name,
-  displayName: a.displayName,
-  description: a.description,
-  mode: a.mode,
-  native: a.native,
-  hidden: a.hidden,
-  color: a.color,
-  deprecated: a.deprecated,
-  permission: a.permission,
-})
 
 export class KiloProvider implements vscode.WebviewViewProvider, TelemetryPropertiesProvider {
   public static readonly viewType = "kilo-code.SidebarProvider"
@@ -197,8 +183,6 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
     | ((sessionId: string, progress: (status: string, detail?: string, error?: string) => void) => Promise<void>)
     | null = null
 
-  private diffVirtualProvider: import("./DiffVirtualProvider").DiffVirtualProvider | undefined
-
   constructor(
     private readonly extensionUri: vscode.Uri,
     private readonly connectionService: KiloConnectionService,
@@ -215,10 +199,6 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
     if (this.projectDirectory === directory) return
     this.projectDirectory = directory
     this.postMessage({ type: "workspaceDirectoryChanged", directory: directory ?? "" })
-  }
-
-  public setDiffVirtualProvider(provider: import("./DiffVirtualProvider").DiffVirtualProvider): void {
-    this.diffVirtualProvider = provider
   }
 
   getTelemetryProperties(): Record<string, unknown> {
@@ -632,11 +612,6 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
           break
         case "openChanges":
           vscode.commands.executeCommand("kilo-code.new.showChanges")
-          break
-        case "openDiffVirtual":
-          if (this.diffVirtualProvider && message.diff) {
-            this.diffVirtualProvider.open(message.diff)
-          }
           break
         case "continueInWorktree":
           if (message.sessionId && this.continueInWorktreeHandler) {
@@ -1179,7 +1154,6 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
       ])
       this.sendNotificationSettings()
       this.sendTimelineSetting()
-      this.postMessage({ type: "extensionDataReady" })
 
       // Start polling worktree diff stats for the sidebar badge
       this.startStatsPolling()
@@ -1647,8 +1621,15 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
 
       const message = {
         type: "agentsLoaded",
-        agents: visible.map(mapAgent),
-        allAgents: agents.map(mapAgent),
+        agents: visible.map((a) => ({
+          name: a.name,
+          displayName: a.displayName,
+          description: a.description,
+          mode: a.mode,
+          native: a.native,
+          color: a.color,
+          deprecated: a.deprecated,
+        })),
         defaultAgent,
       }
       this.cachedAgentsMessage = message

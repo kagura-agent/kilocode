@@ -14,9 +14,9 @@ The following image formats are supported for paste and drag-and-drop:
 - GIF (`image/gif`)
 - WebP (`image/webp`)
 
-## Drag-and-Drop (Shift Required)
+### Drag-and-Drop on Windows
 
-VS Code disables webview pointer-events during drag operations so it can handle drops in the editor area. To drop images into the chat input, **hold Shift while dragging**. This re-enables the webview to receive drop events (VS Code 1.91+, see [microsoft/vscode#182449](https://github.com/microsoft/vscode/issues/182449)).
+VS Code on Windows disables webview pointer-events during drag operations so it can handle drops in the editor area. To drop images into the chat input, **hold Shift while dragging**. This re-enables the webview to receive drop events (VS Code 1.91+, see [microsoft/vscode#182449](https://github.com/microsoft/vscode/issues/182449)).
 
 ## Remaining Work
 

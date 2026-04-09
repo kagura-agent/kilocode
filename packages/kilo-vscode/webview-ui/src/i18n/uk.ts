@@ -242,6 +242,7 @@ export const dict = {
   "prompt.context.removeActiveFile": "Видалити активний файл з контексту",
   "prompt.context.removeFile": "Видалити файл з контексту",
   "prompt.action.attachFile": "Прикріпити файл",
+  "prompt.action.attachImage": "Прикріпити зображення",
   "prompt.attachment.remove": "Видалити вкладення",
   "prompt.action.send": "Надіслати",
   "prompt.action.send.blocked": "Спочатку дайте відповідь або закрийте очікуюче питання",

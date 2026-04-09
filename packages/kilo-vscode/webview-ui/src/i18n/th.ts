@@ -241,6 +241,7 @@ export const dict = {
   "prompt.context.removeActiveFile": "เอาไฟล์ที่ใช้งานอยู่ออกจากบริบท",
   "prompt.context.removeFile": "เอาไฟล์ออกจากบริบท",
   "prompt.action.attachFile": "แนบไฟล์",
+  "prompt.action.attachImage": "แนบรูปภาพ",
   "prompt.attachment.remove": "เอาไฟล์แนบออก",
   "prompt.action.send": "ส่ง",
   "prompt.action.send.blocked": "โปรดตอบหรือข้ามคำถามที่รอดำเนินการก่อน",

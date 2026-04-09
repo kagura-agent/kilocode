@@ -241,6 +241,7 @@ export const dict = {
   "prompt.context.removeActiveFile": "Aktif dosyayı bağlamdan çıkar",
   "prompt.context.removeFile": "Dosyayı bağlamdan çıkar",
   "prompt.action.attachFile": "Dosya ekle",
+  "prompt.action.attachImage": "Görsel ekle",
   "prompt.attachment.remove": "Eki kaldır",
   "prompt.action.send": "Gönder",
   "prompt.action.send.blocked": "Bekleyen soruyu önce yanıtlayın veya kapatın",

@@ -240,6 +240,7 @@ export const dict = {
   "prompt.context.removeActiveFile": "コンテキストからアクティブなファイルを削除",
   "prompt.context.removeFile": "コンテキストからファイルを削除",
   "prompt.action.attachFile": "ファイルを添付",
+  "prompt.action.attachImage": "画像を添付",
   "prompt.attachment.remove": "添付ファイルを削除",
   "prompt.action.send": "送信",
   "prompt.action.send.blocked": "最初に保留中の質問に答えるか、閉じてください",

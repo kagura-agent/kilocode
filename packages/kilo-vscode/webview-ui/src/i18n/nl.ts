@@ -242,6 +242,7 @@ export const dict = {
   "prompt.context.removeActiveFile": "Actief bestand uit context verwijderen",
   "prompt.context.removeFile": "Bestand uit context verwijderen",
   "prompt.action.attachFile": "Bestand bijvoegen",
+  "prompt.action.attachImage": "Afbeelding bijvoegen",
   "prompt.attachment.remove": "Bijlage verwijderen",
   "prompt.action.send": "Verzenden",
   "prompt.action.send.blocked": "Beantwoord of negeer eerst de openstaande vraag",

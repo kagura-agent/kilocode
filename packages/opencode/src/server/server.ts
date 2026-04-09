@@ -53,6 +53,7 @@ import { QuestionRoutes } from "./routes/question"
 import { PermissionRoutes } from "./routes/permission"
 import { RemoteRoutes } from "./routes/remote" // kilocode_change
 import { GlobalRoutes } from "./routes/global"
+import { MemDiag } from "../kilocode/mem-diag" // kilocode_change
 import { MDNS } from "./mdns"
 
 // @ts-ignore This global is needed to prevent ai-sdk from logging warnings to stdout https://github.com/vercel/ai/blob/2dc67e0ef538307f21368db32d5a12345d98831b/packages/ai/src/logger/log-warnings.ts#L85
@@ -576,8 +577,9 @@ export namespace Server {
               },
             },
           }),
-          async (c) => {
+           async (c) => {
             log.info("event connected")
+            MemDiag.inc("sse.instance.open") // kilocode_change
             c.header("X-Accel-Buffering", "no")
             c.header("X-Content-Type-Options", "nosniff")
             // kilocode_change start — SSE dead-stream detection to prevent memory leak
@@ -588,6 +590,7 @@ export namespace Server {
                 dead = true
                 clearInterval(heartbeat)
                 unsub()
+                MemDiag.inc("sse.instance.closed") // kilocode_change
                 log.info("event disconnected", { reason })
               }
 
@@ -699,6 +702,7 @@ export namespace Server {
     }
     const server = opts.port === 0 ? (tryServe(4096) ?? tryServe(0)) : tryServe(opts.port)
     if (!server) throw new Error(`Failed to start server on port ${opts.port}`)
+    MemDiag.start() // kilocode_change
 
     _url = server.url
 

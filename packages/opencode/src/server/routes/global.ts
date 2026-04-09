@@ -7,6 +7,7 @@ import { GlobalBus } from "@/bus/global"
 import { Instance } from "../../project/instance"
 import { Installation } from "@/installation"
 import { Log } from "../../util/log"
+import { MemDiag } from "../../kilocode/mem-diag" // kilocode_change
 import { lazy } from "../../util/lazy"
 import { Config } from "../../config/config"
 import { errors } from "../error"
@@ -66,6 +67,7 @@ export const GlobalRoutes = lazy(() =>
       }),
       async (c) => {
         log.info("global event connected")
+        MemDiag.inc("sse.global.open") // kilocode_change
         c.header("X-Accel-Buffering", "no")
         c.header("X-Content-Type-Options", "nosniff")
         // kilocode_change start — SSE dead-stream detection to prevent memory leak
@@ -76,6 +78,7 @@ export const GlobalRoutes = lazy(() =>
             dead = true
             clearInterval(heartbeat)
             GlobalBus.off("event", handler)
+            MemDiag.inc("sse.global.closed") // kilocode_change
             log.info("global event disconnected", { reason })
           }
 

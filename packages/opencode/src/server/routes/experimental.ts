@@ -13,6 +13,7 @@ import { lazy } from "../../util/lazy"
 import { Snapshot } from "../../snapshot" // kilocode_change
 import { Review } from "../../kilocode/review/review" // kilocode_change
 import { WorktreeDiff } from "../../kilocode/review/worktree-diff" // kilocode_change
+import { MemDiag } from "../../kilocode/mem-diag" // kilocode_change
 import { Log } from "../../util/log" // kilocode_change
 import { WorkspaceRoutes } from "./workspace"
 
@@ -262,6 +263,7 @@ export const ExperimentalRoutes = lazy(() =>
         }),
       ),
       async (c) => {
+        MemDiag.inc("diffSummary.calls") // kilocode_change
         const log = Log.create({ service: "worktree-diff" })
         const query = c.req.valid("query")
         const base = query.base || (await Review.getBaseBranch())

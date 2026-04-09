@@ -1032,6 +1032,8 @@ export const dict = {
   "common.add": "Dodaj",
   "common.choose": "Odaberi…",
 
+  "settings.autocomplete.model.title": "Model automatskog dovršavanja",
+  "settings.autocomplete.model.description": "Odaberite model koji se koristi za inline dopune koda",
   "settings.autocomplete.autoTrigger.title": "Omogući automatsko inline dovršavanje",
   "settings.autocomplete.autoTrigger.description": "Automatski prikaži prijedloge inline dovršavanja tokom tipkanja",
   "settings.autocomplete.smartKeybinding.title": "Omogući pametnu prečicu inline zadatka",

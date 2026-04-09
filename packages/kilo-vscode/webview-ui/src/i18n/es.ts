@@ -1036,6 +1036,9 @@ export const dict = {
   "common.add": "Añadir",
   "common.choose": "Elegir…",
 
+  "settings.autocomplete.model.title": "Modelo de autocompletado",
+  "settings.autocomplete.model.description":
+    "Seleccionar el modelo utilizado para las completaciones de código en línea",
   "settings.autocomplete.autoTrigger.title": "Habilitar completado en línea automático",
   "settings.autocomplete.autoTrigger.description": "Mostrar automáticamente sugerencias de completado al escribir",
   "settings.autocomplete.smartKeybinding.title": "Habilitar atajo inteligente de tarea en línea",

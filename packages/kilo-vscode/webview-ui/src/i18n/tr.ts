@@ -1029,6 +1029,8 @@ export const dict = {
   "common.add": "Ekle",
   "common.choose": "Seç…",
 
+  "settings.autocomplete.model.title": "Otomatik tamamlama modeli",
+  "settings.autocomplete.model.description": "Satır içi kod tamamlamaları için kullanılacak modeli seçin",
   "settings.autocomplete.autoTrigger.title": "Otomatik satır içi tamamlamaları etkinleştir",
   "settings.autocomplete.autoTrigger.description": "Yazarken satır içi tamamlama önerilerini otomatik göster",
   "settings.autocomplete.smartKeybinding.title": "Akıllı satır içi görev tuş atamasını etkinleştir",

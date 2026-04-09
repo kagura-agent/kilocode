@@ -1008,6 +1008,8 @@ export const dict = {
   "common.add": "添加",
   "common.choose": "选择…",
 
+  "settings.autocomplete.model.title": "自动补全模型",
+  "settings.autocomplete.model.description": "选择用于内联代码补全的模型",
   "settings.autocomplete.autoTrigger.title": "启用自动内联补全",
   "settings.autocomplete.autoTrigger.description": "在您输入时自动显示内联补全建议",
   "settings.autocomplete.smartKeybinding.title": "启用智能内联任务快捷键",

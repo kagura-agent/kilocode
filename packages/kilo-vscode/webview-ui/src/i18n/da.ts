@@ -1026,6 +1026,8 @@ export const dict = {
   "common.add": "Tilføj",
   "common.choose": "Vælg…",
 
+  "settings.autocomplete.model.title": "Autofuldførelsesmodel",
+  "settings.autocomplete.model.description": "Vælg den model, der bruges til inline kodefuldførelse",
   "settings.autocomplete.autoTrigger.title": "Aktiver automatisk inline-fuldførelse",
   "settings.autocomplete.autoTrigger.description": "Vis automatisk inline-fuldførelsesforslag under indtastning",
   "settings.autocomplete.smartKeybinding.title": "Aktiver smart inline-opgave-tastaturgenvej",

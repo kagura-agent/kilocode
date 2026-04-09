@@ -1018,6 +1018,8 @@ export const dict = {
   "common.add": "เพิ่ม",
   "common.choose": "เลือก…",
 
+  "settings.autocomplete.model.title": "โมเดลเติมอัตโนมัติ",
+  "settings.autocomplete.model.description": "เลือกโมเดลที่ใช้สำหรับการเติมโค้ดแบบอินไลน์",
   "settings.autocomplete.autoTrigger.title": "เปิดใช้งานการเติมอัตโนมัติแบบอินไลน์",
   "settings.autocomplete.autoTrigger.description": "แสดงข้อเสนอแนะการเติมอัตโนมัติระหว่างพิมพ์",
   "settings.autocomplete.smartKeybinding.title": "เปิดใช้งานปุ่มลัดงานอินไลน์อัจฉริยะ",

@@ -1031,6 +1031,8 @@ export const dict = {
   "common.add": "Adicionar",
   "common.choose": "Escolher…",
 
+  "settings.autocomplete.model.title": "Modelo de autocompletar",
+  "settings.autocomplete.model.description": "Selecionar o modelo usado para completações de código inline",
   "settings.autocomplete.autoTrigger.title": "Ativar completamento automático inline",
   "settings.autocomplete.autoTrigger.description":
     "Mostrar automaticamente sugestões de completamento inline ao digitar",

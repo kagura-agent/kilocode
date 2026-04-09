@@ -1029,6 +1029,8 @@ export const dict = {
   "common.add": "Toevoegen",
   "common.choose": "Kies…",
 
+  "settings.autocomplete.model.title": "Autocomplete-model",
+  "settings.autocomplete.model.description": "Selecteer het model voor inline code-aanvullingen",
   "settings.autocomplete.autoTrigger.title": "Automatische inline aanvullingen inschakelen",
   "settings.autocomplete.autoTrigger.description":
     "Toon automatisch suggesties voor inline aanvullingen tijdens het typen",

@@ -1026,6 +1026,8 @@ export const dict = {
   "common.add": "追加",
   "common.choose": "選択…",
 
+  "settings.autocomplete.model.title": "自動補完モデル",
+  "settings.autocomplete.model.description": "インラインコード補完に使用するモデルを選択",
   "settings.autocomplete.autoTrigger.title": "自動インライン補完を有効にする",
   "settings.autocomplete.autoTrigger.description": "入力時にインライン補完の提案を自動的に表示",
   "settings.autocomplete.smartKeybinding.title": "スマートインラインタスクキーバインドを有効にする",

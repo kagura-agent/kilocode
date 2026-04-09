@@ -1031,6 +1031,8 @@ export const dict = {
   "common.add": "Додати",
   "common.choose": "Вибрати…",
 
+  "settings.autocomplete.model.title": "Модель автодоповнення",
+  "settings.autocomplete.model.description": "Виберіть модель для вбудованих доповнень коду",
   "settings.autocomplete.autoTrigger.title": "Увімкнути автоматичні підказки",
   "settings.autocomplete.autoTrigger.description": "Автоматично показувати підказки під час введення",
   "settings.autocomplete.smartKeybinding.title": "Увімкнути розумне прив'язування клавіш",

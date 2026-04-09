@@ -1023,6 +1023,8 @@ export const dict = {
   "common.add": "추가",
   "common.choose": "선택…",
 
+  "settings.autocomplete.model.title": "자동완성 모델",
+  "settings.autocomplete.model.description": "인라인 코드 완성에 사용할 모델 선택",
   "settings.autocomplete.autoTrigger.title": "자동 인라인 완성 활성화",
   "settings.autocomplete.autoTrigger.description": "입력 시 인라인 완성 제안을 자동으로 표시",
   "settings.autocomplete.smartKeybinding.title": "스마트 인라인 작업 키바인딩 활성화",

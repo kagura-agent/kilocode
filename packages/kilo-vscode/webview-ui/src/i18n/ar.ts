@@ -1016,6 +1016,8 @@ export const dict = {
   "common.add": "إضافة",
   "common.choose": "اختر…",
 
+  "settings.autocomplete.model.title": "نموذج الإكمال التلقائي",
+  "settings.autocomplete.model.description": "اختر النموذج المستخدم لإكمال الكود المضمّن",
   "settings.autocomplete.autoTrigger.title": "تمكين الإكمال التلقائي المضمّن",
   "settings.autocomplete.autoTrigger.description": "عرض اقتراحات الإكمال المضمّن تلقائياً أثناء الكتابة",
   "settings.autocomplete.smartKeybinding.title": "تمكين اختصار المهمة المضمّنة الذكي",

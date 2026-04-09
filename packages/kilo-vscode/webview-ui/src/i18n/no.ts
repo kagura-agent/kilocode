@@ -1029,6 +1029,8 @@ export const dict = {
   "common.add": "Legg til",
   "common.choose": "Velg…",
 
+  "settings.autocomplete.model.title": "Autofullføringsmodell",
+  "settings.autocomplete.model.description": "Velg modellen som brukes for innebygde kodefullføringer",
   "settings.autocomplete.autoTrigger.title": "Aktiver automatisk innebygd fullføring",
   "settings.autocomplete.autoTrigger.description": "Vis automatisk innebygde fullføringsforslag ved skriving",
   "settings.autocomplete.smartKeybinding.title": "Aktiver smart innebygd oppgavetastbinding",

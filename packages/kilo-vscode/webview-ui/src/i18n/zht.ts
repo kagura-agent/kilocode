@@ -1010,6 +1010,8 @@ export const dict = {
   "common.add": "新增",
   "common.choose": "選擇…",
 
+  "settings.autocomplete.model.title": "自動補全模型",
+  "settings.autocomplete.model.description": "選擇用於內嵌程式碼補全的模型",
   "settings.autocomplete.autoTrigger.title": "啟用自動內嵌補全",
   "settings.autocomplete.autoTrigger.description": "在您輸入時自動顯示內嵌補全建議",
   "settings.autocomplete.smartKeybinding.title": "啟用智慧內嵌任務快捷鍵",

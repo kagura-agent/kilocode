@@ -12,6 +12,7 @@ import ProvidersTab from "../components/settings/ProvidersTab"
 import AgentBehaviourTab from "../components/settings/AgentBehaviourTab"
 import ModeEditView from "../components/settings/ModeEditView"
 import McpEditView from "../components/settings/McpEditView"
+import McpAddView from "../components/settings/McpAddView"
 import type { AgentConfig, CommandConfig } from "../types/messages"
 
 const meta: Meta = {
@@ -316,6 +317,43 @@ export const ModeEditExport: Story = {
             <ModeEditView name="reviewer" onBack={noop} onRemove={noop} />
           </div>
         </SessionContext.Provider>
+      </StoryProviders>
+    )
+  },
+}
+
+export const McpAddViewStdio: Story = {
+  name: "McpAddView — stdio transport (default)",
+  render: () => (
+    <StoryProviders>
+      <div style={{ "max-height": "700px", overflow: "auto" }}>
+        <McpAddView taken={["existing-server"]} onBack={noop} />
+      </div>
+    </StoryProviders>
+  ),
+}
+
+export const McpAddViewSse: Story = {
+  name: "McpAddView — SSE transport",
+  render: () => {
+    let ref: HTMLDivElement | undefined
+    onMount(() => {
+      requestAnimationFrame(() => {
+        if (!ref) return
+        const buttons = Array.from(ref.querySelectorAll<HTMLButtonElement>("button"))
+        for (const btn of buttons) {
+          if (btn.textContent?.includes("URL")) {
+            btn.click()
+            return
+          }
+        }
+      })
+    })
+    return (
+      <StoryProviders>
+        <div ref={ref} style={{ "max-height": "700px", overflow: "auto" }}>
+          <McpAddView taken={[]} onBack={noop} />
+        </div>
       </StoryProviders>
     )
   },

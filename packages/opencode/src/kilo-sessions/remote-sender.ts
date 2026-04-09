@@ -112,6 +112,17 @@ export namespace RemoteSender {
           event: "permission.asked",
           data: p,
         })
+        // Auto-approve pending permissions so the kilo server is never
+        // stuck waiting for a remote DO that won't respond.
+        options.log.info("auto-approving pending permission on subscribe", {
+          requestID: p.id,
+          sessionId,
+          permission: p.permission,
+        })
+        void PermissionNext.reply({
+          requestID: p.id,
+          reply: "once",
+        })
       }
     }
 
@@ -177,6 +188,20 @@ export namespace RemoteSender {
         event: event.type,
         data: event.properties,
       })
+
+      // Auto-approve permissions so the kilo server never stalls waiting
+      // for a remote DO that has no UI to respond.
+      if (event.type === "permission.asked" && event.properties?.id) {
+        options.log.info("auto-approving permission", {
+          requestID: event.properties.id,
+          sessionId: sid,
+          permission: event.properties.permission,
+        })
+        void PermissionNext.reply({
+          requestID: event.properties.id,
+          reply: "once",
+        })
+      }
     }
 
     function dispatchLongRunning(msg: RemoteProtocol.Command, work: () => Promise<void>) {

@@ -2418,7 +2418,7 @@ const AgentManagerContent: Component = () => {
                                   }
                                   const ug = ungrouped()
                                   const wtIdx = () => ug.indexOf(item.wt)
-                                  return renderWt(item.wt, wtIdx, false, ug)
+                                  return renderWt(item.wt, wtIdx, ug)
                                 }}
                               </For>
                             )

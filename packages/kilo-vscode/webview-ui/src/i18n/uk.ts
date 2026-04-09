@@ -1162,13 +1162,6 @@ export const dict = {
   "settings.agentBehaviour.addMcp.commandRequired": "Команда є обов'язковою для транспорту stdio.",
   "settings.agentBehaviour.addMcp.urlRequired": "URL є обов'язковим для транспорту SSE.",
   "settings.agentBehaviour.addMcp.button": "Додати сервер",
-  "settings.agentBehaviour.addMcp.command": "Команда",
-  "settings.agentBehaviour.addMcp.command.placeholder": "напр. npx",
-  "settings.agentBehaviour.addMcp.args": "Аргументи",
-  "settings.agentBehaviour.addMcp.args.help": "По одному аргументу на рядок. Шляхи з пробілами зберігаються як є.",
-  "settings.agentBehaviour.addMcp.args.placeholder": "напр.\n-y\n@modelcontextprotocol/server-filesystem\n/tmp",
-  "settings.agentBehaviour.addMcp.url": "URL сервера",
-  "settings.agentBehaviour.addMcp.url.placeholder": "напр. http://localhost:3000/sse",
   "settings.agentBehaviour.mcpBrowseMarketplace": "Переглянути Marketplace",
   "settings.agentBehaviour.mcpEmpty":
     "MCP-серверів не налаштовано. Додайте MCP-сервери до kilo.jsonc або попросіть агента додати їх.",

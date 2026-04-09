@@ -173,7 +173,9 @@ export const BashTool = Tool.define("bash", async () => {
         { cwd, sessionID: ctx.sessionID, callID: ctx.callID },
         { env: {} },
       )
-      const proc = spawn(params.command, {
+      // kilocode_change — sanitize >nul redirects for Git Bash on Windows
+      const command = Shell.sanitizeNullRedirect(params.command, shell)
+      const proc = spawn(command, {
         shell,
         cwd,
         env: {

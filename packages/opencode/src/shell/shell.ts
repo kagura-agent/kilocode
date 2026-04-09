@@ -67,4 +67,36 @@ export namespace Shell {
     if (s && !BLACKLIST.has(process.platform === "win32" ? path.win32.basename(s) : path.basename(s))) return s
     return fallback()
   })
+
+  // kilocode_change start — prevent nul file creation on Windows (GH #13369)
+  const UNIX_SHELLS = new Set(["bash", "sh", "zsh", "dash", "ksh", "ash"])
+
+  /** True when the resolved shell is a POSIX-like shell (bash, sh, zsh, …). */
+  export function isUnixLike(shell: string): boolean {
+    const base = (
+      process.platform === "win32" ? path.win32.basename(shell, ".exe") : path.basename(shell)
+    ).toLowerCase()
+    return UNIX_SHELLS.has(base)
+  }
+
+  /**
+   * On Windows + POSIX shell (e.g. Git Bash): rewrite `>nul` / `2>nul` →
+   * `>/dev/null` / `2>/dev/null` so the null-device redirect works instead of
+   * creating a literal file named `nul`.
+   *
+   * On Windows + cmd/PowerShell: rewrite `>/dev/null` → `>NUL` (reverse).
+   *
+   * No-op on non-Windows platforms.
+   */
+  export function sanitizeNullRedirect(command: string, shell: string): string {
+    if (process.platform !== "win32") return command
+    if (isUnixLike(shell)) {
+      // POSIX shell on Windows — replace Windows-style >nul with >/dev/null
+      // Matches: >nul  2>nul  1>nul  > nul  (case-insensitive, word-bounded)
+      return command.replace(/(\d?>)\s*nul\b/gi, "$1/dev/null")
+    }
+    // Native Windows shell — replace Unix-style >/dev/null with >NUL
+    return command.replace(/(\d?>)\s*\/dev\/null\b/g, "$1NUL")
+  }
+  // kilocode_change end
 }

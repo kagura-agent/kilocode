@@ -570,6 +570,7 @@ export const RunCommand = cmd({
             UI.error(err)
           }
 
+          // kilocode_change start
           if (
             event.type === "session.status" &&
             event.properties.sessionID === sessionID &&
@@ -577,6 +578,7 @@ export const RunCommand = cmd({
           ) {
             retries = 0
           }
+          // kilocode_change end
 
           if (
             event.type === "session.status" &&
@@ -609,9 +611,9 @@ export const RunCommand = cmd({
             await sdk.permission.reply({
               requestID: permission.id,
               reply: "reject",
-            })
-          }
-
+            }) // kilocode_change
+          } // kilocode_change
+          // kilocode_change start - network retry handling
           if (event.type === "session.network.asked") {
             const request = event.properties
             if (request.sessionID !== sessionID) continue
@@ -630,6 +632,7 @@ export const RunCommand = cmd({
               requestID: request.id,
             })
           }
+          // kilocode_change end
         }
       }
 

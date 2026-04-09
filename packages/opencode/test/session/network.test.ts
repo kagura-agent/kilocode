@@ -1,3 +1,4 @@
+// kilocode_change - new file
 import { describe, expect, test } from "bun:test"
 import { Bus } from "../../src/bus"
 import { Instance } from "../../src/project/instance"

@@ -17,7 +17,7 @@ import { PermissionNext } from "@/permission/next"
 import { Question } from "@/question"
 import { Telemetry } from "@kilocode/kilo-telemetry" // kilocode_change
 import { Flag } from "@/flag/flag" // kilocode_change
-import { SessionNetwork } from "./network"
+import { SessionNetwork } from "./network" // kilocode_change
 
 export namespace SessionProcessor {
   const DOOM_LOOP_THRESHOLD = 3
@@ -413,6 +413,7 @@ export namespace SessionProcessor {
               })
             } else {
               const retry = SessionRetry.retryable(error)
+              // kilocode_change start - network disconnect detection and offline recovery
               if (retry !== undefined) {
                 const offline = SessionNetwork.disconnected(e)
                 log.warn("retryable error", {
@@ -496,6 +497,7 @@ export namespace SessionProcessor {
                   continue
                 }
               }
+              // kilocode_change end
               input.assistantMessage.error = error
               Bus.publish(Session.Event.Error, {
                 sessionID: input.assistantMessage.sessionID,

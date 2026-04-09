@@ -1,3 +1,4 @@
+// kilocode_change - new file
 import { Bus } from "../bus"
 import { BusEvent } from "../bus/bus-event"
 import { Identifier } from "../id/id"

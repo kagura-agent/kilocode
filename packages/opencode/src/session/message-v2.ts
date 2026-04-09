@@ -916,10 +916,10 @@ export namespace MessageV2 {
           },
           { cause: e },
         ).toObject()
-      case SessionNetwork.disconnected(e): // kilocode_change
+      case SessionNetwork.disconnected(e): // kilocode_change start
         return new MessageV2.APIError(
           {
-            message: SessionNetwork.message(e),
+            message: SessionNetwork.message(e), // kilocode_change end
             isRetryable: true,
             metadata: {
               code: (e as SystemError).code ?? "",

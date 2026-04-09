@@ -9,7 +9,7 @@ import type {
   Command,
   PermissionRequest,
   QuestionRequest,
-  SessionNetworkWait,
+  SessionNetworkWait, // kilocode_change
   LspStatus,
   McpStatus,
   McpResource,
@@ -49,9 +49,11 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
       question: {
         [sessionID: string]: QuestionRequest[]
       }
+      // kilocode_change start
       network: {
         [sessionID: string]: SessionNetworkWait[]
       }
+      // kilocode_change end
       config: Config
       session: Session[]
       session_status: {
@@ -92,7 +94,9 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
       agent: [],
       permission: {},
       question: {},
+      // kilocode_change start
       network: {},
+      // kilocode_change end
       command: [],
       provider: [],
       provider_default: {},
@@ -230,8 +234,9 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
             }),
           )
           break
-        }
+        } // kilocode_change
 
+        // kilocode_change start
         case "session.network.replied":
         case "session.network.rejected": {
           const requests = store.network[event.properties.sessionID]
@@ -279,6 +284,7 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
           )
           break
         }
+        // kilocode_change end
 
         case "todo.updated":
           setStore("todo", event.properties.sessionID, event.properties.todos)
@@ -512,7 +518,8 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
             sdk.client.lsp.status().then((x) => setStore("lsp", reconcile(x.data!))),
             sdk.client.mcp.status().then((x) => setStore("mcp", reconcile(x.data!))),
             sdk.client.experimental.resource.list().then((x) => setStore("mcp_resource", reconcile(x.data ?? {}))),
-            sdk.client.formatter.status().then((x) => setStore("formatter", reconcile(x.data!))),
+            sdk.client.formatter.status().then((x) => setStore("formatter", reconcile(x.data!))), // kilocode_change
+            // kilocode_change start
             sdk.client.network.list().then((x) => {
               const next: Record<string, SessionNetworkWait[]> = {}
               for (const item of x.data ?? []) {
@@ -521,6 +528,7 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
               }
               setStore("network", reconcile(next))
             }),
+            // kilocode_change end
             sdk.client.session.status().then((x) => {
               setStore("session_status", reconcile(x.data!))
             }),

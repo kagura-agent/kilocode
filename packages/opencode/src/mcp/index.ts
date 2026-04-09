@@ -63,6 +63,7 @@ export namespace MCP {
     }),
   )
 
+  // kilocode_change start
   export async function reconnectRemote() {
     const cfg = await Config.get()
     const list = Object.entries(cfg.mcp ?? {})
@@ -95,6 +96,7 @@ export namespace MCP {
       }),
     )
   }
+  // kilocode_change end
 
   export const Failed = NamedError.create(
     "MCPFailed",

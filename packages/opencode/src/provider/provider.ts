@@ -49,8 +49,10 @@ import { Installation } from "../installation"
 
 import { DEFAULT_HEADERS } from "@/kilocode/const" // kilocode_change
 
-/** Default timeout (ms) for provider HTTP requests. kilocode_change */
+// kilocode_change start
+/** Default timeout (ms) for provider HTTP requests. */
 export const REQUEST_TIMEOUT_MS = 120_000 // 2 minutes
+// kilocode_change end
 
 export namespace Provider {
   const log = Log.create({ service: "provider" })

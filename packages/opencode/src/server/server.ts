@@ -53,7 +53,7 @@ import { QuestionRoutes } from "./routes/question"
 import { PermissionRoutes } from "./routes/permission"
 import { RemoteRoutes } from "./routes/remote" // kilocode_change
 import { GlobalRoutes } from "./routes/global"
-import { NetworkRoutes } from "./routes/network"
+import { NetworkRoutes } from "./routes/network" // kilocode_change
 import { MDNS } from "./mdns"
 
 // @ts-ignore This global is needed to prevent ai-sdk from logging warnings to stdout https://github.com/vercel/ai/blob/2dc67e0ef538307f21368db32d5a12345d98831b/packages/ai/src/logger/log-warnings.ts#L85
@@ -280,7 +280,7 @@ export namespace Server {
         .route("/session", SessionRoutes())
         .route("/permission", PermissionRoutes())
         .route("/question", QuestionRoutes())
-        .route("/network", NetworkRoutes())
+        .route("/network", NetworkRoutes()) // kilocode_change
         .route("/provider", ProviderRoutes())
         .route("/telemetry", TelemetryRoutes()) // kilocode_change
         .route("/commit-message", CommitMessageRoutes()) // kilocode_change

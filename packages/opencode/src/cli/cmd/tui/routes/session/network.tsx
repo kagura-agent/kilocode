@@ -1,3 +1,4 @@
+// kilocode_change - new file
 /** @jsxImportSource @opentui/solid */
 import { Show } from "solid-js"
 import { useKeyboard } from "@opentui/solid"

@@ -75,6 +75,8 @@ export enum TelemetryEventName {
   AUTO_PURGE_FAILED = "Auto Purge Failed",
   MANUAL_PURGE_TRIGGERED = "Manual Purge Triggered",
   WEBVIEW_MEMORY_USAGE = "Webview Memory Usage",
+  WEBVIEW_READY_RETRY = "Webview Ready Retry",
+  WEBVIEW_READY_FAILED = "Webview Ready Failed",
   MEMORY_WARNING_SHOWN = "Memory Warning Shown",
   ASK_APPROVAL = "Ask Approval",
   NOTIFICATION_CLICKED = "Notification Clicked",

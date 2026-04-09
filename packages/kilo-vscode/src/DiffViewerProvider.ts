@@ -2,6 +2,8 @@ import * as vscode from "vscode"
 import type { FileDiff } from "@kilocode/sdk/v2/client"
 import type { KiloConnectionService } from "./services/cli-backend"
 import { buildWebviewHtml } from "./utils"
+import { WebviewReadyRetry, showWebviewReloadWarning, type WebviewReadyRetryEvent } from "./webview-ready-retry"
+import { TelemetryEventName, TelemetryProxy } from "./services/telemetry"
 import { GitOps } from "./agent-manager/GitOps"
 import {
   appendOutput,
@@ -26,12 +28,7 @@ export class DiffViewerProvider implements vscode.Disposable {
   private outputChannel: vscode.OutputChannel
   private onSendComments: ((comments: unknown[], autoSend: boolean) => void) | undefined
 
-  /** Retry state for webview service worker failures (microsoft/vscode#125993) */
-  private readyTimer: ReturnType<typeof setTimeout> | null = null
-  private readyRetries = 0
-  private ready = false
-  private static READY_TIMEOUT = 8_000
-  private static MAX_RETRIES = 3
+  private loader: WebviewReadyRetry
 
   constructor(
     private readonly extensionUri: vscode.Uri,
@@ -39,10 +36,30 @@ export class DiffViewerProvider implements vscode.Disposable {
   ) {
     this.gitOps = new GitOps({ log: (...args) => this.log(...args) })
     this.outputChannel = vscode.window.createOutputChannel("Kilo Diff Viewer")
+    this.loader = new WebviewReadyRetry({
+      name: "DiffViewer",
+      active: () => Boolean(this.panel),
+      html: () => (this.panel ? this.getHtml(this.panel.webview) : undefined),
+      load: (html) => {
+        if (!this.panel) return
+        this.panel.webview.html = html
+      },
+      warn: (msg) => this.log(msg),
+      log: (msg) => this.log(msg),
+      notify: () => showWebviewReloadWarning(),
+      capture: (event, props) => this.captureRetry(event, props),
+    })
   }
 
   private log(...args: unknown[]) {
     appendOutput(this.outputChannel, "DiffViewer", ...args)
+  }
+
+  private captureRetry(event: WebviewReadyRetryEvent, props: Record<string, unknown>): void {
+    TelemetryProxy.capture(
+      event === "retry" ? TelemetryEventName.WEBVIEW_READY_RETRY : TelemetryEventName.WEBVIEW_READY_FAILED,
+      props,
+    )
   }
 
   public setCommentHandler(handler: (comments: unknown[], autoSend: boolean) => void): void {
@@ -81,48 +98,21 @@ export class DiffViewerProvider implements vscode.Disposable {
     panel.webview.html = this.getHtml(panel.webview)
 
     // Detect service worker failures and retry (microsoft/vscode#125993)
-    this.ready = false
-    this.scheduleReadyCheck()
+    this.loader.start()
 
     panel.onDidDispose(() => {
       this.log("Panel disposed")
-      this.cancelReadyCheck()
+      this.loader.dispose()
       this.stopDiffPolling()
       this.panel = undefined
     })
-  }
-
-  private scheduleReadyCheck(): void {
-    this.cancelReadyCheck()
-    this.readyRetries = 0
-    this.readyTimer = setTimeout(() => this.retryWebview(), DiffViewerProvider.READY_TIMEOUT)
-  }
-
-  private retryWebview(): void {
-    if (this.ready || !this.panel) return
-    if (this.readyRetries >= DiffViewerProvider.MAX_RETRIES) {
-      this.log("Webview not ready after retries — likely VS Code service worker bug (microsoft/vscode#125993)")
-      return
-    }
-    this.readyRetries++
-    this.log(`Webview not ready, retrying (${this.readyRetries}/${DiffViewerProvider.MAX_RETRIES})`)
-    this.panel.webview.html = this.getHtml(this.panel.webview)
-    this.readyTimer = setTimeout(() => this.retryWebview(), DiffViewerProvider.READY_TIMEOUT)
-  }
-
-  private cancelReadyCheck(): void {
-    if (this.readyTimer) {
-      clearTimeout(this.readyTimer)
-      this.readyTimer = null
-    }
   }
 
   private onMessage(msg: Record<string, unknown>): void {
     const type = msg.type as string
 
     if (type === "webviewReady") {
-      this.cancelReadyCheck()
-      this.ready = true
+      this.loader.done()
       this.post({
         type: "ready",
         vscodeLanguage: vscode.env.language,
@@ -250,7 +240,7 @@ export class DiffViewerProvider implements vscode.Disposable {
   }
 
   public dispose(): void {
-    this.cancelReadyCheck()
+    this.loader.dispose()
     this.stopDiffPolling()
     this.panel?.dispose()
     this.outputChannel.dispose()

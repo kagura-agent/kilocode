@@ -719,6 +719,7 @@ export const dict = {
   "settings.providers.tag.other": "其他",
   "settings.providers.tag.customProvider": "自定义提供商",
   "settings.providers.connected.environmentDescription": "从您的环境变量连接",
+  "settings.providers.connected.environmentTooltip": "环境变量: {{vars}}",
   "settings.providers.custom.description": "通过基础 URL 添加 OpenAI 兼容的提供商。",
   "settings.providers.modeModels": "按模式选择模型",
   "settings.providers.custom.note": "通过 Base URL 添加 OpenAI 兼容提供商。",

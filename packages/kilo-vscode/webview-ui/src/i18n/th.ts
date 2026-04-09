@@ -726,6 +726,7 @@ export const dict = {
   "settings.providers.tag.other": "อื่น ๆ",
   "settings.providers.tag.customProvider": "ผู้ให้บริการที่กำหนดเอง",
   "settings.providers.connected.environmentDescription": "เชื่อมต่อจากตัวแปรสภาพแวดล้อมของคุณ",
+  "settings.providers.connected.environmentTooltip": "ตัวแปรสภาพแวดล้อม: {{vars}}",
   "settings.providers.custom.description": "เพิ่มผู้ให้บริการที่เข้ากันได้กับ OpenAI ด้วย URL พื้นฐาน",
   "settings.providers.modeModels": "โมเดลต่อโหมด",
   "settings.providers.custom.note": "เพิ่มผู้ให้บริการที่รองรับ OpenAI ด้วย Base URL",

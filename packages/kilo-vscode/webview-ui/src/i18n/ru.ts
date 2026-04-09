@@ -735,6 +735,7 @@ export const dict = {
   "settings.providers.tag.other": "Другое",
   "settings.providers.tag.customProvider": "Пользовательский провайдер",
   "settings.providers.connected.environmentDescription": "Подключён из ваших переменных окружения",
+  "settings.providers.connected.environmentTooltip": "Переменная среды: {{vars}}",
   "settings.providers.custom.description": "Добавьте OpenAI-совместимый провайдер по базовому URL.",
   "settings.providers.modeModels": "Модель для режима",
   "settings.providers.custom.note": "Добавьте OpenAI-совместимого провайдера по базовому URL.",

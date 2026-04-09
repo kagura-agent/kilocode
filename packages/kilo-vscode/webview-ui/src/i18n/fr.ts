@@ -739,6 +739,7 @@ export const dict = {
   "settings.providers.tag.other": "Autre",
   "settings.providers.tag.customProvider": "Fournisseur personnalisé",
   "settings.providers.connected.environmentDescription": "Connecté depuis vos variables d'environnement",
+  "settings.providers.connected.environmentTooltip": "Variable d'environnement : {{vars}}",
   "settings.providers.custom.description": "Ajoutez un fournisseur compatible OpenAI par URL de base.",
   "settings.providers.modeModels": "Modèle par mode",
   "settings.providers.custom.note": "Ajoutez un fournisseur compatible OpenAI par URL de base.",

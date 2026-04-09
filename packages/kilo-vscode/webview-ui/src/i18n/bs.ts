@@ -734,6 +734,7 @@ export const dict = {
   "settings.providers.tag.other": "Ostalo",
   "settings.providers.tag.customProvider": "Prilagođeni provajder",
   "settings.providers.connected.environmentDescription": "Povezano iz vaših varijabli okruženja",
+  "settings.providers.connected.environmentTooltip": "Varijabla okruženja: {{vars}}",
   "settings.providers.custom.description": "Dodaj OpenAI-kompatibilan provajder putem osnovnog URL-a.",
   "settings.providers.modeModels": "Model po režimu",
   "settings.providers.custom.note": "Dodajte provajdera kompatibilnog s OpenAI putem osnovnog URL-a.",

@@ -723,6 +723,7 @@ export const dict = {
   "settings.providers.tag.other": "أخرى",
   "settings.providers.tag.customProvider": "مزود مخصص",
   "settings.providers.connected.environmentDescription": "متصل من متغيرات البيئة الخاصة بك",
+  "settings.providers.connected.environmentTooltip": "متغير البيئة: {{vars}}",
   "settings.providers.custom.description": "أضف مزوداً متوافقاً مع OpenAI عبر عنوان URL الأساسي.",
   "settings.providers.modeModels": "نموذج لكل وضع",
   "settings.providers.custom.note": "أضف موفرًا متوافقًا مع OpenAI عبر عنوان URL الأساسي.",

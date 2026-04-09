@@ -721,6 +721,7 @@ export const dict = {
   "settings.providers.tag.other": "其他",
   "settings.providers.tag.customProvider": "自訂提供商",
   "settings.providers.connected.environmentDescription": "從您的環境變數連線",
+  "settings.providers.connected.environmentTooltip": "環境變數: {{vars}}",
   "settings.providers.custom.description": "透過基礎 URL 新增 OpenAI 相容的提供商。",
   "settings.providers.modeModels": "按模式選擇模型",
   "settings.providers.custom.note": "透過 Base URL 新增 OpenAI 相容供應商。",

@@ -739,6 +739,7 @@ export const dict = {
   "settings.providers.tag.other": "Andere",
   "settings.providers.tag.customProvider": "Benutzerdefinierter Anbieter",
   "settings.providers.connected.environmentDescription": "Verbunden über Ihre Umgebungsvariablen",
+  "settings.providers.connected.environmentTooltip": "Umgebungsvariable: {{vars}}",
   "settings.providers.custom.description": "Fügen Sie einen OpenAI-kompatiblen Anbieter über die Basis-URL hinzu.",
   "settings.providers.modeModels": "Modell pro Modus",
   "settings.providers.custom.note": "Fügen Sie einen OpenAI-kompatiblen Anbieter per Basis-URL hinzu.",

@@ -733,6 +733,7 @@ export const dict = {
   "settings.providers.tag.customProvider": "Özel sağlayıcı",
   "settings.providers.tag.other": "Diğer",
   "settings.providers.connected.environmentDescription": "Ortam değişkenlerinizden bağlandı",
+  "settings.providers.connected.environmentTooltip": "Ortam değişkeni: {{vars}}",
   "settings.providers.custom.description": "Temel URL üzerinden OpenAI uyumlu bir sağlayıcı ekleyin.",
 
   "provider.custom.title": "Özel sağlayıcı",

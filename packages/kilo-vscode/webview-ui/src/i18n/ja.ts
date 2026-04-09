@@ -728,6 +728,7 @@ export const dict = {
   "settings.providers.tag.other": "その他",
   "settings.providers.tag.customProvider": "カスタムプロバイダー",
   "settings.providers.connected.environmentDescription": "環境変数から接続されています",
+  "settings.providers.connected.environmentTooltip": "環境変数: {{vars}}",
   "settings.providers.custom.description": "ベースURLでOpenAI互換プロバイダーを追加します。",
   "settings.providers.modeModels": "モードごとのモデル",
   "settings.providers.custom.note": "Base URL で OpenAI 互換プロバイダーを追加します。",

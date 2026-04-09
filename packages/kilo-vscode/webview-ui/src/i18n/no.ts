@@ -733,6 +733,7 @@ export const dict = {
   "settings.providers.tag.other": "Annet",
   "settings.providers.tag.customProvider": "Egendefinert leverandør",
   "settings.providers.connected.environmentDescription": "Koblet til fra dine miljøvariabler",
+  "settings.providers.connected.environmentTooltip": "Miljøvariabel: {{vars}}",
   "settings.providers.custom.description": "Legg til en OpenAI-kompatibel leverandør via basis-URL.",
   "settings.providers.modeModels": "Modell per modus",
   "settings.providers.custom.note": "Legg til en OpenAI-kompatibel leverandør via basis-URL.",

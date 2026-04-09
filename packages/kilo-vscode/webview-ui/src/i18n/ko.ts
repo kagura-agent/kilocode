@@ -729,6 +729,7 @@ export const dict = {
   "settings.providers.tag.other": "기타",
   "settings.providers.tag.customProvider": "사용자 정의 공급자",
   "settings.providers.connected.environmentDescription": "환경 변수에서 연결됨",
+  "settings.providers.connected.environmentTooltip": "환경 변수: {{vars}}",
   "settings.providers.custom.description": "기본 URL로 OpenAI 호환 공급자를 추가합니다.",
   "settings.providers.modeModels": "모드별 모델",
   "settings.providers.custom.note": "Base URL로 OpenAI 호환 공급자를 추가합니다.",

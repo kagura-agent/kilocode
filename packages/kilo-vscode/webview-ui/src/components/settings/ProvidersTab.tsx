@@ -5,6 +5,7 @@ import { Icon } from "@kilocode/kilo-ui/icon"
 import { ProviderIcon } from "@kilocode/kilo-ui/provider-icon"
 import { Tag } from "@kilocode/kilo-ui/tag"
 import { showToast } from "@kilocode/kilo-ui/toast"
+import { Tooltip } from "@kilocode/kilo-ui/tooltip"
 import { Component, For, Show, createMemo, onCleanup } from "solid-js"
 import { useConfig } from "../../context/config"
 import { useLanguage } from "../../context/language"
@@ -205,12 +206,25 @@ const ProvidersTab: Component = () => {
                   fallback={
                     <span
                       style={{
+                        display: "flex",
+                        "align-items": "center",
+                        gap: "6px",
                         "font-size": "14px",
                         color: "var(--text-base, var(--vscode-descriptionForeground))",
                         "padding-right": "12px",
                       }}
                     >
                       {language.t("settings.providers.connected.environmentDescription")}
+                      <Show when={item.env?.length}>
+                        <Tooltip
+                          value={language.t("settings.providers.connected.environmentTooltip", {
+                            vars: item.env!.join(", "),
+                          })}
+                          placement="top"
+                        >
+                          <Icon name="help" size="small" />
+                        </Tooltip>
+                      </Show>
                     </span>
                   }
                 >

@@ -733,6 +733,7 @@ export const dict = {
   "settings.providers.tag.customProvider": "Custom provider",
   "settings.providers.tag.other": "Other",
   "settings.providers.connected.environmentDescription": "Connected from your environment variables",
+  "settings.providers.connected.environmentTooltip": "Environment variable: {{vars}}",
   "settings.providers.custom.description": "Add an OpenAI-compatible provider by base URL.",
 
   "provider.custom.title": "Custom provider",

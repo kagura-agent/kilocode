@@ -734,6 +734,7 @@ export const dict = {
   "settings.providers.tag.customProvider": "Власний провайдер",
   "settings.providers.tag.other": "Інші",
   "settings.providers.connected.environmentDescription": "Підключено зі змінних середовища",
+  "settings.providers.connected.environmentTooltip": "Змінна середовища: {{vars}}",
   "settings.providers.custom.description": "Додати OpenAI-сумісного провайдера через базовий URL.",
 
   "provider.custom.title": "Власний провайдер",

@@ -732,6 +732,7 @@ export const dict = {
   "settings.providers.tag.other": "Inne",
   "settings.providers.tag.customProvider": "Niestandardowy dostawca",
   "settings.providers.connected.environmentDescription": "Połączony z twoich zmiennych środowiskowych",
+  "settings.providers.connected.environmentTooltip": "Zmienna środowiskowa: {{vars}}",
   "settings.providers.custom.description": "Dodaj dostawcę kompatybilnego z OpenAI przez bazowy URL.",
   "settings.providers.modeModels": "Model na tryb",
   "settings.providers.custom.note": "Dodaj dostawcę kompatybilnego z OpenAI przez bazowy URL.",

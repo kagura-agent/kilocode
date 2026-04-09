@@ -166,11 +166,13 @@
                 gzip
                 patchelf
                 ripgrep
-                jetbrains.jdk
                 jdk21
                 kilo-dev
                 kilo-install-bin
                 kilo-bin
+              ]
+              ++ lib.optionals (stdenv.hostPlatform.system != "x86_64-darwin") [
+                jetbrains.jdk
               ]
               ++ lib.optionals stdenv.isLinux [
                 libX11

@@ -6,10 +6,13 @@ import { Filesystem } from "../util/filesystem"
 
 const app = "kilo" // kilocode_change
 
-const data = path.join(xdgData!, app)
-const cache = path.join(xdgCache!, app)
-const config = path.join(xdgConfig!, app)
-const state = path.join(xdgState!, app)
+// xdg-basedir returns undefined on Windows/macOS when XDG env vars not set
+// Fallback to platform-appropriate directories
+const home = os.homedir()
+const data = xdgData ? path.join(xdgData, app) : path.join(home, ".local", "share", app)
+const cache = xdgCache ? path.join(xdgCache, app) : path.join(home, ".cache", app)
+const config = xdgConfig ? path.join(xdgConfig, app) : path.join(home, ".config", app)
+const state = xdgState ? path.join(xdgState, app) : path.join(home, ".local", "state", app)
 
 export namespace Global {
   export const Path = {

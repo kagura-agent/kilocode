@@ -102,6 +102,68 @@ export function computeDefaultSelection(
 
 type PostMessage = (message: unknown) => void
 type GetErrorMessage = (error: unknown) => string
+type Store = {
+  get<T>(key: string): T | undefined
+  update(key: string, value: unknown): PromiseLike<void>
+}
+
+type ModelSelection = { providerID: string; modelID: string }
+
+type StoredContext = {
+  msg: Record<string, unknown>
+  store?: Store
+  postMessage: PostMessage
+  notifyFavoritesChanged: (favorites: ModelSelection[]) => void
+}
+
+function updateFavorites(current: ModelSelection[], next: ModelSelection & { action: "add" | "remove" }) {
+  const key = `${next.providerID}/${next.modelID}`
+  const exists = current.some((f) => `${f.providerID}/${f.modelID}` === key)
+  if (next.action === "add" && !exists) return [...current, { providerID: next.providerID, modelID: next.modelID }]
+  if (next.action === "remove" && exists) return current.filter((f) => `${f.providerID}/${f.modelID}` !== key)
+  return current
+}
+
+export async function handleStoredModelMessage(ctx: StoredContext): Promise<boolean> {
+  switch (ctx.msg.type) {
+    case "persistVariant": {
+      const msg = ctx.msg as { key: string; value: string }
+      const stored = ctx.store?.get<Record<string, string>>("variantSelections") ?? {}
+      stored[msg.key] = msg.value
+      await ctx.store?.update("variantSelections", stored)
+      return true
+    }
+    case "requestVariants": {
+      const variants = ctx.store?.get<Record<string, string>>("variantSelections") ?? {}
+      ctx.postMessage({ type: "variantsLoaded", variants })
+      return true
+    }
+    case "persistRecents": {
+      const msg = ctx.msg as { recents: unknown }
+      await ctx.store?.update("recentModels", validateRecents(msg.recents))
+      return true
+    }
+    case "requestRecents": {
+      const recents = validateRecents(ctx.store?.get("recentModels"))
+      ctx.postMessage({ type: "recentsLoaded", recents })
+      return true
+    }
+    case "toggleFavorite": {
+      const msg = ctx.msg as ModelSelection & { action: "add" | "remove" }
+      const current = validateFavorites(ctx.store?.get("favoriteModels"))
+      const favorites = updateFavorites(current, msg)
+      await ctx.store?.update("favoriteModels", favorites)
+      ctx.notifyFavoritesChanged(favorites)
+      return true
+    }
+    case "requestFavorites": {
+      const favorites = validateFavorites(ctx.store?.get("favoriteModels"))
+      ctx.postMessage({ type: "favoritesLoaded", favorites })
+      return true
+    }
+  }
+  return false
+}
 
 interface ActionContext {
   client: KiloClient

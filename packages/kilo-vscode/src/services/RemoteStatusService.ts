@@ -60,18 +60,16 @@ export class RemoteStatusService implements vscode.Disposable {
   /** Toggle remote on/off based on current state. */
   async toggle(): Promise<void> {
     if (!this.client) return
-    const { data } = await this.client.remote.status(undefined, { throwOnError: true })
+    const { data } = await this.client.remote.status({ throwOnError: true })
     await this.setEnabled(!data.enabled)
   }
 
   /** Enable or disable remote. State updates are pushed via events. */
   async setEnabled(enabled: boolean): Promise<void> {
     if (!this.client) return
-    if (enabled) {
-      await this.client.remote.enable(undefined, { throwOnError: true })
-    } else {
-      await this.client.remote.disable(undefined, { throwOnError: true })
-    }
+    await (enabled
+      ? this.client.remote.enable({ throwOnError: true })
+      : this.client.remote.disable({ throwOnError: true }))
     this.update({ enabled, connected: false })
   }
 

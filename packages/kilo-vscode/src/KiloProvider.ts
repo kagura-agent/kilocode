@@ -83,8 +83,7 @@ import {
   buildActionContext,
   computeDefaultSelection,
   fetchProviderData,
-  validateRecents,
-  validateFavorites,
+  handleStoredModelMessage,
   connectProvider as connectProviderAction,
   authorizeProviderOAuth as authorizeOAuthAction,
   completeProviderOAuth as completeOAuthAction,
@@ -539,6 +538,17 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
         }
       }
 
+      if (
+        await handleStoredModelMessage({
+          msg: message,
+          store: this.extensionContext?.globalState,
+          postMessage: (msg) => this.postMessage(msg),
+          notifyFavoritesChanged: (favorites) => this.connectionService.notifyFavoritesChanged(favorites),
+        })
+      ) {
+        return
+      }
+
       switch (message.type) {
         case "webviewReady":
           console.log("[Kilo New] KiloProvider: ✅ webviewReady received")
@@ -941,44 +951,6 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
         case "telemetry":
           TelemetryProxy.capture(message.event, message.properties)
           break
-        case "persistVariant": {
-          const stored = this.extensionContext?.globalState.get<Record<string, string>>("variantSelections") ?? {}
-          stored[message.key] = message.value
-          await this.extensionContext?.globalState.update("variantSelections", stored)
-          break
-        }
-        case "requestVariants": {
-          const variants = this.extensionContext?.globalState.get<Record<string, string>>("variantSelections") ?? {}
-          this.postMessage({ type: "variantsLoaded", variants })
-          break
-        }
-        case "persistRecents":
-          await this.extensionContext?.globalState.update("recentModels", validateRecents(message.recents))
-          break
-        case "requestRecents": {
-          const recents = validateRecents(this.extensionContext?.globalState.get("recentModels"))
-          this.postMessage({ type: "recentsLoaded", recents })
-          break
-        }
-        case "toggleFavorite": {
-          const current = validateFavorites(this.extensionContext?.globalState.get("favoriteModels"))
-          const key = `${message.providerID}/${message.modelID}`
-          const exists = current.some((f) => `${f.providerID}/${f.modelID}` === key)
-          const favorites =
-            message.action === "add" && !exists
-              ? [...current, { providerID: message.providerID, modelID: message.modelID }]
-              : message.action === "remove" && exists
-                ? current.filter((f) => `${f.providerID}/${f.modelID}` !== key)
-                : current
-          await this.extensionContext?.globalState.update("favoriteModels", favorites)
-          this.connectionService.notifyFavoritesChanged(favorites)
-          break
-        }
-        case "requestFavorites": {
-          const favorites = validateFavorites(this.extensionContext?.globalState.get("favoriteModels"))
-          this.postMessage({ type: "favoritesLoaded", favorites })
-          break
-        }
         // legacy-migration start
         case "requestLegacyMigrationData":
           void handleRequestLegacyMigrationData(this.migrationCtx)

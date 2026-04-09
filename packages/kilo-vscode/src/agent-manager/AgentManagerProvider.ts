@@ -348,49 +348,9 @@ export class AgentManagerProvider implements Disposable {
       void this.onRequestBranches()
       return null
     }
-    if (m.type === "agentManager.setTabOrder") {
-      this.state?.setTabOrder(m.key, m.order)
-      return null
-    }
-    if (m.type === "agentManager.setWorktreeOrder") {
-      this.state?.setWorktreeOrder(m.order)
-      return null
-    }
-    if (m.type === "agentManager.setSessionsCollapsed") {
-      this.state?.setSessionsCollapsed(m.collapsed)
-      return null
-    }
+    if (this.handleStateMessage(m)) return null
     if (this.handleSection(m)) return null
-    if (m.type === "agentManager.setReviewDiffStyle") {
-      this.state?.setReviewDiffStyle(m.style)
-      return null
-    }
-    if (m.type === "agentManager.setDefaultBaseBranch") {
-      const branch = normalizeBaseBranch(m.branch)
-      this.state?.setDefaultBaseBranch(branch)
-      this.pushState()
-      return null
-    }
-    if (m.type === "agentManager.requestExternalWorktrees") {
-      void this.onRequestExternalWorktrees()
-      return null
-    }
-    if (m.type === "agentManager.importFromBranch") {
-      void this.onImportFromBranch(m.branch)
-      return null
-    }
-    if (m.type === "agentManager.importFromPR") {
-      void this.onImportFromPR(m.url)
-      return null
-    }
-    if (m.type === "agentManager.importExternalWorktree") {
-      void this.onImportExternalWorktree(m.path, m.branch)
-      return null
-    }
-    if (m.type === "agentManager.importAllExternalWorktrees") {
-      void this.onImportAllExternalWorktrees()
-      return null
-    }
+    if (this.handleImportMessage(m)) return null
     if (m.type === "agentManager.requestWorktreeDiff") {
       void this.onRequestWorktreeDiff(m.sessionId)
       return null
@@ -475,6 +435,51 @@ export class AgentManagerProvider implements Disposable {
     }
 
     return msg
+  }
+
+  private handleStateMessage(m: AgentManagerInMessage): boolean {
+    switch (m.type) {
+      case "agentManager.setTabOrder":
+        this.state?.setTabOrder(m.key, m.order)
+        return true
+      case "agentManager.setWorktreeOrder":
+        this.state?.setWorktreeOrder(m.order)
+        return true
+      case "agentManager.setSessionsCollapsed":
+        this.state?.setSessionsCollapsed(m.collapsed)
+        return true
+      case "agentManager.setReviewDiffStyle":
+        this.state?.setReviewDiffStyle(m.style)
+        return true
+      case "agentManager.setDefaultBaseBranch": {
+        const branch = normalizeBaseBranch(m.branch)
+        this.state?.setDefaultBaseBranch(branch)
+        this.pushState()
+        return true
+      }
+    }
+    return false
+  }
+
+  private handleImportMessage(m: AgentManagerInMessage): boolean {
+    switch (m.type) {
+      case "agentManager.requestExternalWorktrees":
+        void this.onRequestExternalWorktrees()
+        return true
+      case "agentManager.importFromBranch":
+        void this.onImportFromBranch(m.branch)
+        return true
+      case "agentManager.importFromPR":
+        void this.onImportFromPR(m.url)
+        return true
+      case "agentManager.importExternalWorktree":
+        void this.onImportExternalWorktree(m.path, m.branch)
+        return true
+      case "agentManager.importAllExternalWorktrees":
+        void this.onImportAllExternalWorktrees()
+        return true
+    }
+    return false
   }
 
   // ---------------------------------------------------------------------------

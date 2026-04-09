@@ -374,6 +374,17 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
         setEnhancing(false)
       }
     }
+
+    if (message.type === "imagesSelected") {
+      const result = message as import("../../types/messages").ImagesSelectedMessage
+      const incoming = result.images.map((img) => ({
+        id: crypto.randomUUID(),
+        filename: img.filename,
+        mime: img.mime,
+        dataUrl: img.dataUrl,
+      }))
+      imageAttach.replace([...imageAttach.images(), ...incoming])
+    }
   })
 
   onCleanup(() => {
@@ -839,6 +850,29 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
           </Show>
         </div>
         <div class="prompt-input-hint-actions">
+          <Tooltip value={language.t("prompt.action.attachImage")} placement="top">
+            <Button
+              variant="ghost"
+              size="small"
+              onClick={() => vscode.postMessage({ type: "selectImages" })}
+              aria-label={language.t("prompt.action.attachImage")}
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+                <circle cx="9" cy="9" r="2" />
+                <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+              </svg>
+            </Button>
+          </Tooltip>
           <Tooltip value={language.t("prompt.action.enhance")} placement="top">
             <Button
               variant="ghost"

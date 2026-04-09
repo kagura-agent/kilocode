@@ -271,6 +271,9 @@ export class AgentManagerProvider implements Disposable {
     if (m.type === "previewImage") {
       return msg
     }
+    if (m.type === "selectImages") {
+      return msg
+    }
     if (m.type === "agentManager.showExistingLocalTerminal") {
       this.terminalManager.syncLocalOnSessionSwitch()
       return null

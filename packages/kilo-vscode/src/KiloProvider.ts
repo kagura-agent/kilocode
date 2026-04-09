@@ -671,6 +671,9 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
         case "previewImage":
           this.handlePreviewImage(message.dataUrl, message.filename)
           break
+        case "selectImages":
+          this.handleSelectImages()
+          break
         case "openFile":
           if (message.filePath) {
             this.handleOpenFile(message.filePath, message.line, message.column)
@@ -2655,6 +2658,33 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
     } catch (error) {
       console.error("[Kilo New] KiloProvider: Failed to refresh providers after org switch:", error)
     }
+  }
+
+  private handleSelectImages(): void {
+    const filters = { Images: ["png", "jpg", "jpeg", "gif", "webp"] }
+    vscode.window
+      .showOpenDialog({ canSelectMany: true, filters, openLabel: "Select Images" })
+      .then(async (uris) => {
+        if (!uris || uris.length === 0) return
+        const images: Array<{ dataUrl: string; filename: string; mime: string }> = []
+        for (const uri of uris) {
+          const data = await vscode.workspace.fs.readFile(uri)
+          const name = path.basename(uri.fsPath)
+          const ext = path.extname(name).slice(1).toLowerCase()
+          const mime =
+            ext === "jpg" || ext === "jpeg"
+              ? "image/jpeg"
+              : ext === "gif"
+                ? "image/gif"
+                : ext === "webp"
+                  ? "image/webp"
+                  : "image/png"
+          const b64 = Buffer.from(data).toString("base64")
+          images.push({ dataUrl: `data:${mime};base64,${b64}`, filename: name, mime })
+        }
+        this.postMessage({ type: "imagesSelected", images })
+      })
+      .then(undefined, (err) => console.error("[Kilo New] KiloProvider: Failed to select images:", err))
   }
 
   private handlePreviewImage(dataUrl: string, filename: string): void {

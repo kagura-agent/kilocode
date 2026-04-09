@@ -1389,6 +1389,12 @@ export interface CustomProviderModelsFetchedMessage {
   auth?: boolean
 }
 
+// Images selected via native file picker (extension → webview)
+export interface ImagesSelectedMessage {
+  type: "imagesSelected"
+  images: Array<{ dataUrl: string; filename: string; mime: string }>
+}
+
 export type ExtensionMessage =
   | ReadyMessage
   | ConnectionStateMessage
@@ -1493,6 +1499,7 @@ export type ExtensionMessage =
   | McpStatusLoadedMessage
   | ClearPendingPromptsMessage
   | ExtensionDataReadyMessage
+  | ImagesSelectedMessage
 
 // ============================================
 // Messages FROM webview TO extension
@@ -2130,6 +2137,11 @@ export interface PreviewImageRequest {
   filename: string
 }
 
+// Browse images from disk (webview → extension)
+export interface SelectImagesRequest {
+  type: "selectImages"
+}
+
 // Set default base branch (webview → extension)
 export interface SetDefaultBaseBranchRequest {
   type: "agentManager.setDefaultBaseBranch"
@@ -2379,6 +2391,7 @@ export type WebviewMessage =
   | RetryConnectionRequest
   | OpenSubAgentViewerRequest
   | PreviewImageRequest
+  | SelectImagesRequest
   | SetDefaultBaseBranchRequest
   | FetchMarketplaceDataMessage
   | FilterMarketplaceItemsMessage

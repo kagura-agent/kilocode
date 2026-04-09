@@ -472,6 +472,10 @@ interface PreviewImageIn {
   filename: string
 }
 
+interface SelectImagesIn {
+  type: "selectImages"
+}
+
 interface LoadMessagesIn {
   type: "loadMessages"
   sessionID: string
@@ -606,6 +610,7 @@ export type AgentManagerInMessage =
   | OpenFileIn
   | GenericOpenFileIn
   | PreviewImageIn
+  | SelectImagesIn
   | LoadMessagesIn
   | SendMessageIn
   | SendCommandIn

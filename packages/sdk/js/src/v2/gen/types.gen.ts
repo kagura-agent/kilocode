@@ -5139,6 +5139,7 @@ export type KiloFimResponses = {
       delta?: {
         content?: string
       }
+      text?: string
     }>
     usage?: {
       prompt_tokens?: number

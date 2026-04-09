@@ -10,6 +10,7 @@ import { ModelSelectorBase } from "../shared/ModelSelector"
 import SettingsRow from "./SettingsRow"
 import type { ExtensionMessage } from "../../types/messages"
 
+/** Available autocomplete models and their display labels */
 const AUTOCOMPLETE_MODELS = [
   { id: "mistralai/codestral-2508", label: "Codestral (Mistral AI)" },
   { id: "inception/mercury-edit", label: "Mercury Edit (Inception)" },

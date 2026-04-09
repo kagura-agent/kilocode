@@ -143,10 +143,6 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
   private chatAutocomplete: ChatTextAreaAutocomplete | null = null
   private projectDirectory: string | null | undefined
   private slimEditMetadata = true
-  /** File watcher for rules files — triggers config refresh on external edits */
-  private rulesWatcher: vscode.FileSystemWatcher | null = null
-  private rulesDebounce: ReturnType<typeof setTimeout> | null = null
-
   /** Optional interceptor called before the standard message handler.
    *  Return null to consume the message, or return a (possibly transformed) message. */
   private onBeforeMessage: ((msg: Record<string, unknown>) => Promise<Record<string, unknown> | null>) | null = null
@@ -297,9 +293,6 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
     // Handle messages from webview (shared handler)
     this.setupWebviewMessageHandler(webviewView.webview)
 
-    // Watch rules files for external edits so the Agents Behaviour tab auto-refreshes
-    this.setupRulesWatcher()
-
     // Initialize connection to CLI backend
     this.initializeConnection()
   }
@@ -321,9 +314,6 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
 
     // Handle messages from webview (shared handler)
     this.setupWebviewMessageHandler(panel.webview)
-
-    // Watch rules files for external edits so the Agents Behaviour tab auto-refreshes
-    this.setupRulesWatcher()
 
     this.initializeConnection()
   }
@@ -1701,49 +1691,6 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
   }
 
   /**
-   * Create a file system watcher for rules-related files so that external edits
-   * (e.g. editing `.kilo/rules/*.md` in an editor) automatically refresh the
-   * Agents Behaviour tab without requiring a VS Code restart.
-   *
-   * Watches: .kilo/rules/**, .kilocode/rules/**, AGENTS.md, .kilocoderules*
-   */
-  private setupRulesWatcher(): void {
-    if (this.rulesWatcher) return
-
-    const pattern = "**/{.kilo/rules/**,.kilocode/rules/**,AGENTS.md,CLAUDE.md,CONTEXT.md,.kilocoderules*}"
-    this.rulesWatcher = vscode.workspace.createFileSystemWatcher(pattern)
-
-    const refresh = () => this.debouncedRulesRefresh()
-    this.rulesWatcher.onDidChange(refresh)
-    this.rulesWatcher.onDidCreate(refresh)
-    this.rulesWatcher.onDidDelete(refresh)
-  }
-
-  /**
-   * Debounced handler for rules file changes.
-   * Disposes the CLI instance so it rebuilds config (including re-discovered
-   * rules) from disk, then pushes the updated config to the webview.
-   */
-  private debouncedRulesRefresh(): void {
-    if (this.rulesDebounce) clearTimeout(this.rulesDebounce)
-    this.rulesDebounce = setTimeout(() => {
-      this.rulesDebounce = null
-      void this.refreshRulesConfig()
-    }, 500)
-  }
-
-  private async refreshRulesConfig(): Promise<void> {
-    if (!this.client || this.connectionState !== "connected") return
-    console.log("[Kilo New] KiloProvider: Rules file changed, refreshing config...")
-    const dir = this.getWorkspaceDirectory()
-    await this.client.instance.dispose({ directory: dir }).catch((e: unknown) => {
-      console.warn("[Kilo New] instance.dispose() after rules change failed:", e)
-    })
-    this.cachedConfigMessage = null
-    await this.fetchAndSendConfigUpdated()
-  }
-
-  /**
    * Fetch Kilo news/notifications and send to webview.
    * Uses the cached message pattern so the webview gets data immediately on refresh.
    */
@@ -2674,7 +2621,5 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
     this.ignoreController?.dispose()
     this.chatAutocomplete?.dispose()
     this.marketplace?.dispose()
-    if (this.rulesDebounce) clearTimeout(this.rulesDebounce)
-    this.rulesWatcher?.dispose()
   }
 }

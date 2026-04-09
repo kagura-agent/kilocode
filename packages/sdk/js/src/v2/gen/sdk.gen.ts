@@ -19,6 +19,7 @@ import type {
   Config as Config3,
   ConfigGetResponses,
   ConfigProvidersResponses,
+  ConfigReloadResponses,
   ConfigUpdateErrors,
   ConfigUpdateResponses,
   EnhancePromptEnhanceErrors,
@@ -826,6 +827,36 @@ export class Config2 extends HeyApiClient {
         ...options?.headers,
         ...params.headers,
       },
+    })
+  }
+
+  /**
+   * Reload configuration
+   *
+   * Invalidate the cached configuration for the current instance so the next read re-merges all layers from disk. Does not dispose the instance.
+   */
+  public reload<ThrowOnError extends boolean = false>(
+    parameters?: {
+      directory?: string
+      workspace?: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "query", key: "directory" },
+            { in: "query", key: "workspace" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).post<ConfigReloadResponses, unknown, ThrowOnError>({
+      url: "/config/reload",
+      ...options,
+      ...params,
     })
   }
 

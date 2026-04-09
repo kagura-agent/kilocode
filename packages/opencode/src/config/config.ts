@@ -24,6 +24,7 @@ import {
 } from "jsonc-parser"
 // kilocode_change end
 import { Instance } from "../project/instance"
+import { State } from "../project/state" // kilocode_change
 import { LSPServer } from "../lsp/server"
 import { BunProc } from "@/bun"
 import { Installation } from "@/installation"
@@ -1654,6 +1655,27 @@ export namespace Config {
   export async function directories() {
     return state().then((x) => x.directories)
   }
+
+  // kilocode_change start — lightweight config reload without full instance disposal
+  /**
+   * Invalidate the cached Config.state for the current instance so the next
+   * Config.get() re-reads and re-merges all layers (global + project + rules)
+   * from disk. Emits `global.config.updated` so SSE clients know to refresh.
+   *
+   * Unlike Instance.dispose(), this does NOT tear down MCP connections, LSP
+   * servers, or abort running sessions.
+   */
+  export function reload() {
+    State.resetEntry(Instance.directory, stateInit)
+    GlobalBus.emit("event", {
+      directory: "global",
+      payload: {
+        type: Event.ConfigUpdated.type,
+        properties: {},
+      },
+    })
+  }
+  // kilocode_change end
 }
 Filesystem.write
 Filesystem.write

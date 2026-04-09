@@ -62,6 +62,31 @@ export const ConfigRoutes = lazy(() =>
         return c.json(config)
       },
     )
+    // kilocode_change start — lightweight config reload without full instance disposal
+    .post(
+      "/reload",
+      describeRoute({
+        summary: "Reload configuration",
+        description:
+          "Invalidate the cached configuration for the current instance so the next read re-merges all layers from disk. Does not dispose the instance.",
+        operationId: "config.reload",
+        responses: {
+          200: {
+            description: "Config cache invalidated",
+            content: {
+              "application/json": {
+                schema: resolver(z.boolean()),
+              },
+            },
+          },
+        },
+      }),
+      async (c) => {
+        Config.reload()
+        return c.json(true)
+      },
+    )
+    // kilocode_change end
     .get(
       "/providers",
       describeRoute({

@@ -30,6 +30,9 @@ export class KiloConnectionService {
   private state: ConnectionState = "disconnected"
   private connectPromise: Promise<void> | null = null
   private healthPollTimer: ReturnType<typeof setInterval> | null = null
+  /** Shared rules file watcher — one per connection, not per provider. */
+  private rulesWatcher: vscode.FileSystemWatcher | null = null
+  private rulesDebounce: ReturnType<typeof setTimeout> | null = null
 
   private readonly eventListeners: Set<SSEEventListener> = new Set()
   private readonly stateListeners: Set<StateListener> = new Set()
@@ -218,10 +221,60 @@ export class KiloConnectionService {
   }
 
   /**
+   * Set up a shared file system watcher for rules-related files so that
+   * external edits (e.g. editing `.kilo/rules/*.md` in an editor) trigger
+   * a lightweight config reload on the backend.
+   *
+   * Uses RelativePattern scoped to the workspace root to avoid noisy
+   * watcher traffic from nested directories or unrelated projects.
+   * A single watcher is shared across all KiloProvider instances.
+   */
+  private setupRulesWatcher(dir: string): void {
+    if (this.rulesWatcher) return
+
+    const folder = vscode.workspace.workspaceFolders?.find((f) => f.uri.fsPath === dir)
+    const base = folder ?? vscode.Uri.file(dir)
+    const pattern = new vscode.RelativePattern(
+      base,
+      "{.kilo/rules/**,.kilocode/rules/**,AGENTS.md,CLAUDE.md,CONTEXT.md,.kilocoderules*}",
+    )
+    this.rulesWatcher = vscode.workspace.createFileSystemWatcher(pattern)
+
+    const refresh = () => this.debouncedRulesReload(dir)
+    this.rulesWatcher.onDidChange(refresh)
+    this.rulesWatcher.onDidCreate(refresh)
+    this.rulesWatcher.onDidDelete(refresh)
+  }
+
+  /**
+   * Debounced handler — coalesces rapid saves then calls the lightweight
+   * config.reload endpoint (no instance disposal, no session interruption).
+   */
+  private debouncedRulesReload(dir: string): void {
+    if (this.rulesDebounce) clearTimeout(this.rulesDebounce)
+    this.rulesDebounce = setTimeout(() => {
+      this.rulesDebounce = null
+      if (this.state !== "connected" || !this.client) return
+      console.log("[Kilo New] ConnectionService: Rules file changed, reloading config...")
+      this.client.config.reload({ directory: dir }).catch((e: unknown) => {
+        console.warn("[Kilo New] config.reload after rules change failed:", e)
+      })
+    }, 500)
+  }
+
+  private disposeRulesWatcher(): void {
+    if (this.rulesDebounce) clearTimeout(this.rulesDebounce)
+    this.rulesWatcher?.dispose()
+    this.rulesWatcher = null
+    this.rulesDebounce = null
+  }
+
+  /**
    * Clean up everything: kill server, close SSE, clear listeners.
    */
   dispose(): void {
     this.stopHealthPoll()
+    this.disposeRulesWatcher()
     this.sseClient?.dispose()
     this.serverManager.dispose()
     this.eventListeners.clear()
@@ -365,5 +418,8 @@ export class KiloConnectionService {
 
     // Start the independent health poll once we are confirmed connected.
     this.startHealthPoll(config.baseUrl, config.password)
+
+    // Watch rules files so external edits trigger a lightweight config reload.
+    this.setupRulesWatcher(workspaceDir)
   }
 }

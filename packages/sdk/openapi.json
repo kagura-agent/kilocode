@@ -978,6 +978,47 @@
         ]
       }
     },
+    "/config/reload": {
+      "post": {
+        "operationId": "config.reload",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "directory",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workspace",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "summary": "Reload configuration",
+        "description": "Invalidate the cached configuration for the current instance so the next read re-merges all layers from disk. Does not dispose the instance.",
+        "responses": {
+          "200": {
+            "description": "Config cache invalidated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createKiloClient } from \"@kilocode/sdk\n\nconst client = createKiloClient()\nawait client.config.reload({\n  ...\n})"
+          }
+        ]
+      }
+    },
     "/config/providers": {
       "get": {
         "operationId": "config.providers",
@@ -4987,6 +5028,15 @@
                                 "isFree": {
                                   "type": "boolean"
                                 },
+                                "ai_sdk_provider": {
+                                  "type": "string",
+                                  "enum": [
+                                    "anthropic",
+                                    "openai",
+                                    "openai-compatible",
+                                    "openrouter"
+                                  ]
+                                },
                                 "experimental": {
                                   "type": "boolean"
                                 },
@@ -5953,7 +6003,32 @@
                               },
                               "groups": {
                                 "type": "array",
-                                "items": {}
+                                "items": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "array",
+                                      "prefixItems": [
+                                        {
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "fileRegex": {
+                                              "type": "string"
+                                            },
+                                            "description": {
+                                              "type": "string"
+                                            }
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
                               }
                             }
                           }
@@ -12454,6 +12529,15 @@
                 "isFree": {
                   "type": "boolean"
                 },
+                "ai_sdk_provider": {
+                  "type": "string",
+                  "enum": [
+                    "anthropic",
+                    "openai",
+                    "openai-compatible",
+                    "openrouter"
+                  ]
+                },
                 "experimental": {
                   "type": "boolean"
                 },
@@ -13535,6 +13619,15 @@
           },
           "isFree": {
             "type": "boolean"
+          },
+          "ai_sdk_provider": {
+            "type": "string",
+            "enum": [
+              "anthropic",
+              "openai",
+              "openai-compatible",
+              "openrouter"
+            ]
           }
         },
         "required": [

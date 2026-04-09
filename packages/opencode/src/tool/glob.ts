@@ -7,6 +7,7 @@ import { Ripgrep } from "../file/ripgrep"
 import { Instance } from "../project/instance"
 import { assertExternalDirectory } from "./external-directory"
 
+// kilocode_change start — support absolute glob patterns (e.g. ~/.config/kilo/command/*.md)
 function normalize(p: string) {
   return p.replaceAll("\\", "/")
 }
@@ -22,6 +23,7 @@ function split(pattern: string) {
   const next = normalized.slice(cut + 1)
   return { dir, pattern: next || "*" }
 }
+// kilocode_change end
 
 export const GlobTool = Tool.define("glob", {
   description: DESCRIPTION,
@@ -35,7 +37,7 @@ export const GlobTool = Tool.define("glob", {
       ),
   }),
   async execute(params, ctx) {
-    const absolute = split(params.pattern)
+    const absolute = split(params.pattern) // kilocode_change
     await ctx.ask({
       permission: "glob",
       patterns: [params.pattern],
@@ -46,7 +48,7 @@ export const GlobTool = Tool.define("glob", {
       },
     })
 
-    let search = absolute?.dir ?? params.path ?? Instance.directory
+    let search = absolute?.dir ?? params.path ?? Instance.directory // kilocode_change
     search = path.isAbsolute(search) ? search : path.resolve(Instance.directory, search)
     await assertExternalDirectory(ctx, search, { kind: "directory" })
 
@@ -55,7 +57,7 @@ export const GlobTool = Tool.define("glob", {
     let truncated = false
     for await (const file of Ripgrep.files({
       cwd: search,
-      glob: [absolute?.pattern ?? params.pattern],
+      glob: [absolute?.pattern ?? params.pattern], // kilocode_change
       signal: ctx.abort,
     })) {
       if (files.length >= limit) {

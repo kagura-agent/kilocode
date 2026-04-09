@@ -21,9 +21,9 @@ import { PermissionNext } from "@/permission/next"
 import { NamedError } from "@opencode-ai/util/error" // kilocode_change
 import { Glob } from "../util/glob" // kilocode_change
 import { mergeDeep, pipe, sortBy, values } from "remeda"
-import { Global } from "@/global"
-import { KilocodePaths } from "@/kilocode/paths"
-import path from "path"
+import { Global } from "@/global" // kilocode_change
+import { KilocodePaths } from "@/kilocode/paths" // kilocode_change
+import path from "path" // kilocode_change
 import { Plugin } from "@/plugin"
 import { Skill } from "../skill"
 
@@ -64,10 +64,12 @@ export namespace Agent {
 
     const skillDirs = await Skill.dirs()
     const whitelistedDirs = [Truncate.GLOB, ...skillDirs.map((dir) => path.join(dir, "*"))]
+    // kilocode_change start — allow reading global config dirs without prompts
     const readableDirs = [
       path.join(Global.Path.config, "*"),
       ...KilocodePaths.globalDirs().map((dir) => path.join(dir, "*")),
     ]
+    // kilocode_change end
     // kilocode_change start — safe bash commands that don't need user approval.
     // only commands that cannot execute arbitrary code or subprocesses.
     const bash: Record<string, "allow" | "ask" | "deny"> = {

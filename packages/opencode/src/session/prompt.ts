@@ -1671,12 +1671,15 @@ NOTE: At any point in time through this workflow you should feel free to ask the
       process.platform === "win32" ? path.win32.basename(shell, ".exe") : path.basename(shell)
     ).toLowerCase()
 
+    // kilocode_change — sanitize >nul redirects for Git Bash on Windows
+    const cmd = Shell.sanitizeNullRedirect(input.command, shell)
+
     const invocations: Record<string, { args: string[] }> = {
       nu: {
-        args: ["-c", input.command],
+        args: ["-c", cmd],
       },
       fish: {
-        args: ["-c", input.command],
+        args: ["-c", cmd],
       },
       zsh: {
         args: [
@@ -1685,7 +1688,7 @@ NOTE: At any point in time through this workflow you should feel free to ask the
           `
             [[ -f ~/.zshenv ]] && source ~/.zshenv >/dev/null 2>&1 || true
             [[ -f "\${ZDOTDIR:-$HOME}/.zshrc" ]] && source "\${ZDOTDIR:-$HOME}/.zshrc" >/dev/null 2>&1 || true
-            eval ${JSON.stringify(input.command)}
+            eval ${JSON.stringify(cmd)}
           `,
         ],
       },
@@ -1696,25 +1699,25 @@ NOTE: At any point in time through this workflow you should feel free to ask the
           `
             shopt -s expand_aliases
             [[ -f ~/.bashrc ]] && source ~/.bashrc >/dev/null 2>&1 || true
-            eval ${JSON.stringify(input.command)}
+            eval ${JSON.stringify(cmd)}
           `,
         ],
       },
       // Windows cmd
       cmd: {
-        args: ["/c", input.command],
+        args: ["/c", cmd],
       },
       // Windows PowerShell
       powershell: {
-        args: ["-NoProfile", "-Command", input.command],
+        args: ["-NoProfile", "-Command", cmd],
       },
       pwsh: {
-        args: ["-NoProfile", "-Command", input.command],
+        args: ["-NoProfile", "-Command", cmd],
       },
       // Fallback: any shell that doesn't match those above
       //  - No -l, for max compatibility
       "": {
-        args: ["-c", `${input.command}`],
+        args: ["-c", `${cmd}`],
       },
     }
 

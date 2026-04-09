@@ -92,7 +92,7 @@ export namespace SessionRevert {
       }
       // kilocode_change end
 
-      if (revert.snapshot) revert.diff = await Snapshot.diff(revert.snapshot)
+      if (revert.snapshot) revert.diff = await Snapshot.diff(revert.snapshot) // kilocode_change
       await Storage.write(["session_diff", input.sessionID], diffs)
       Bus.publish(Session.Event.Diff, {
         sessionID: input.sessionID,

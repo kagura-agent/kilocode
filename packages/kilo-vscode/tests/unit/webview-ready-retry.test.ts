@@ -122,4 +122,51 @@ describe("WebviewReadyRetry", () => {
     expect(loads).toEqual([])
     expect(scheduler.pending).toBe(0)
   })
+
+  it("stops retrying when active returns false", () => {
+    const scheduler = new Scheduler()
+    const loads: string[] = []
+    let active = true
+    const retry = new WebviewReadyRetry({
+      name: "Test",
+      active: () => active,
+      html: () => "html",
+      load: (html) => loads.push(html),
+      scheduler,
+    })
+
+    retry.start()
+    active = false
+    scheduler.run()
+
+    expect(loads).toEqual([])
+    expect(scheduler.pending).toBe(0)
+  })
+
+  it("resets attempt counter when start is called again", () => {
+    const scheduler = new Scheduler()
+    const loads: string[] = []
+    const events: string[] = []
+    const retry = new WebviewReadyRetry({
+      name: "Test",
+      html: () => "html",
+      load: (html) => loads.push(html),
+      capture: (event) => events.push(event),
+      scheduler,
+    })
+
+    // Exhaust two retries then restart
+    retry.start()
+    scheduler.run()
+    scheduler.run()
+    expect(loads).toHaveLength(2)
+
+    // Restart should clear attempts and schedule a fresh timer
+    retry.start()
+    expect(scheduler.pending).toBe(1)
+
+    // The fresh timer should fire at the base timeout (no backoff from previous run)
+    const delay = scheduler.delays[scheduler.delays.length - 1]
+    expect(delay).toBe(WEBVIEW_READY_TIMEOUT)
+  })
 })

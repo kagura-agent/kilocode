@@ -68,7 +68,17 @@ export const GlobalRoutes = lazy(() =>
         log.info("global event connected")
         c.header("X-Accel-Buffering", "no")
         c.header("X-Content-Type-Options", "nosniff")
+        // kilocode_change start — SSE dead-stream detection to prevent memory leak
         return streamSSE(c, async (stream) => {
+          let dead = false
+          const cleanup = (reason: string) => {
+            if (dead) return
+            dead = true
+            clearInterval(heartbeat)
+            GlobalBus.off("event", handler)
+            log.info("global event disconnected", { reason })
+          }
+
           stream.writeSSE({
             data: JSON.stringify({
               payload: {
@@ -78,33 +88,41 @@ export const GlobalRoutes = lazy(() =>
             }),
           })
           async function handler(event: any) {
-            await stream.writeSSE({
-              data: JSON.stringify(event),
-            })
+            if (dead) return
+            try {
+              await stream.writeSSE({
+                data: JSON.stringify(event),
+              })
+            } catch {
+              cleanup("write-error")
+            }
           }
           GlobalBus.on("event", handler)
 
-          // Send heartbeat every 10s to prevent stalled proxy streams.
-          const heartbeat = setInterval(() => {
-            stream.writeSSE({
-              data: JSON.stringify({
-                payload: {
-                  type: "server.heartbeat",
-                  properties: {},
-                },
-              }),
-            })
+          const heartbeat = setInterval(async () => {
+            if (dead) return
+            try {
+              await stream.writeSSE({
+                data: JSON.stringify({
+                  payload: {
+                    type: "server.heartbeat",
+                    properties: {},
+                  },
+                }),
+              })
+            } catch {
+              cleanup("heartbeat-error")
+            }
           }, 10_000)
 
           await new Promise<void>((resolve) => {
             stream.onAbort(() => {
-              clearInterval(heartbeat)
-              GlobalBus.off("event", handler)
+              cleanup("abort")
               resolve()
-              log.info("global event disconnected")
             })
           })
         })
+        // kilocode_change end
       },
     )
     .get(

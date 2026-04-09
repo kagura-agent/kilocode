@@ -8,3 +8,6 @@ export const GlobalBus = new EventEmitter<{
     },
   ]
 }>()
+
+// kilocode_change — cap listeners so leaked SSE connections produce a visible warning
+GlobalBus.setMaxListeners(50)

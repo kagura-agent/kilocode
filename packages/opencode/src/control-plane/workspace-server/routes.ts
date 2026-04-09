@@ -2,15 +2,29 @@ import { GlobalBus } from "../../bus/global"
 import { Hono } from "hono"
 import { streamSSE } from "hono/streaming"
 
+// kilocode_change start — SSE dead-stream detection to prevent memory leak
 export function WorkspaceServerRoutes() {
   return new Hono().get("/event", async (c) => {
     c.header("X-Accel-Buffering", "no")
     c.header("X-Content-Type-Options", "nosniff")
     return streamSSE(c, async (stream) => {
+      let dead = false
+      const cleanup = () => {
+        if (dead) return
+        dead = true
+        clearInterval(heartbeat)
+        GlobalBus.off("event", handler)
+      }
+
       const send = async (event: unknown) => {
-        await stream.writeSSE({
-          data: JSON.stringify(event),
-        })
+        if (dead) return
+        try {
+          await stream.writeSSE({
+            data: JSON.stringify(event),
+          })
+        } catch {
+          cleanup()
+        }
       }
       const handler = async (event: { directory?: string; payload: unknown }) => {
         await send(event.payload)
@@ -23,11 +37,11 @@ export function WorkspaceServerRoutes() {
 
       await new Promise<void>((resolve) => {
         stream.onAbort(() => {
-          clearInterval(heartbeat)
-          GlobalBus.off("event", handler)
+          cleanup()
           resolve()
         })
       })
     })
   })
 }
+// kilocode_change end

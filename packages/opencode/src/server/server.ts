@@ -580,7 +580,17 @@ export namespace Server {
             log.info("event connected")
             c.header("X-Accel-Buffering", "no")
             c.header("X-Content-Type-Options", "nosniff")
+            // kilocode_change start — SSE dead-stream detection to prevent memory leak
             return streamSSE(c, async (stream) => {
+              let dead = false
+              const cleanup = (reason: string) => {
+                if (dead) return
+                dead = true
+                clearInterval(heartbeat)
+                unsub()
+                log.info("event disconnected", { reason })
+              }
+
               stream.writeSSE({
                 data: JSON.stringify({
                   type: "server.connected",
@@ -588,33 +598,45 @@ export namespace Server {
                 }),
               })
               const unsub = Bus.subscribeAll(async (event) => {
-                await stream.writeSSE({
-                  data: JSON.stringify(event),
-                })
+                if (dead) return
+                try {
+                  await stream.writeSSE({
+                    data: JSON.stringify(event),
+                  })
+                } catch {
+                  cleanup("write-error")
+                  return
+                }
                 if (event.type === Bus.InstanceDisposed.type) {
                   stream.close()
                 }
               })
 
-              // Send heartbeat every 10s to prevent stalled proxy streams.
-              const heartbeat = setInterval(() => {
-                stream.writeSSE({
-                  data: JSON.stringify({
-                    type: "server.heartbeat",
-                    properties: {},
-                  }),
-                })
+              // Send heartbeat every 10s. Also serves as dead-stream detector:
+              // if writeSSE throws, the stream is dead and we clean up immediately
+              // instead of waiting for onAbort (which may never fire on Windows).
+              const heartbeat = setInterval(async () => {
+                if (dead) return
+                try {
+                  await stream.writeSSE({
+                    data: JSON.stringify({
+                      type: "server.heartbeat",
+                      properties: {},
+                    }),
+                  })
+                } catch {
+                  cleanup("heartbeat-error")
+                }
               }, 10_000)
 
               await new Promise<void>((resolve) => {
                 stream.onAbort(() => {
-                  clearInterval(heartbeat)
-                  unsub()
+                  cleanup("abort")
                   resolve()
-                  log.info("event disconnected")
                 })
               })
             })
+            // kilocode_change end
           },
         )
         // kilocode_change start - disable external proxy to app.opencode.ai for privacy/security

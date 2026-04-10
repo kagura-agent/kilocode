@@ -23,6 +23,7 @@ import { fn } from "@/util/fn"
 import { Command } from "../command"
 import { Snapshot } from "@/snapshot"
 import { WorkspaceContext } from "../control-plane/workspace-context"
+import { Filesystem } from "../util/filesystem" // kilocode_change: normalize directory for Windows drive-letter casing
 
 import type { Provider } from "@/provider/provider"
 import { PermissionNext } from "@/permission/next"
@@ -116,6 +117,25 @@ export namespace Session {
     return `${title} (fork #1)`
   }
 
+  // kilocode_change start
+  function family(id: string) {
+    const row = Database.use((db) =>
+      db.select({ worktree: ProjectTable.worktree }).from(ProjectTable).where(eq(ProjectTable.id, id)).get(),
+    )
+    const root = row?.worktree ? Filesystem.resolve(row.worktree) : undefined
+    if (!root || root === "/") return [id]
+    const ids = Database.use((db) =>
+      db
+        .select({ id: ProjectTable.id })
+        .from(ProjectTable)
+        .where(eq(ProjectTable.worktree, root))
+        .all()
+        .map((item) => item.id),
+    )
+    return ids.length ? ids : [id]
+  }
+  // kilocode_change end
+
   export const Info = z
     .object({
       id: Identifier.schema("session"),
@@ -129,7 +149,18 @@ export namespace Session {
           additions: z.number(),
           deletions: z.number(),
           files: z.number(),
-          diffs: Snapshot.FileDiff.array().optional(),
+          // kilocode_change start - lightweight diff summary (no file contents)
+          diffs: z
+            .array(
+              z.object({
+                file: z.string(),
+                additions: z.number(),
+                deletions: z.number(),
+                status: z.enum(["added", "deleted", "modified"]).optional(),
+              }),
+            )
+            .optional(),
+          // kilocode_change end
         })
         .optional(),
       share: z
@@ -173,6 +204,7 @@ export namespace Session {
 
   export const GlobalInfo = Info.extend({
     project: ProjectInfo.nullable(),
+    worktreeName: z.string().optional(), // kilocode_change - basename of the specific worktree directory
   }).meta({
     ref: "GlobalSession",
   })
@@ -482,6 +514,7 @@ export namespace Session {
             summary_additions: input.summary?.additions,
             summary_deletions: input.summary?.deletions,
             summary_files: input.summary?.files,
+            summary_diffs: input.summary?.diffs ?? null, // kilocode_change
             time_updated: Date.now(),
           })
           .where(eq(SessionTable.id, input.sessionID))
@@ -578,7 +611,9 @@ export namespace Session {
       conditions.push(eq(SessionTable.workspace_id, WorkspaceContext.workspaceID))
     }
     if (input?.directory) {
-      conditions.push(eq(SessionTable.directory, input.directory))
+      // kilocode_change start: vscode uri.fsPath gives lowercase drive letter on Windows; resolve() canonicalises to match stored path
+      conditions.push(eq(SessionTable.directory, Filesystem.resolve(input.directory)))
+      // kilocode_change end
     }
     if (input?.roots) {
       conditions.push(isNull(SessionTable.parent_id))
@@ -606,8 +641,11 @@ export namespace Session {
     }
   }
 
+  // kilocode_change start
   export function* listGlobal(input?: {
+    projectID?: string
     directory?: string
+    directories?: string[]
     roots?: boolean
     start?: number
     cursor?: number
@@ -615,10 +653,23 @@ export namespace Session {
     limit?: number
     archived?: boolean
   }) {
-    const conditions: SQL[] = []
+    const conditions: SQL[] = [] // kilocode_change
+
+    // kilocode_change start
+    if (input?.projectID) {
+      const ids = family(input.projectID)
+      if (ids.length === 1 && ids[0] === input.projectID) {
+        conditions.push(eq(SessionTable.project_id, input.projectID))
+      } else {
+        conditions.push(inArray(SessionTable.project_id, ids))
+      }
+    }
+    // kilocode_change end
 
     if (input?.directory) {
-      conditions.push(eq(SessionTable.directory, input.directory))
+      // kilocode_change start: vscode uri.fsPath gives lowercase drive letter on Windows; resolve() canonicalises to match stored path
+      conditions.push(eq(SessionTable.directory, Filesystem.resolve(input.directory)))
+      // kilocode_change end
     }
     if (input?.roots) {
       conditions.push(isNull(SessionTable.parent_id))
@@ -636,7 +687,9 @@ export namespace Session {
       conditions.push(isNull(SessionTable.time_archived))
     }
 
-    const limit = input?.limit ?? 100
+    const limit = input?.limit ?? 100 // kilocode_change
+    // kilocode_change start
+    const dirs = [...new Set((input?.directories ?? []).map((dir) => Filesystem.resolve(dir)))]
 
     const rows = Database.use((db) => {
       const query =
@@ -646,10 +699,19 @@ export namespace Session {
               .from(SessionTable)
               .where(and(...conditions))
           : db.select().from(SessionTable)
-      return query.orderBy(desc(SessionTable.time_updated), desc(SessionTable.id)).limit(limit).all()
+      const sorted = query.orderBy(desc(SessionTable.time_updated), desc(SessionTable.id))
+      return dirs.length ? sorted.all() : sorted.limit(limit).all()
     })
 
-    const ids = [...new Set(rows.map((row) => row.project_id))]
+    const list =
+      dirs.length > 0
+        ? rows.filter((row) => {
+            const dir = Filesystem.resolve(row.directory)
+            return dirs.some((root) => Filesystem.contains(root, dir))
+          })
+        : rows
+
+    const ids = [...new Set(list.slice(0, limit).map((row) => row.project_id))]
     const projects = new Map<string, ProjectInfo>()
 
     if (ids.length > 0) {
@@ -668,11 +730,14 @@ export namespace Session {
         })
       }
     }
+    // kilocode_change end
 
-    for (const row of rows) {
+    // kilocode_change start
+    for (const row of list.slice(0, limit)) {
       const project = projects.get(row.project_id) ?? null
       yield { ...fromRow(row), project }
     }
+    // kilocode_change end
   }
 
   export const children = fn(Identifier.schema("session"), async (parentID) => {

@@ -5,6 +5,7 @@ import { TuiEvent } from "@/cli/cmd/tui/event"
 import { Flag } from "@/flag/flag"
 import { Global } from "@/global"
 import { Identifier } from "@/id/id"
+import { Instance } from "@/project/instance"
 import { Provider } from "@/provider/provider"
 import { Question } from "@/question"
 import { Session } from "@/session"
@@ -13,6 +14,7 @@ import { MessageV2 } from "@/session/message-v2"
 import { Todo } from "@/session/todo"
 import { Log } from "@/util/log"
 import path from "path"
+import z from "zod"
 
 function toText(item: MessageV2.WithParts): string {
   return item.parts
@@ -120,18 +122,20 @@ export namespace PlanFollowup {
     return value
   }
 
+  const ModelState = z
+    .object({
+      model: z.record(z.string(), z.object({ providerID: z.string(), modelID: z.string() })).optional(),
+      variant: z.record(z.string(), z.string().optional()).optional(),
+    })
+    .passthrough()
+
   async function resolveCodeModel(input: Pick<MessageV2.User, "model" | "variant">) {
     const state =
       Flag.KILO_CLIENT === "cli"
         ? await Bun.file(path.join(Global.Path.state, "model.json"))
             .text()
-            .then(
-              (raw) =>
-                JSON.parse(raw) as {
-                  model?: Record<string, MessageV2.User["model"]>
-                  variant?: Record<string, string | undefined>
-                },
-            )
+            .then((raw) => ModelState.safeParse(JSON.parse(raw)))
+            .then((r) => (r.success ? r.data : undefined))
             .catch(() => undefined)
         : undefined
     const saved = state?.model?.code
@@ -266,40 +270,55 @@ export namespace PlanFollowup {
       model: input.model,
       variant: input.variant,
     })
+    const session = await Session.get(input.sessionID)
     const [handover, todos] = await Promise.all([
       generateHandover({ messages: input.messages, model: input.model, abort: input.abort }),
       Todo.get(input.sessionID),
     ])
 
-    const sections = [`Implement the following plan:\n\n${input.plan}`]
+    await Instance.provide({
+      directory: session.directory,
+      fn: async () => {
+        const file = Session.plan(session)
+        const sections = [
+          `Plan file: ${file}\nRead this file first and treat it as the source of truth for implementation.`,
+          `Implement the following plan:\n\n${input.plan}`,
+        ]
 
-    if (handover) {
-      sections.push(`## Handover from Planning Session\n\n${handover}`)
-    }
+        if (handover) {
+          sections.push(`## Handover from Planning Session\n\n${handover}`)
+        }
 
-    const todoList = formatTodos(todos)
-    if (todoList) {
-      sections.push(`## Todo List\n\n${todoList}`)
-    }
+        const todoList = formatTodos(todos)
+        if (todoList) {
+          sections.push(`## Todo List\n\n${todoList}`)
+        }
 
-    const next = await Session.create({})
-    await inject({
-      sessionID: next.id,
-      agent: "code",
-      model: code.model,
-      variant: code.variant,
-      text: sections.join("\n\n"),
-      synthetic: false,
+        const next = await Session.create({})
+        await inject({
+          sessionID: next.id,
+          agent: "code",
+          model: code.model,
+          variant: code.variant,
+          text: sections.join("\n\n"),
+          synthetic: false,
+        })
+        if (todos.length) {
+          await Todo.update({ sessionID: next.id, todos })
+        }
+        await Bus.publish(TuiEvent.SessionSelect, { sessionID: next.id })
+        void import("@/session/prompt")
+          .then((item) =>
+            Instance.provide({
+              directory: next.directory,
+              fn: () => item.SessionPrompt.loop({ sessionID: next.id }),
+            }),
+          )
+          .catch((error) => {
+            log.error("failed to start follow-up session", { sessionID: next.id, error })
+          })
+      },
     })
-    if (todos.length) {
-      await Todo.update({ sessionID: next.id, todos })
-    }
-    await Bus.publish(TuiEvent.SessionSelect, { sessionID: next.id })
-    void import("@/session/prompt")
-      .then((item) => item.SessionPrompt.loop({ sessionID: next.id }))
-      .catch((error) => {
-        log.error("failed to start follow-up session", { sessionID: next.id, error })
-      })
   }
 
   export async function ask(input: {

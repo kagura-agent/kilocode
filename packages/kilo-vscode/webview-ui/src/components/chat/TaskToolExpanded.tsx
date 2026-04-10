@@ -17,7 +17,7 @@ import { useI18n } from "@kilocode/kilo-ui/context/i18n"
 import { createAutoScroll } from "@kilocode/kilo-ui/hooks"
 import { useSession } from "../../context/session"
 import { useVSCode } from "../../context/vscode"
-import { useWorktreeMode } from "../../context/worktree-mode"
+import { childID } from "../../context/session-utils"
 import type { ToolPart, Message as SDKMessage } from "@kilocode/sdk/v2"
 
 /** Collect all tool parts from all assistant messages in a given session. */
@@ -41,11 +41,14 @@ const TaskToolRenderer: Component<ToolProps> = (props) => {
   const i18n = useI18n()
   const session = useSession()
   const vscode = useVSCode()
-  const worktreeMode = useWorktreeMode()
-  // Hide the open-in-tab button inside the Agent Manager
-  const inAgentManager = worktreeMode !== undefined
 
-  const childSessionId = () => props.metadata.sessionId as string | undefined
+  const childSessionId = () =>
+    childID({
+      type: "tool",
+      tool: props.tool,
+      metadata: props.partMetadata as { sessionId?: string } | undefined,
+      state: { metadata: props.metadata as { sessionId?: string } },
+    })
 
   const running = createMemo(() => props.status === "pending" || props.status === "running")
 
@@ -97,7 +100,7 @@ const TaskToolRenderer: Component<ToolProps> = (props) => {
           </span>
         </Show>
       </div>
-      <Show when={!inAgentManager && childSessionId()}>
+      <Show when={childSessionId()}>
         <IconButton
           icon="square-arrow-top-right"
           size="small"

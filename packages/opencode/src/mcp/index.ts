@@ -63,6 +63,41 @@ export namespace MCP {
     }),
   )
 
+  // kilocode_change start
+  export async function reconnectRemote() {
+    const cfg = await Config.get()
+    const list = Object.entries(cfg.mcp ?? {})
+    const s = await state()
+    await Promise.allSettled(
+      list.map(async ([key, mcp]) => {
+        if (!isMcpConfigured(mcp)) return
+        if (mcp.type !== "remote") return
+        const result = await create(key, mcp).catch((err) => {
+          log.error("remote reconnect failed", { name: key, err })
+          s.status[key] = { status: "failed", error: err instanceof Error ? err.message : String(err) }
+          const stale = s.clients[key]
+          if (stale) {
+            stale.close().catch((e) => log.error("failed to close stale client", { name: key, e }))
+            delete s.clients[key]
+          }
+          return undefined
+        })
+        if (!result) return
+        s.status[key] = result.status
+        if (result.mcpClient) {
+          const existing = s.clients[key]
+          if (existing) {
+            await existing.close().catch((error) => {
+              log.error("Failed to close existing MCP client", { name: key, error })
+            })
+          }
+          s.clients[key] = result.mcpClient
+        }
+      }),
+    )
+  }
+  // kilocode_change end
+
   export const Failed = NamedError.create(
     "MCPFailed",
     z.object({
@@ -121,6 +156,7 @@ export namespace MCP {
   function registerNotificationHandlers(client: MCPClient, serverName: string) {
     client.setNotificationHandler(ToolListChangedNotificationSchema, async () => {
       log.info("tools list changed notification received", { server: serverName })
+      ;(await state()).toolsCache.delete(serverName) // kilocode_change
       Bus.publish(ToolsChanged, { server: serverName })
     })
   }
@@ -167,6 +203,14 @@ export namespace MCP {
   type McpEntry = NonNullable<Config.Info["mcp"]>[string]
   function isMcpConfigured(entry: McpEntry): entry is Config.Mcp {
     return typeof entry === "object" && entry !== null && "type" in entry
+  }
+
+  // kilocode_change — exported for testing
+  export function ensureDockerRm(cmd: string, args: string[]): string[] {
+    if (cmd !== "docker" || args[0] !== "run") return args
+    // Always inject --rm right after "run". Docker treats duplicate --rm as
+    // a no-op, so this is safe even when the user already specified it.
+    return ["run", "--rm", ...args.slice(1)]
   }
 
   async function descendants(pid: number): Promise<number[]> {
@@ -224,6 +268,7 @@ export namespace MCP {
       return {
         status,
         clients,
+        toolsCache: new Map<string, MCPToolDef[]>(), // kilocode_change — per-server listTools cache
       }
     },
     async (state) => {
@@ -302,6 +347,7 @@ export namespace MCP {
 
   export async function add(name: string, mcp: Config.Mcp) {
     const s = await state()
+    s.toolsCache.delete(name) // kilocode_change
     const result = await create(name, mcp)
     if (!result) {
       const status = {
@@ -453,11 +499,14 @@ export namespace MCP {
 
     if (mcp.type === "local") {
       const [cmd, ...args] = mcp.command
+      // kilocode_change — inject --rm for Docker containers to prevent stopped
+      // containers from accumulating when MCP servers are toggled on/off.
+      const finalArgs = ensureDockerRm(cmd, args)
       const cwd = Instance.directory
       const transport = new StdioClientTransport({
         stderr: "pipe",
         command: cmd,
-        args,
+        args: finalArgs,
         cwd,
         env: {
           ...process.env,
@@ -559,6 +608,7 @@ export namespace MCP {
   }
 
   export async function connect(name: string) {
+    ;(await state()).toolsCache.delete(name) // kilocode_change
     const cfg = await Config.get()
     const config = cfg.mcp ?? {}
     const mcp = config[name]
@@ -586,7 +636,6 @@ export namespace MCP {
     const s = await state()
     s.status[name] = result.status
     if (result.mcpClient) {
-      // Close existing client if present to prevent memory leaks
       const existingClient = s.clients[name]
       if (existingClient) {
         await existingClient.close().catch((error) => {
@@ -599,6 +648,7 @@ export namespace MCP {
 
   export async function disconnect(name: string) {
     const s = await state()
+    s.toolsCache.delete(name) // kilocode_change
     const client = s.clients[name]
     if (client) {
       await client.close().catch((error) => {
@@ -623,6 +673,12 @@ export namespace MCP {
 
     const toolsResults = await Promise.all(
       connectedClients.map(async ([clientName, client]) => {
+        // kilocode_change start — use cached listTools when available
+        const cached = s.toolsCache.get(clientName)
+        if (cached) {
+          return { clientName, client, toolsResult: { tools: cached } }
+        }
+        // kilocode_change end
         const toolsResult = await client.listTools().catch((e) => {
           log.error("failed to get tools", { clientName, error: e.message })
           const failedStatus = {
@@ -633,6 +689,7 @@ export namespace MCP {
           delete s.clients[clientName]
           return undefined
         })
+        if (toolsResult) s.toolsCache.set(clientName, toolsResult.tools) // kilocode_change
         return { clientName, client, toolsResult }
       }),
     )

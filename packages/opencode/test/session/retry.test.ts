@@ -122,6 +122,16 @@ describe("session.retry.retryable", () => {
 
     expect(SessionRetry.retryable(error)).toBeUndefined()
   })
+
+  test("does not retry FreeUsageLimitError", () => {
+    const error = new MessageV2.APIError({
+      message: "rate limit exceeded",
+      isRetryable: true,
+      responseBody: '{"error":{"code":"FreeUsageLimitError"}}',
+    }).toObject() as ReturnType<NamedError["toObject"]>
+
+    expect(SessionRetry.retryable(error)).toBeUndefined()
+  })
 })
 
 describe("session.message-v2.fromError", () => {
@@ -172,6 +182,23 @@ describe("session.message-v2.fromError", () => {
     expect(retryable).toBeDefined()
     expect(retryable).toBe("Connection reset by server")
   })
+
+  // kilocode_change start
+  test("ECONNREFUSED socket error is retryable", () => {
+    const result = MessageV2.fromError(
+      {
+        code: "ECONNREFUSED",
+        syscall: "connect",
+        message: "connect ECONNREFUSED 127.0.0.1:3000",
+      },
+      { providerID: "test" },
+    ) as MessageV2.APIError
+
+    expect(result.data.isRetryable).toBe(true)
+    expect(result.data.message).toBe("Connection refused")
+    expect(result.data.metadata?.code).toBe("ECONNREFUSED")
+  })
+  // kilocode_change end
 
   test("marks OpenAI 404 status codes as retryable", () => {
     const error = new APICallError({

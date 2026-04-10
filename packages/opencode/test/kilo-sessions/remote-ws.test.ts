@@ -94,7 +94,7 @@ describe("RemoteWS", () => {
     conn = RemoteWS.connect({
       url: server.url,
       getToken: async () => "tok",
-      getSessions: () => [{ id: "s1", status: "active", title: "Test" }],
+      getSessions: async () => ({ sessions: [{ id: "s1", status: "active", title: "Test" }] }),
       log: nolog(),
       heartbeat: 100,
     })
@@ -116,7 +116,7 @@ describe("RemoteWS", () => {
     conn = RemoteWS.connect({
       url: server.url,
       getToken: async () => "tok",
-      getSessions: () => [],
+      getSessions: async () => ({ sessions: [] }),
       log: nolog(),
       heartbeat: 60_000,
     })
@@ -149,7 +149,7 @@ describe("RemoteWS", () => {
     conn = RemoteWS.connect({
       url: server.url,
       getToken: async () => "tok",
-      getSessions: () => [],
+      getSessions: async () => ({ sessions: [] }),
       log: nolog(),
       heartbeat: 60_000,
     })
@@ -175,7 +175,7 @@ describe("RemoteWS", () => {
     conn = RemoteWS.connect({
       url: server.url,
       getToken: async () => "tok",
-      getSessions: () => [],
+      getSessions: async () => ({ sessions: [] }),
       log: nolog(),
       heartbeat: 60_000,
     })
@@ -198,7 +198,7 @@ describe("RemoteWS", () => {
     conn = RemoteWS.connect({
       url: server.url,
       getToken: async () => "tok",
-      getSessions: () => [],
+      getSessions: async () => ({ sessions: [] }),
       log: nolog(),
       heartbeat: 60_000,
       onClose: (code) => codes.push(code),
@@ -223,7 +223,7 @@ describe("RemoteWS", () => {
     conn = RemoteWS.connect({
       url: server.url,
       getToken: async () => "tok",
-      getSessions: () => [],
+      getSessions: async () => ({ sessions: [] }),
       log: cap.log,
       heartbeat: 60_000,
       onMessage: (msg) => received.push(msg),
@@ -263,7 +263,7 @@ describe("RemoteWS", () => {
     conn = RemoteWS.connect({
       url: server.url,
       getToken: async () => "tok",
-      getSessions: () => [{ id: "s1", status: "active", title: "Test" }],
+      getSessions: async () => ({ sessions: [{ id: "s1", status: "active", title: "Test" }] }),
       log: nolog(),
       heartbeat: 100,
     })
@@ -283,5 +283,85 @@ describe("RemoteWS", () => {
     // No new connections and no new heartbeat messages
     expect(server.clients.length).toBe(0)
     expect(server.messages.length).toBe(0)
+  })
+
+  test("force-reconnects on activity timeout", async () => {
+    server = createServer()
+    const ws1 = server.waitForConnect()
+
+    conn = RemoteWS.connect({
+      url: server.url,
+      getToken: async () => "tok",
+      getSessions: async () => ({ sessions: [] }),
+      log: nolog(),
+      heartbeat: 60_000,
+      timeout: 200,
+    })
+
+    await ws1
+    await settled()
+    expect(conn.connected).toBe(true)
+
+    // Don't send any server messages — timeout should fire
+    const ws2 = server.waitForConnect()
+    await Bun.sleep(450)
+
+    // Should have reconnected
+    await ws2
+    await settled()
+    expect(conn.connected).toBe(true)
+  })
+
+  test("resets activity timer on incoming messages", async () => {
+    server = createServer()
+    const ws1p = server.waitForConnect()
+
+    conn = RemoteWS.connect({
+      url: server.url,
+      getToken: async () => "tok",
+      getSessions: async () => ({ sessions: [] }),
+      log: nolog(),
+      heartbeat: 60_000,
+      timeout: 300,
+    })
+
+    const ws1 = await ws1p
+    await settled()
+
+    // Send server messages at 100ms intervals — each resets the timer
+    for (let i = 0; i < 4; i++) {
+      await Bun.sleep(100)
+      ws1.send(JSON.stringify({ type: "subscribe", sessionId: `s${i}` }))
+    }
+
+    await settled()
+    // Connection should still be alive — activity kept resetting the timer
+    expect(conn.connected).toBe(true)
+    expect(server.clients.length).toBe(1)
+  })
+
+  test("activity timeout uses custom timeout option", async () => {
+    server = createServer()
+    const ws1 = server.waitForConnect()
+
+    conn = RemoteWS.connect({
+      url: server.url,
+      getToken: async () => "tok",
+      getSessions: async () => ({ sessions: [] }),
+      log: nolog(),
+      heartbeat: 60_000,
+      timeout: 100,
+    })
+
+    await ws1
+    await settled()
+
+    // With 100ms timeout, should reconnect faster than default 30s
+    const ws2 = server.waitForConnect()
+    await Bun.sleep(250)
+
+    await ws2
+    await settled()
+    expect(conn.connected).toBe(true)
   })
 })

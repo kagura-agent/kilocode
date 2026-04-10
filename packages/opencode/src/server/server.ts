@@ -48,11 +48,13 @@ import { errors } from "./error"
 import { CommitMessageRoutes } from "./routes/commit-message" // kilocode_change
 import { EnhancePromptRoutes } from "./routes/enhance-prompt" // kilocode_change
 import { KilocodeRoutes } from "./routes/kilocode" // kilocode_change
+import { PermissionKilocodeRoutes } from "../kilocode/permission/routes" // kilocode_change
 import { Filesystem } from "@/util/filesystem"
 import { QuestionRoutes } from "./routes/question"
 import { PermissionRoutes } from "./routes/permission"
 import { RemoteRoutes } from "./routes/remote" // kilocode_change
 import { GlobalRoutes } from "./routes/global"
+import { NetworkRoutes } from "./routes/network" // kilocode_change
 import { MDNS } from "./mdns"
 
 // @ts-ignore This global is needed to prevent ai-sdk from logging warnings to stdout https://github.com/vercel/ai/blob/2dc67e0ef538307f21368db32d5a12345d98831b/packages/ai/src/logger/log-warnings.ts#L85
@@ -101,7 +103,16 @@ export namespace Server {
           return basicAuth({ username, password })(c, next)
         })
         .use(async (c, next) => {
-          const skipLogging = c.req.path === "/log"
+          // kilocode_change start
+          // kilocode change add telemetry because it is high volume
+          // add early return to prevent logging timing
+          const skipLogging =
+            c.req.path === "/log" || c.req.path === "/telemetry/capture" || c.req.path === "/global/health"
+          if (skipLogging) {
+            await next()
+            return
+          }
+          // kilocode_change end
           if (!skipLogging) {
             log.info("request", {
               method: c.req.method,
@@ -144,6 +155,7 @@ export namespace Server {
           }),
         )
         .route("/global", GlobalRoutes())
+        .route("/remote", RemoteRoutes()) // kilocode_change
         .put(
           "/auth/:providerID",
           describeRoute({
@@ -268,10 +280,11 @@ export namespace Server {
         .route("/experimental", ExperimentalRoutes())
         .route("/session", SessionRoutes())
         .route("/permission", PermissionRoutes())
+        .route("/permission", PermissionKilocodeRoutes()) // kilocode_change
         .route("/question", QuestionRoutes())
+        .route("/network", NetworkRoutes()) // kilocode_change
         .route("/provider", ProviderRoutes())
         .route("/telemetry", TelemetryRoutes()) // kilocode_change
-        .route("/remote", RemoteRoutes()) // kilocode_change
         .route("/commit-message", CommitMessageRoutes()) // kilocode_change
         .route("/enhance-prompt", EnhancePromptRoutes()) // kilocode_change
         .route("/kilocode", KilocodeRoutes()) // kilocode_change

@@ -97,7 +97,8 @@ export class GitStatsPoller {
   setEnabled(enabled: boolean): void {
     if (enabled) {
       if (this.active) return
-      this.start()
+      this.active = true
+      void this.poll()
       return
     }
     this.stop()
@@ -114,14 +115,6 @@ export class GitStatsPoller {
     this.lastLocalHash = undefined
     this.lastLocalStats = undefined
     this.lastStats = {}
-    this.consecutiveNoChanges = 0
-  }
-
-  private start(): void {
-    this.stop()
-    this.active = true
-    this.consecutiveNoChanges = 0
-    void this.poll()
   }
 
   private getAdaptiveInterval(): number {
@@ -159,6 +152,9 @@ export class GitStatsPoller {
   }
 
   private async fetch(): Promise<void> {
+    let worktreeChanged = false
+    let localChanged = false
+
     const client = (() => {
       try {
         return this.options.getClient()
@@ -168,10 +164,23 @@ export class GitStatsPoller {
       }
     })()
 
-    await Promise.all([this.fetchWorktreeStats(client), this.fetchLocalStats(client)])
+    await Promise.all([
+      this.fetchWorktreeStats(client, () => {
+        worktreeChanged = true
+      }),
+      this.fetchLocalStats(client, () => {
+        localChanged = true
+      }),
+    ])
+
+    if (worktreeChanged || localChanged) {
+      this.consecutiveNoChanges = 0
+    } else {
+      this.consecutiveNoChanges++
+    }
   }
 
-  private async fetchWorktreeStats(client: KiloClient | undefined): Promise<void> {
+  private async fetchWorktreeStats(client: KiloClient | undefined, onChanged?: () => void): Promise<void> {
     const worktrees = this.options.getWorktrees()
     if (worktrees.length === 0) return
 
@@ -235,10 +244,10 @@ export class GitStatsPoller {
       )
       .join("|")
     if (hash === this.lastHash) {
-      this.consecutiveNoChanges++
       return
     }
     this.lastHash = hash
+    onChanged?.()
     this.lastStats = stats.reduce(
       (acc, item) => {
         acc[item.worktreeId] = {
@@ -287,7 +296,7 @@ export class GitStatsPoller {
     return { worktrees: worktreeStatuses, degraded: false }
   }
 
-  private async fetchLocalStats(client: KiloClient | undefined): Promise<void> {
+  private async fetchLocalStats(client: KiloClient | undefined, onChanged?: () => void): Promise<void> {
     const root = this.options.getWorkspaceRoot()
     if (!root) return
 
@@ -334,12 +343,11 @@ export class GitStatsPoller {
 
       const hash = `local:${branch}:${files}:${additions}:${deletions}:${ahead}:${behind}`
       if (hash === this.lastLocalHash) {
-        this.consecutiveNoChanges++
         this.options.log(`Local stats: unchanged (${hash})`)
         return
       }
-      this.consecutiveNoChanges = 0
       this.lastLocalHash = hash
+      onChanged?.()
 
       this.options.log(`Local stats: emitting files=${files} +${additions} -${deletions} ↑${ahead} ↓${behind}`)
       const stats: LocalStats = { branch, files, additions, deletions, ahead, behind }

@@ -1,3 +1,4 @@
+// kilocode_change - new file
 /**
  * Built-in context injection plugin — Kilo Code
  *
@@ -24,8 +25,6 @@
  * }
  * ```
  */
-
-// kilocode_change start
 import type { Hooks, Plugin, PluginInput } from "@kilocode/plugin"
 import { Config } from "../config/config"
 import { MCP } from "../mcp"

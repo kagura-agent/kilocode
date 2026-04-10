@@ -52,10 +52,21 @@ function hashString(text: string): number {
   return h
 }
 
-/** Per-session cache entry so identical prompts don't re-query on every agent sub-turn. */
+/**
+ * Per-session cache entry.
+ *
+ * `promptHash` deduplicates sub-turns — if the user prompt hash matches,
+ * we reuse the prior result without re-querying.
+ *
+ * `result` is empty string when all sources returned nothing for this prompt.
+ * That is a valid cached outcome: we queried and got nothing, so sub-turns
+ * on the same prompt should not re-query. Storing empty results here means
+ * tool.execute.after MUST check result non-emptiness, not just cache presence,
+ * to decide whether to enrich tool output.
+ */
 type CacheEntry = {
   promptHash: number
-  /** Formatted injection string, empty string if query returned nothing. */
+  /** Formatted injection string. Empty string means queried but nothing returned. */
   result: string
 }
 
@@ -196,13 +207,13 @@ export const ContextPlugin: Plugin = async (_input: PluginInput): Promise<Hooks>
 
       const injected = parts.filter(Boolean).join("\n\n").trim()
 
-      // Only populate the session cache when at least one source returned content.
-      // tool.execute.after checks sessionCache.has(sessionID) as its guard; writing
-      // an empty-result entry would cause it to re-query all sources (with their full
-      // timeout budget) on every read/glob/grep in sessions where sources are
-      // unreachable or returned nothing.
+      // Cache the result unconditionally — even empty results are cached.
+      // This prevents sub-turns on the same prompt from re-querying all sources.
+      // tool.execute.after checks cached.result (non-empty) rather than cache
+      // presence, so empty-result entries do not trigger file-read enrichment.
+      sessionCache.set(sessionID, { promptHash, result: injected })
+
       if (injected) {
-        sessionCache.set(sessionID, { promptHash, result: injected })
         output.system.push(injected)
         log.info("context-plugin: injected context", {
           sessionID,
@@ -230,9 +241,12 @@ export const ContextPlugin: Plugin = async (_input: PluginInput): Promise<Hooks>
       const config = await Config.get()
       const sources = config.context?.sources
       if (!sources?.length) return
-      // Skip enrichment if no context output was produced in this session
-      // (i.e., sources are configured but the MCP server isn't connected)
-      if (!sessionCache.has(sessionID)) return
+      // Only enrich tool output when this session has previously produced non-empty
+      // context. An empty cached result means sources are configured but returned
+      // nothing (or are unreachable); enrichment queries would repeat the same
+      // timeout cycle on every file read.
+      const cachedForSession = sessionCache.get(sessionID)
+      if (!cachedForSession?.result) return
 
       // Extract the file path or query string from tool args
       const argsObj = args as Record<string, unknown>

@@ -191,16 +191,19 @@ export namespace PermissionNext {
       const s = await state()
       const { ruleset, ...request } = input
       const local = s.session[request.sessionID] ?? [] // kilocode_change
-      // kilocode_change start — force "ask" for config file edits
+      // kilocode_change start — force "ask" for config file writes (reads are always allowed)
       const protected_ = ConfigProtection.isRequest(request)
+      // When user has "* allow" (via approved rules or session rules), config
+      // write-protection is waived — they've opted into allowing everything.
+      const overridden = protected_ && ConfigProtection.hasWildcardAllow(s.approved, local)
       // kilocode_change end
       for (const pattern of request.patterns ?? []) {
         const rule = evaluate(request.permission, pattern, ruleset, s.approved, local) // kilocode_change
         log.info("evaluated", { permission: request.permission, pattern, action: rule })
         if (rule.action === "deny")
           throw new DeniedError(ruleset.filter((r) => Wildcard.match(request.permission, r.permission)))
-        // kilocode_change start — override "allow" to "ask" for config paths
-        if (rule.action === "ask" || (rule.action === "allow" && protected_)) {
+        // kilocode_change start — override "allow" to "ask" for config writes, unless "* allow"
+        if (rule.action === "ask" || (rule.action === "allow" && protected_ && !overridden)) {
           const id = input.id ?? Identifier.ascending("permission")
           return new Promise<void>((resolve, reject) => {
             const info: Request = {
@@ -394,9 +397,9 @@ export namespace PermissionNext {
         }
       }
 
+      // kilocode_change — "* allow" now also resolves config-write requests
       for (const [id, entry] of Object.entries(s.pending)) {
         if (input.sessionID && entry.info.sessionID !== input.sessionID) continue
-        if (ConfigProtection.isRequest(entry.info)) continue
         delete s.pending[id]
         Bus.publish(Event.Replied, {
           sessionID: entry.info.sessionID,

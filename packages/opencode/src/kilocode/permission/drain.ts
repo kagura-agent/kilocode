@@ -26,8 +26,8 @@ export async function drainCovered(
 ) {
   for (const [id, entry] of Object.entries(pending)) {
     if (id === exclude) continue
-    // Never auto-resolve config file edit permissions
-    if (ConfigProtection.isRequest(entry.info)) continue
+    // Skip auto-resolve for config-write permissions unless "* allow" is active
+    if (ConfigProtection.isRequest(entry.info) && !ConfigProtection.hasWildcardAllow(approved)) continue
     const actions = entry.info.patterns.map((pattern) =>
       evaluate(entry.info.permission, pattern, entry.ruleset, approved),
     )

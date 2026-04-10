@@ -4,6 +4,7 @@ import { tmpdir } from "../fixture/fixture"
 import { Instance } from "../../src/project/instance"
 import { Agent } from "../../src/agent/agent"
 import { PermissionNext } from "../../src/permission/next"
+import { Global } from "../../src/global" // kilocode_change
 
 // Helper to evaluate permission for a tool with wildcard pattern
 function evalPerm(agent: Agent.Info | undefined, permission: string): PermissionNext.Action | undefined {
@@ -157,6 +158,22 @@ test("explore agent asks for external directories and allows Truncate.GLOB", asy
     },
   })
 })
+
+// kilocode_change start
+test("code agent allows global config directory reads by default", async () => {
+  await using tmp = await tmpdir()
+  await Instance.provide({
+    directory: tmp.path,
+    fn: async () => {
+      const code = await Agent.get("code")
+      expect(code).toBeDefined()
+      expect(PermissionNext.evaluate("external_directory", `${Global.Path.config}/*`, code!.permission).action).toBe(
+        "allow",
+      )
+    },
+  })
+})
+// kilocode_change end
 
 test("general agent denies todo tools", async () => {
   await using tmp = await tmpdir()

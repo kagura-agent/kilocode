@@ -79,24 +79,36 @@ export namespace ConfigProtection {
   }
 
   /**
-   * Determine if a permission request targets config files.
-   * Checks `edit` and `external_directory` permissions — read access is not restricted.
+   * Permissions that are considered write operations for config protection.
+   * Only these trigger the config write-protection gate.
+   * Read-only permissions (read, glob, grep, external_directory from file
+   * tools) are always allowed without prompting.
+   */
+  const WRITE_PERMISSIONS = new Set(["edit", "bash"])
+
+  /**
+   * Determine if a permission request is a **write** to config files.
+   * Read access to config dirs is always allowed — only writes are gated.
    */
   export function isRequest(request: {
     permission: string
     patterns: string[]
     metadata?: Record<string, any>
   }): boolean {
-    // external_directory patterns are absolute globs like "/Users/alex/.config/kilo/*"
+    // external_directory: bash commands touching config dirs are writes;
+    // file-tool reads are not.
     if (request.permission === "external_directory") {
+      // File tools (read, glob) include metadata.filepath — these are reads.
+      if (request.metadata?.filepath) return false
+      // Bash-originated requests (no filepath) that target config dirs are writes.
       for (const pattern of request.patterns) {
         const dir = pattern.replace(/\/\*$/, "")
-        if (isAbsolute(dir)) return true
+        if (path.isAbsolute(dir) && isAbsolute(dir)) return true
       }
       return false
     }
 
-    if (request.permission !== "edit") return false
+    if (!WRITE_PERMISSIONS.has(request.permission)) return false
 
     // Check patterns — handle both relative and absolute
     for (const pattern of request.patterns) {
@@ -124,6 +136,22 @@ export namespace ConfigProtection {
       }
     }
 
+    return false
+  }
+
+  /**
+   * Check if a ruleset contains a wildcard allow-all rule (`"*": "allow"`).
+   * When present, config write-protection is waived because the user has
+   * explicitly opted into allowing everything.
+   */
+  export function hasWildcardAllow(
+    ...rulesets: Array<Array<{ permission: string; pattern: string; action: string }>>
+  ): boolean {
+    for (const rules of rulesets) {
+      for (const rule of rules) {
+        if (rule.permission === "*" && rule.pattern === "*" && rule.action === "allow") return true
+      }
+    }
     return false
   }
 }

@@ -66,15 +66,22 @@ async function fetchLatest() {
 }
 
 async function fetchHighest() {
-  if (!env.KILO_RELEASE || !process.env.GH_REPO) return fetchLatest()
-  const data: { tagName: string }[] = await $`gh release list --json tagName --limit 100 --repo ${process.env.GH_REPO}`
+  if (!process.env.GH_REPO) return fetchLatest()
+  const releases: { tagName: string }[] =
+    await $`gh release list --json tagName --limit 100 --repo ${process.env.GH_REPO}`.json().catch(() => [])
+  const tags: { name: string }[] = await $`gh api repos/${process.env.GH_REPO}/tags --per-page 100`
     .json()
     .catch(() => [])
-  const versions = data.flatMap((item) => {
-    const version = parseVersion(item.tagName)
-    if (!version) return []
-    return [version]
-  })
+  const versions = [
+    ...releases.flatMap((r) => {
+      const v = parseVersion(r.tagName)
+      return v ? [v] : []
+    }),
+    ...tags.flatMap((t) => {
+      const v = parseVersion(t.name)
+      return v ? [v] : []
+    }),
+  ]
   const highest = versions.sort(compareVersion).at(-1)
   if (highest) return highest.value
   return fetchLatest()

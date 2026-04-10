@@ -34,15 +34,13 @@ export namespace Command {
       template: z.promise(z.string()).or(z.string()),
       subtask: z.boolean().optional(),
       hints: z.array(z.string()),
-      // kilocode_change - optional builder that receives raw arguments for commands needing args at template-generation time
-      build: z.function().optional(),
     })
     .meta({
       ref: "Command",
     })
 
   // for some reason zod is inferring `string` for z.promise(z.string()).or(z.string()) so we have to manually override it
-  export type Info = Omit<z.infer<typeof Info>, "template" | "build"> & {
+  export type Info = Omit<z.infer<typeof Info>, "template"> & {
     template: Promise<string> | string
     // kilocode_change - optional builder that receives raw arguments for commands needing args at template-generation time
     build?: (args: string) => Promise<string>

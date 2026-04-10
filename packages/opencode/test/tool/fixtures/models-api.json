@@ -2879,6 +2879,22 @@
         "cost": { "input": 1, "output": 5 },
         "limit": { "context": 1048576, "output": 65536 }
       },
+      "qwen3.6-plus": {
+        "id": "qwen3.6-plus",
+        "name": "Qwen3.6 Plus",
+        "family": "qwen",
+        "attachment": true,
+        "reasoning": true,
+        "tool_call": true,
+        "temperature": true,
+        "knowledge": "2025-04",
+        "release_date": "2025-04-10",
+        "last_updated": "2025-04-10",
+        "modalities": { "input": ["text", "image"], "output": ["text"] },
+        "open_weights": false,
+        "cost": { "input": 0.276, "output": 1.651 },
+        "limit": { "context": 1000000, "output": 65536 }
+      },
       "qwen3-next-80b-a3b-thinking": {
         "id": "qwen3-next-80b-a3b-thinking",
         "name": "Qwen3-Next 80B-A3B (Thinking)",
@@ -10804,6 +10820,22 @@
         "open_weights": true,
         "cost": { "input": 1, "output": 5 },
         "limit": { "context": 1048576, "output": 65536 }
+      },
+      "qwen3.6-plus": {
+        "id": "qwen3.6-plus",
+        "name": "Qwen3.6 Plus",
+        "family": "qwen",
+        "attachment": true,
+        "reasoning": true,
+        "tool_call": true,
+        "temperature": true,
+        "knowledge": "2025-04",
+        "release_date": "2025-04-10",
+        "last_updated": "2025-04-10",
+        "modalities": { "input": ["text", "image"], "output": ["text"] },
+        "open_weights": false,
+        "cost": { "input": 0.276, "output": 1.651 },
+        "limit": { "context": 1000000, "output": 65536 }
       }
     }
   },

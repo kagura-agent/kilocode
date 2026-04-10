@@ -191,7 +191,7 @@ export namespace PermissionNext {
       const s = await state()
       const { ruleset, ...request } = input
       const local = s.session[request.sessionID] ?? [] // kilocode_change
-      // kilocode_change start — force "ask" for config file edits
+      // kilocode_change start — force "ask" for config file edits unless explicitly allowed
       const protected_ = ConfigProtection.isRequest(request)
       // kilocode_change end
       for (const pattern of request.patterns ?? []) {
@@ -200,7 +200,12 @@ export namespace PermissionNext {
         if (rule.action === "deny")
           throw new DeniedError(ruleset.filter((r) => Wildcard.match(request.permission, r.permission)))
         // kilocode_change start — override "allow" to "ask" for config paths
-        if (rule.action === "ask" || (rule.action === "allow" && protected_)) {
+        // Config write-protection: when the request targets a config file and the
+        // matching rule is a blanket wildcard (e.g. "*": "allow"), override to "ask".
+        // If the user explicitly configured a config-path rule (e.g. edit: { ".kilo/*": "allow" }),
+        // respect it — the user intentionally granted write access.
+        const enforced = protected_ && !ConfigProtection.isExplicitConfigRule(rule.pattern)
+        if (rule.action === "ask" || (rule.action === "allow" && enforced)) {
           const id = input.id ?? Identifier.ascending("permission")
           return new Promise<void>((resolve, reject) => {
             const info: Request = {
@@ -208,7 +213,7 @@ export namespace PermissionNext {
               ...request,
               metadata: {
                 ...request.metadata,
-                ...(protected_ ? { [ConfigProtection.DISABLE_ALWAYS_KEY]: true } : {}),
+                ...(enforced ? { [ConfigProtection.DISABLE_ALWAYS_KEY]: true } : {}),
               },
             }
             // kilocode_change end

@@ -79,6 +79,18 @@ export namespace ConfigProtection {
   }
 
   /**
+   * Check whether a permission rule's pattern explicitly targets a config path.
+   * Used to determine if the user intentionally configured write access to config
+   * directories (e.g. `edit: { ".kilo/*": "allow" }`). Generic wildcards like `"*"`
+   * do not count as explicit — they are blanket rules that should not bypass config
+   * write protection.
+   */
+  export function isExplicitConfigRule(pattern: string): boolean {
+    if (path.isAbsolute(pattern)) return isAbsolute(pattern.replace(/\/\*$/, ""))
+    return isRelative(pattern)
+  }
+
+  /**
    * Determine if a permission request targets config files.
    * Checks `edit` and `external_directory` permissions — read access is not restricted.
    */

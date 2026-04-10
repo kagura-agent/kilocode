@@ -24,8 +24,11 @@ jobs:
       - name: Check kilocode_change annotations in shared opencode files
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          SKIP_ANNOTATIONS: ${{ contains(github.event.pull_request.labels.*.name, 'upstream-merge') }}
         run: |
-          if [ -n "$BASE_SHA" ]; then
+          if [ "$SKIP_ANNOTATIONS" = "true" ]; then
+            echo "Skipping — PR has 'upstream-merge' label."
+          elif [ -n "$BASE_SHA" ]; then
             bun run script/check-opencode-annotations.ts --base "$BASE_SHA"
           else
             echo "No PR base SHA available (workflow_dispatch without PR context) — skipping."

@@ -14,6 +14,7 @@ import { CopilotAuthPlugin } from "./copilot"
 import { gitlabAuthPlugin as GitlabAuthPlugin } from "@gitlab/opencode-gitlab-auth"
 
 import { KiloAuthPlugin } from "@kilocode/kilo-gateway" // kilocode_change
+import { ContextPlugin } from "./context" // kilocode_change
 
 export namespace Plugin {
   const log = Log.create({ service: "plugin" })
@@ -27,6 +28,7 @@ export namespace Plugin {
     CodexAuthPlugin,
     CopilotAuthPlugin,
     GitlabAuthPlugin as unknown as PluginInstance,
+    ContextPlugin, // pre-LLM context injection from configured MCP sources
   ] // kilocode_change end
 
   const state = Instance.state(async () => {
@@ -123,7 +125,12 @@ export namespace Plugin {
       // @ts-expect-error if you feel adventurous, please fix the typing, make sure to bump the try-counter if you
       // give up.
       // try-counter: 2
-      await fn(input, output)
+      await fn(input, output).catch((err: unknown) => {
+        // kilocode_change: isolate individual hook failures so a single broken plugin
+        // cannot silently abort all downstream hooks for the same event.
+        const message = err instanceof Error ? err.message : String(err)
+        log.error("plugin hook threw, skipping", { hook: name, error: message })
+      })
     }
     return output
   }

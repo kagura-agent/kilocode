@@ -8,6 +8,7 @@ import { Flag } from "@/flag/flag"
 import { Log } from "../util/log"
 import { Glob } from "../util/glob"
 import type { MessageV2 } from "./message-v2"
+import { Skill } from "../skill/skill" // kilocode_change
 
 const log = Log.create({ service: "instruction" })
 
@@ -112,6 +113,29 @@ export namespace InstructionPrompt {
     return paths
   }
 
+  // kilocode_change start — always_load skills: resolved once and injected unconditionally
+  async function alwaysLoadedSkills(): Promise<string[]> {
+    const config = await Config.get()
+    const names = config.skills?.always_load ?? []
+    if (!names.length) return []
+
+    const result: string[] = []
+    for (const name of names) {
+      const skill = await Skill.get(name)
+      if (!skill) {
+        log.warn("skills.always_load: skill not found", { name })
+        continue
+      }
+      result.push(
+        `Skill loaded (always_load): ${name}\n` +
+          `Location: ${skill.location}\n` +
+          skill.content,
+      )
+    }
+    return result
+  }
+  // kilocode_change end
+
   export async function system() {
     const config = await Config.get()
     const paths = await systemPaths()
@@ -136,7 +160,10 @@ export namespace InstructionPrompt {
         .then((x) => (x ? "Instructions from: " + url + "\n" + x : "")),
     )
 
-    return Promise.all([...files, ...fetches]).then((result) => result.filter(Boolean))
+    // kilocode_change start — prepend always_load skills before instruction files
+    const skills = await alwaysLoadedSkills()
+    return Promise.all([...files, ...fetches]).then((result) => [...skills, ...result.filter(Boolean)])
+    // kilocode_change end
   }
 
   export function loaded(messages: MessageV2.WithParts[]) {

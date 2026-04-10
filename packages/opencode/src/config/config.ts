@@ -809,8 +809,57 @@ export namespace Config {
       .array(z.string())
       .optional()
       .describe("URLs to fetch skills from (e.g., https://example.com/.well-known/skills/)"),
+    // kilocode_change start
+    always_load: z
+      .array(z.string())
+      .optional()
+      .describe(
+        "Skill names to inject unconditionally into every system prompt. " +
+          "Unlike normal skills (which the model decides to load), these fire on every turn, " +
+          "providing reliable infrastructure-level context without relying on model compliance.",
+      ),
+    // kilocode_change end
   })
   export type Skills = z.infer<typeof Skills>
+
+  // kilocode_change start
+  export const ContextSource = z
+    .object({
+      mcp: z.string().describe("Name of a configured MCP server (must be in the 'mcp' config section)"),
+      tool: z.string().describe("Tool name exposed by that MCP server to call with the user's prompt as 'query'"),
+      timeout_ms: z
+        .number()
+        .int()
+        .positive()
+        .optional()
+        .describe("Per-source timeout in milliseconds. Overrides context.timeout_ms for this source."),
+    })
+    .strict()
+    .meta({ ref: "ContextSourceConfig" })
+  export type ContextSource = z.infer<typeof ContextSource>
+
+  export const Context = z
+    .object({
+      sources: z
+        .array(ContextSource)
+        .optional()
+        .describe(
+          "MCP-backed context sources queried before every LLM call. " +
+            "On each turn Kilo calls the configured tool with the user's prompt text and injects " +
+            "the result into the system prompt — unconditionally, at the infrastructure level, " +
+            "with no model decision required. Inspired by Claude Code's UserPromptSubmit hook.",
+        ),
+      timeout_ms: z
+        .number()
+        .int()
+        .positive()
+        .optional()
+        .describe("Global timeout in milliseconds for context queries (default: 5000). Applies to all sources."),
+    })
+    .strict()
+    .meta({ ref: "ContextConfig" })
+  export type Context = z.infer<typeof Context>
+  // kilocode_change end
 
   export const Agent = z
     .object({
@@ -1142,6 +1191,7 @@ export namespace Config {
         .optional()
         .describe("Command configuration, see https://opencode.ai/docs/commands"),
       skills: Skills.optional().describe("Additional skill folder paths"),
+      context: Context.optional().describe("Pre-LLM context injection from MCP sources"), // kilocode_change
       watcher: z
         .object({
           ignore: z.array(z.string()).optional(),

@@ -122,15 +122,19 @@ export namespace Plugin {
     for (const hook of await state().then((x) => x.hooks)) {
       const fn = hook[name]
       if (!fn) continue
-      // @ts-expect-error if you feel adventurous, please fix the typing, make sure to bump the try-counter if you
-      // give up.
-      // try-counter: 2
       // kilocode_change start — isolate individual hook failures so a single broken plugin
       // cannot silently abort all downstream hooks for the same event.
-      await fn(input, output).catch((err: unknown) => {
-        const message = err instanceof Error ? err.message : String(err)
-        log.error("plugin hook threw, skipping", { hook: name, error: message })
-      })
+      // Promise.resolve().then() wraps the call so synchronous throws (before a
+      // promise is returned) are also caught — not just async rejections.
+      await Promise.resolve()
+        // @ts-expect-error if you feel adventurous, please fix the typing, make sure to bump the try-counter if you
+        // give up.
+        // try-counter: 2
+        .then(() => fn(input, output))
+        .catch((err: unknown) => {
+          const message = err instanceof Error ? err.message : String(err)
+          log.error("plugin hook threw, skipping", { hook: name, error: message })
+        })
       // kilocode_change end
     }
     return output

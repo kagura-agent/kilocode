@@ -65,7 +65,11 @@ type CacheEntry = {
  */
 async function getLastUserPrompt(sessionID: string): Promise<string | undefined> {
   const msgs = await Session.messages({ sessionID })
-  // messages() returns newest-first after the internal reverse()
+  // messages() returns newest-first after the internal reverse().
+  // Return the text of the most recent user message regardless of length —
+  // callers decide how to handle short prompts. Do NOT skip short messages
+  // and fall back to older ones; that would inject stale context on turns
+  // like "ok" or "thanks" where no injection is wanted.
   for (const msg of msgs) {
     if (msg.info.role !== "user") continue
     // Narrow from the discriminated Part union to TextPart
@@ -76,7 +80,7 @@ async function getLastUserPrompt(sessionID: string): Promise<string | undefined>
       .filter(Boolean)
       .join("\n")
       .trim()
-    if (text.length >= MIN_PROMPT_LENGTH) return text
+    return text.length >= MIN_PROMPT_LENGTH ? text : undefined
   }
   return undefined
 }
@@ -192,10 +196,13 @@ export const ContextPlugin: Plugin = async (_input: PluginInput): Promise<Hooks>
 
       const injected = parts.filter(Boolean).join("\n\n").trim()
 
-      // Update cache regardless of whether there was content (avoids redundant re-queries)
-      sessionCache.set(sessionID, { promptHash, result: injected })
-
+      // Only populate the session cache when at least one source returned content.
+      // tool.execute.after checks sessionCache.has(sessionID) as its guard; writing
+      // an empty-result entry would cause it to re-query all sources (with their full
+      // timeout budget) on every read/glob/grep in sessions where sources are
+      // unreachable or returned nothing.
       if (injected) {
+        sessionCache.set(sessionID, { promptHash, result: injected })
         output.system.push(injected)
         log.info("context-plugin: injected context", {
           sessionID,

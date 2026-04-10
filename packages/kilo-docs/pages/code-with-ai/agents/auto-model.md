@@ -25,43 +25,13 @@ That's it. No configuration needed.
 
 `kilo-auto/frontier` routes to the latest and most capable paid models available, optimizing for performance, capability, and cost.
 
-### Mode-to-Model Mapping
-
-| Mode           | Model Used        | Best For                     |
-| -------------- | ----------------- | ---------------------------- |
-| `architect`    | Claude Opus 4.6   | System design, planning      |
-| `orchestrator` | Claude Opus 4.6   | Multi-step task coordination |
-| `ask`          | Claude Opus 4.6   | Questions, explanations      |
-| `plan`         | Claude Opus 4.6   | Planning, reasoning          |
-| `general`      | Claude Opus 4.6   | General assistance           |
-| `debug`        | Claude Opus 4.6   | Debugging and fixing issues  |
-| `code`         | Claude Sonnet 4.6 | Writing and editing code     |
-| `build`        | Claude Sonnet 4.6 | Implementation tasks         |
-| `explore`      | Claude Sonnet 4.6 | Codebase exploration         |
-
-**Planning and reasoning tasks** use Claude Opus 4.6, which excels at complex reasoning, architectural decisions, and breaking down problems.
-
-**Implementation tasks** use Claude Sonnet 4.6, which is optimized for fast, accurate code generation and editing.
+For the current mode-to-model mappings, see the [Gateway docs](/docs/gateway/models-and-providers#kilo-autofrontier).
 
 ## Auto Balanced
 
 `kilo-auto/balanced` follows the same mode-based routing structure as Frontier but uses a more cost-effective model — GPT 5.3 Codex across all modes.
 
-### Mode-to-Model Mapping
-
-| Mode           | Model Used    | Best For                     |
-| -------------- | ------------- | ---------------------------- |
-| `architect`    | GPT 5.3 Codex | System design, planning      |
-| `orchestrator` | GPT 5.3 Codex | Multi-step task coordination |
-| `ask`          | GPT 5.3 Codex | Questions, explanations      |
-| `plan`         | GPT 5.3 Codex | Planning, reasoning          |
-| `general`      | GPT 5.3 Codex | General assistance           |
-| `debug`        | GPT 5.3 Codex | Debugging and fixing issues  |
-| `code`         | GPT 5.3 Codex | Writing and editing code     |
-| `build`        | GPT 5.3 Codex | Implementation tasks         |
-| `explore`      | GPT 5.3 Codex | Codebase exploration         |
-
-**All tasks** use GPT 5.3 Codex (Low), providing strong coding and reasoning performance across all modes at a lower cost than frontier routing.
+For the current mode-to-model mappings, see the [Gateway docs](/docs/gateway/models-and-providers#kilo-autobalanced).
 
 ## Benefits
 

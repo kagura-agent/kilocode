@@ -278,10 +278,11 @@ export namespace Review {
   /**
    * Build review prompt for branch diff vs base branch
    *
+   * @param baseBranch - Optional base branch to diff against. If not provided, auto-detects.
    * @returns Complete prompt string ready for LLM
    */
-  export async function buildReviewPromptBranch(): Promise<string> {
-    const base = await getBaseBranch()
+  export async function buildReviewPromptBranch(baseBranch?: string): Promise<string> {
+    const base = baseBranch || (await getBaseBranch())
     const currentBranch = await getCurrentBranch()
     const diff = await getBranchChanges(base)
 

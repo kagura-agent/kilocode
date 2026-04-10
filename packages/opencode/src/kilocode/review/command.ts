@@ -17,14 +17,19 @@ export function localReviewUncommittedCommand(): Command.Info {
 
 /**
  * /local-review - local review (current branch vs base)
+ * Accepts an optional base branch argument: /local-review origin/develop
  */
 export function localReviewCommand(): Command.Info {
   return {
     name: "local-review",
-    description: "local review (current branch)",
+    description: "local review (current branch) [base-branch]",
     get template() {
       return Review.buildReviewPromptBranch()
     },
-    hints: [],
+    build(args: string) {
+      const branch = args.trim() || undefined
+      return Review.buildReviewPromptBranch(branch)
+    },
+    hints: ["$ARGUMENTS"],
   }
 }

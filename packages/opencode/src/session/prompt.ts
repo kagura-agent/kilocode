@@ -1863,7 +1863,8 @@ NOTE: At any point in time through this workflow you should feel free to ask the
     const raw = input.arguments.match(argsRegex) ?? []
     const args = raw.map((arg) => arg.replace(quoteTrimRegex, ""))
 
-    const templateCommand = await command.template
+    // kilocode_change - use build(args) when the command needs arguments at template-generation time
+    const templateCommand = command.build ? await command.build(input.arguments) : await command.template
 
     const placeholders = templateCommand.match(placeholderRegex) ?? []
     let last = 0

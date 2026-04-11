@@ -240,6 +240,79 @@ export const TaskHeaderWithTodosAllDone: Story = {
 }
 
 // ---------------------------------------------------------------------------
+// TaskHeader cost tooltip with many subagents
+// ---------------------------------------------------------------------------
+
+/** Few subagents — each shown individually, reverse chronological order */
+export const TaskHeaderCostFewSubagents: Story = {
+  name: "TaskHeader — cost tooltip (few subagents)",
+  render: () => {
+    const session = {
+      ...mockSessionValue({ id: SESSION_ID, status: "idle" }),
+      messages: () => [{ id: "msg-001" }] as any[],
+      currentSession: () => ({
+        id: SESSION_ID,
+        title: "Building a feature",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }),
+      costBreakdown: () => [
+        { label: "This session", cost: 0.12 },
+        { label: "general", cost: 0.08 },
+        { label: "explore", cost: 0.04 },
+        { label: "docs", cost: 0.02 },
+      ],
+      contextUsage: () => ({ tokens: 8192, percentage: 12 }),
+    }
+    return (
+      <StoryProviders sessionID={SESSION_ID} status="idle" noPadding>
+        <SessionContext.Provider value={session as any}>
+          <div style={{ "max-height": "400px" }}>
+            <TaskHeader />
+          </div>
+        </SessionContext.Provider>
+      </StoryProviders>
+    )
+  },
+}
+
+/** Many subagents — older entries aggregated into a summary line */
+export const TaskHeaderCostManySubagents: Story = {
+  name: "TaskHeader — cost tooltip (many subagents, aggregated)",
+  render: () => {
+    const session = {
+      ...mockSessionValue({ id: SESSION_ID, status: "idle" }),
+      messages: () => [{ id: "msg-001" }] as any[],
+      currentSession: () => ({
+        id: SESSION_ID,
+        title: "Complex refactoring across 12 modules",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }),
+      costBreakdown: () => [
+        { label: "This session", cost: 0.45 },
+        { label: "general", cost: 0.12 },
+        { label: "explore", cost: 0.09 },
+        { label: "docs", cost: 0.07 },
+        { label: "general", cost: 0.06 },
+        { label: "explore", cost: 0.05 },
+        { label: "5 older sessions", cost: 0.18 },
+      ],
+      contextUsage: () => ({ tokens: 42000, percentage: 52 }),
+    }
+    return (
+      <StoryProviders sessionID={SESSION_ID} status="idle" noPadding>
+        <SessionContext.Provider value={session as any}>
+          <div style={{ "max-height": "400px" }}>
+            <TaskHeader />
+          </div>
+        </SessionContext.Provider>
+      </StoryProviders>
+    )
+  },
+}
+
+// ---------------------------------------------------------------------------
 // Welcome screen with AccountSwitcher + KiloNotifications
 // ---------------------------------------------------------------------------
 

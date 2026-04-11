@@ -325,4 +325,78 @@ describe("buildCostBreakdown", () => {
     const result = buildCostBreakdown("s1", costs, new Map(), "This session")
     expect(result[1].label).toBe("abcdef12")
   })
+
+  it("shows children in reverse chronological order", () => {
+    const costs = new Map<string, number>([
+      ["s1", 0.1],
+      ["c1", 0.01],
+      ["c2", 0.02],
+      ["c3", 0.03],
+    ])
+    const labels = new Map([
+      ["c1", "first"],
+      ["c2", "second"],
+      ["c3", "third"],
+    ])
+    const result = buildCostBreakdown("s1", costs, labels, "Root")
+    expect(result).toEqual([
+      { label: "Root", cost: 0.1 },
+      { label: "third", cost: 0.03 },
+      { label: "second", cost: 0.02 },
+      { label: "first", cost: 0.01 },
+    ])
+  })
+
+  it("aggregates older children when more than 5", () => {
+    const costs = new Map<string, number>([
+      ["s1", 0.5],
+      ["c1", 0.01],
+      ["c2", 0.02],
+      ["c3", 0.03],
+      ["c4", 0.04],
+      ["c5", 0.05],
+      ["c6", 0.06],
+      ["c7", 0.07],
+      ["c8", 0.08],
+    ])
+    const labels = new Map([
+      ["c1", "agent-1"],
+      ["c2", "agent-2"],
+      ["c3", "agent-3"],
+      ["c4", "agent-4"],
+      ["c5", "agent-5"],
+      ["c6", "agent-6"],
+      ["c7", "agent-7"],
+      ["c8", "agent-8"],
+    ])
+    const result = buildCostBreakdown("s1", costs, labels, "Root", "older sessions")
+    // Root + 5 most recent + 1 aggregated line = 7 items
+    expect(result.length).toBe(7)
+    expect(result[0]).toEqual({ label: "Root", cost: 0.5 })
+    // Most recent 5 (reversed: c8, c7, c6, c5, c4)
+    expect(result[1]).toEqual({ label: "agent-8", cost: 0.08 })
+    expect(result[2]).toEqual({ label: "agent-7", cost: 0.07 })
+    expect(result[3]).toEqual({ label: "agent-6", cost: 0.06 })
+    expect(result[4]).toEqual({ label: "agent-5", cost: 0.05 })
+    expect(result[5]).toEqual({ label: "agent-4", cost: 0.04 })
+    // Aggregated: c3 + c2 + c1 = 0.03 + 0.02 + 0.01 = 0.06
+    expect(result[6].label).toBe("3 older sessions")
+    expect(result[6].cost).toBeCloseTo(0.06)
+  })
+
+  it("uses custom olderLabel for aggregated line", () => {
+    const costs = new Map<string, number>([
+      ["s1", 0.1],
+      ["c1", 0.01],
+      ["c2", 0.02],
+      ["c3", 0.03],
+      ["c4", 0.04],
+      ["c5", 0.05],
+      ["c6", 0.06],
+    ])
+    const labels = new Map<string, string>()
+    const result = buildCostBreakdown("s1", costs, labels, "Root", "ältere Sitzungen")
+    // 5 visible + 1 aggregated
+    expect(result[result.length - 1].label).toBe("1 ältere Sitzungen")
+  })
 })

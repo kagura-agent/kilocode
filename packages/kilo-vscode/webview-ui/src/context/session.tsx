@@ -1749,7 +1749,13 @@ export const SessionProvider: ParentComponent = (props) => {
     const id = currentSessionID()
     const costs = familyCosts()
     if (!id || costs.size === 0) return []
-    return buildCostBreakdown(id, costs, familyLabels(), language.t("context.stats.thisSession"))
+    return buildCostBreakdown(
+      id,
+      costs,
+      familyLabels(),
+      language.t("context.stats.thisSession"),
+      language.t("context.stats.olderSessions"),
+    )
   })
 
   // Status text derived from last assistant message parts

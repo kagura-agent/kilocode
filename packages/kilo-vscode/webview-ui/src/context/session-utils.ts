@@ -131,8 +131,16 @@ export function buildFamilyLabels(
   return labels
 }
 
+/** Max individually-listed child sessions before older ones are aggregated. */
+const VISIBLE_CAP = 5
+
 /**
  * Combine costs and labels into the final breakdown array.
+ *
+ * Order: root session first, then child sessions in reverse chronological
+ * order (most recent on top).  When there are more than VISIBLE_CAP children,
+ * the oldest entries are collapsed into a single aggregated line.
+ *
  * Pure function — no store dependency.
  */
 export function buildCostBreakdown(
@@ -140,11 +148,36 @@ export function buildCostBreakdown(
   costs: Map<string, number>,
   labels: Map<string, string>,
   rootLabel: string,
+  olderLabel = "older sessions",
 ): Array<{ label: string; cost: number }> {
-  const items: Array<{ label: string; cost: number }> = []
+  const children: Array<{ label: string; cost: number }> = []
+  let rootItem: { label: string; cost: number } | undefined
+
   for (const [sid, cost] of costs) {
-    const label = sid === root ? rootLabel : (labels.get(sid) ?? sid.slice(0, 8))
-    items.push({ label, cost })
+    if (sid === root) {
+      rootItem = { label: rootLabel, cost }
+    } else {
+      const label = labels.get(sid) ?? sid.slice(0, 8)
+      children.push({ label, cost })
+    }
   }
+
+  // Reverse so the most-recently-discovered (newest) children come first
+  children.reverse()
+
+  const items: Array<{ label: string; cost: number }> = []
+  if (rootItem) items.push(rootItem)
+
+  if (children.length <= VISIBLE_CAP) {
+    items.push(...children)
+  } else {
+    // Show the most recent VISIBLE_CAP children individually
+    const recent = children.slice(0, VISIBLE_CAP)
+    const older = children.slice(VISIBLE_CAP)
+    const sum = older.reduce((s, e) => s + e.cost, 0)
+    items.push(...recent)
+    items.push({ label: `${older.length} ${olderLabel}`, cost: sum })
+  }
+
   return items
 }

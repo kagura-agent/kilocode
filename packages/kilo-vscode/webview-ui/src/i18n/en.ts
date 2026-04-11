@@ -954,6 +954,7 @@ export const dict = {
 
   "context.usage.sessionCost": "Session cost",
   "context.stats.thisSession": "This session",
+  "context.stats.olderSessions": "older sessions",
 
   "time.justNow": "just now",
   "time.minutesAgo": "{{count}} min ago",

@@ -1517,6 +1517,11 @@ export const SessionProvider: ParentComponent = (props) => {
       return
     }
 
+    if (cloudPreviewId()) {
+      console.warn("[Kilo New] Cannot export: cloud session preview")
+      return
+    }
+
     const sessionID = currentSessionID()
     if (!sessionID) {
       console.warn("[Kilo New] Cannot export: no current session")

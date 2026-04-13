@@ -46,6 +46,8 @@ import { slimPart, slimParts } from "./kilo-provider/slim-metadata"
 import { handleContinueInWorktree } from "./kilo-provider/continue-worktree"
 import { parseMessageFiles } from "./kilo-provider/message-files"
 import { matchFollowup, recordFollowup, type Followup } from "./kilo-provider/followup-session"
+import { clearCommandsCache, loadCommands } from "./kilo-provider/commands"
+import { fetchMessagePage, MESSAGE_PAGE_LIMIT } from "./kilo-provider/message-page"
 import { childID } from "./kilo-provider/task-session"
 import { handleNetworkEvent, clearNetworkWaits } from "./kilo-provider/network"
 import { retryable, backoff, MAX_RETRIES } from "./util/retry"
@@ -104,6 +106,8 @@ type KiloProviderOptions = {
   projectDirectory?: string | null
   slimEditMetadata?: boolean
 }
+
+type MessageLoadMode = "replace" | "prepend" | "focus"
 
 // Helper to map agent data to the subset of fields sent to the webview
 const mapAgent = (a: Agent) => ({
@@ -445,6 +449,10 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
     this.trackedSessionIds.add(sessionId)
   }
 
+  public loadMessages(sessionID: string): Promise<void> {
+    return this.handleLoadMessages(sessionID)
+  }
+
   /**
    * Register a directory override for a session (e.g., worktree path).
    * When set, all operations for this session use this directory instead of the workspace root.
@@ -623,7 +631,11 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
         case "loadMessages":
           // Don't await: allow parallel loads so rapid session switching
           // isn't blocked by slow responses for earlier sessions.
-          void this.handleLoadMessages(message.sessionID)
+          void this.handleLoadMessages(message.sessionID, {
+            mode: message.mode,
+            before: message.before,
+            limit: message.limit,
+          })
           break
         case "syncSession":
           this.handleSyncSession(message.sessionID, message.parentSessionID).catch((e) =>
@@ -1200,7 +1212,6 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
         this.fetchAndSendProviders(),
         this.fetchAndSendAgents(),
         this.fetchAndSendSkills(),
-        this.fetchAndSendCommands(),
         this.fetchAndSendConfig(),
         this.fetchAndSendNotifications(),
         this.seedSessionStatusMap(),
@@ -1267,14 +1278,63 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
     }
   }
 
+  private refreshSessionDetails(sessionID: string, workspaceDir: string, signal?: AbortSignal): void {
+    if (!this.client) return
+
+    // Update currentSession so fallback logic in handleSendMessage/handleAbort
+    // references the correct session after switching. Non-blocking: don't let a
+    // failure here prevent messages from loading. 404s are expected for
+    // cross-worktree sessions.
+    this.client.session
+      .get({ sessionID, directory: workspaceDir })
+      .then((result) => {
+        if (result.data && !signal?.aborted) {
+          this.currentSession = result.data
+          this.contextSessionID = result.data.id
+        }
+      })
+      .catch((err: unknown) => console.warn("[Kilo New] KiloProvider: getSession failed (non-critical):", err))
+
+    this.postMessage({
+      type: "workspaceDirectoryChanged",
+      directory: this.getWorkspaceDirectory(sessionID),
+    })
+
+    // Fetch current session status so the webview has the correct busy/idle
+    // state after switching tabs (SSE events may have been missed).
+    this.client.session
+      .status({ directory: workspaceDir })
+      .then((result) => {
+        if (!result.data || signal?.aborted) return
+        for (const [sid, info] of Object.entries(result.data) as [string, SessionStatus][]) {
+          if (!this.trackedSessionIds.has(sid)) continue
+          this.postMessage({
+            type: "sessionStatus",
+            sessionID: sid,
+            status: info.type,
+            ...(info.type === "retry" ? { attempt: info.attempt, message: info.message, next: info.next } : {}),
+          })
+        }
+      })
+      .catch((err: unknown) => console.error("[Kilo New] KiloProvider: Failed to fetch session statuses:", err))
+  }
+
   /**
    * Handle loading messages for a session.
    */
-  private async handleLoadMessages(sessionID: string): Promise<void> {
-    // Track the session so we receive its SSE events
-    this.trackedSessionIds.add(sessionID)
-    this.focusSession(sessionID)
-    this.contextSessionID = sessionID
+  private async handleLoadMessages(
+    sessionID: string,
+    options: { mode?: MessageLoadMode; before?: string; limit?: number } = {},
+  ): Promise<void> {
+    const mode = options.mode ?? "replace"
+    const focus = mode !== "prepend"
+
+    if (focus) {
+      // Track the session so we receive its SSE events
+      this.trackedSessionIds.add(sessionID)
+      this.focusSession(sessionID)
+      this.contextSessionID = sessionID
+    }
 
     if (!this.client) {
       this.postMessage({
@@ -1285,65 +1345,36 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
       return
     }
 
-    // Abort any previous in-flight loadMessages request so the backend
-    // isn't overwhelmed when the user switches sessions rapidly.
-    this.loadMessagesAbort?.abort()
-    const abort = new AbortController()
-    this.loadMessagesAbort = abort
+    const workspaceDir = this.getWorkspaceDirectory(sessionID)
+
+    if (mode === "focus") {
+      this.refreshSessionDetails(sessionID, workspaceDir)
+      return
+    }
+
+    const abort = mode === "replace" ? new AbortController() : undefined
+    if (abort) {
+      // Abort any previous initial load so the backend isn't overwhelmed when
+      // the user switches sessions rapidly. Older-page loads are independent.
+      this.loadMessagesAbort?.abort()
+      this.loadMessagesAbort = abort
+    }
+
+    if (focus) this.refreshSessionDetails(sessionID, workspaceDir, abort?.signal)
 
     try {
-      const workspaceDir = this.getWorkspaceDirectory(sessionID)
-      const { data: messagesData } = await retry(() =>
-        this.client!.session.messages(
-          { sessionID, directory: workspaceDir },
-          { throwOnError: true, signal: abort.signal },
-        ),
-      )
-
-      // If this request was aborted while awaiting, skip posting stale results
-      if (abort.signal.aborted) return
-
-      // Update currentSession so fallback logic in handleSendMessage/handleAbort
-      // references the correct session after switching.  loadMessages is the
-      // canonical "user switched to this session" signal, so always update —
-      // the old guard `this.currentSession.id === sessionID` prevented updates
-      // when switching between different sessions.
-      // Non-blocking: don't let a failure here prevent messages from loading.
-      // 404s are expected for cross-worktree sessions — use silent to suppress HTTP error logs.
-      this.client.session
-        .get({ sessionID, directory: workspaceDir })
-        .then((result) => {
-          if (result.data && !abort.signal.aborted) {
-            this.currentSession = result.data
-            this.contextSessionID = result.data.id
-          }
-        })
-        .catch((err: unknown) => console.warn("[Kilo New] KiloProvider: getSession failed (non-critical):", err))
-
-      this.postMessage({
-        type: "workspaceDirectoryChanged",
-        directory: this.getWorkspaceDirectory(sessionID),
+      const page = await fetchMessagePage(this.client, {
+        sessionID,
+        workspaceDir,
+        limit: options.limit ?? MESSAGE_PAGE_LIMIT,
+        before: options.before,
+        signal: abort?.signal,
       })
 
-      // Fetch current session status so the webview has the correct busy/idle
-      // state after switching tabs (SSE events may have been missed).
-      this.client.session
-        .status({ directory: workspaceDir })
-        .then((result) => {
-          if (!result.data) return
-          for (const [sid, info] of Object.entries(result.data) as [string, SessionStatus][]) {
-            if (!this.trackedSessionIds.has(sid)) continue
-            this.postMessage({
-              type: "sessionStatus",
-              sessionID: sid,
-              status: info.type,
-              ...(info.type === "retry" ? { attempt: info.attempt, message: info.message, next: info.next } : {}),
-            })
-          }
-        })
-        .catch((err: unknown) => console.error("[Kilo New] KiloProvider: Failed to fetch session statuses:", err))
+      // If this request was aborted while awaiting, skip posting stale results
+      if (abort?.signal.aborted) return
 
-      const messages = messagesData.map((m) => ({
+      const messages = page.items.map((m) => ({
         ...m.info,
         parts: this.slimParts(m.parts),
         createdAt: new Date(m.info.time.created).toISOString(),
@@ -1357,13 +1388,16 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
         type: "messagesLoaded",
         sessionID,
         messages,
+        mode,
+        cursor: page.cursor,
+        hasMore: Boolean(page.cursor),
       })
 
       // Recover any prompts missed while the webview was loading or during an SSE reconnection.
       this.recoverPendingPrompts()
     } catch (error) {
       // Silently ignore aborted requests — the user switched to a different session
-      if (abort.signal.aborted) return
+      if (abort?.signal.aborted) return
       console.error("[Kilo New] KiloProvider: Failed to load messages:", error)
       this.postMessage({
         type: "error",
@@ -1415,6 +1449,8 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
         type: "messagesLoaded",
         sessionID,
         messages,
+        mode: "replace",
+        hasMore: false,
       })
 
       // Recover any prompts emitted by the child before we started tracking it.
@@ -1709,6 +1745,11 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
     }
   }
 
+  private clearCommandsCache(): void {
+    this.cachedCommandsMessage = null
+    clearCommandsCache()
+  }
+
   private async fetchAndSendCommands(): Promise<void> {
     if (!this.client) {
       if (this.cachedCommandsMessage) {
@@ -1719,19 +1760,8 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
 
     try {
       const dir = this.getWorkspaceDirectory()
-      const { data: commands } = await retry(() =>
-        this.client!.command.list({ directory: dir }, { throwOnError: true }),
-      )
+      const message = await loadCommands(this.client, dir)
 
-      const message = {
-        type: "commandsLoaded",
-        commands: commands.map((c) => ({
-          name: c.name,
-          description: c.description,
-          source: c.source,
-          hints: c.hints,
-        })),
-      }
       this.cachedCommandsMessage = message
       this.postMessage(message)
     } catch (error) {
@@ -1764,7 +1794,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
       if (result.error) {
         console.error("[Kilo New] removeSkill returned error:", result.error)
         this.cachedSkillsMessage = null
-        this.cachedCommandsMessage = null
+        this.clearCommandsCache()
         await Promise.all([this.fetchAndSendSkills(), this.fetchAndSendCommands()])
         return false
       }

@@ -554,10 +554,15 @@ export interface MessageRemovedMessage {
   messageID: string
 }
 
+export type MessageLoadMode = "replace" | "prepend" | "focus"
+
 export interface MessagesLoadedMessage {
   type: "messagesLoaded"
   sessionID: string
   messages: Message[]
+  mode?: Exclude<MessageLoadMode, "focus">
+  cursor?: string
+  hasMore?: boolean
 }
 
 export interface MessageCreatedMessage {
@@ -1592,6 +1597,9 @@ export interface ClearSessionRequest {
 export interface LoadMessagesRequest {
   type: "loadMessages"
   sessionID: string
+  mode?: MessageLoadMode
+  before?: string
+  limit?: number
 }
 
 export interface LoadSessionsRequest {

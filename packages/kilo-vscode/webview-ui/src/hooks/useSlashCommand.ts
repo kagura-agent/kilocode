@@ -91,6 +91,14 @@ export function useSlashCommand(vscode: VSCodeContext, exclude?: Set<string>): S
       },
     },
     {
+      name: "export",
+      description: "Export session to JSON file for debugging",
+      hints: ["debug", "save", "json"],
+      action: () => {
+        window.dispatchEvent(new CustomEvent("exportSession"))
+      },
+    },
+    {
       name: "settings",
       description: "Open settings",
       hints: [],

@@ -183,6 +183,7 @@ interface SessionContextValue {
   ) => void
   abort: () => void
   compact: () => void
+  export: () => void
   respondToPermission: (
     permissionId: string,
     response: "once" | "always" | "reject",
@@ -1510,6 +1511,24 @@ export const SessionProvider: ParentComponent = (props) => {
     })
   }
 
+  function exportSession() {
+    if (!server.isConnected()) {
+      console.warn("[Kilo New] Cannot export: not connected")
+      return
+    }
+
+    const sessionID = currentSessionID()
+    if (!sessionID) {
+      console.warn("[Kilo New] Cannot export: no current session")
+      return
+    }
+
+    vscode.postMessage({
+      type: "export",
+      sessionID,
+    })
+  }
+
   function respondToPermission(
     permissionId: string,
     response: "once" | "always" | "reject",
@@ -1870,6 +1889,7 @@ export const SessionProvider: ParentComponent = (props) => {
     sendCommand,
     abort,
     compact,
+    export: exportSession,
     respondToPermission,
     replyToQuestion,
     rejectQuestion,

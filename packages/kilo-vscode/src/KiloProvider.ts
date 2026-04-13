@@ -710,6 +710,9 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
         case "compact":
           await this.handleCompact(message.sessionID, message.providerID, message.modelID)
           break
+        case "export":
+          await this.handleExport(message.sessionID)
+          break
         case "requestAgents":
           this.fetchAndSendAgents().catch((e) => console.error("[Kilo New] fetchAndSendAgents failed:", e))
           break
@@ -2598,6 +2601,41 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
         type: "error",
         message: getErrorMessage(error) || "Failed to compact session",
       })
+    }
+  }
+
+  /** Handle export session request from the webview. */
+  private async handleExport(sessionID?: string): Promise<void> {
+    if (!this.client) {
+      this.postMessage({ type: "error", message: "Not connected to CLI backend" })
+      return
+    }
+    const target = sessionID || this.currentSession?.id
+    if (!target) return
+
+    try {
+      const dir = this.getWorkspaceDirectory(target)
+      const { data: info } = await this.client.session.get(
+        { sessionID: target, directory: dir },
+        { throwOnError: true },
+      )
+      const { data: msgs } = await this.client.session.messages(
+        { sessionID: target, directory: dir },
+        { throwOnError: true },
+      )
+      const payload = { info, messages: msgs.map((m) => ({ info: m.info, parts: m.parts })) }
+      const filename = `${info.title?.replace(/[^a-zA-Z0-9-_ ]/g, "") || "session"}-${target.slice(-8)}.json`
+      const uri = await vscode.window.showSaveDialog({
+        defaultUri: vscode.Uri.file(filename),
+        filters: { JSON: ["json"] },
+        title: "Export Session",
+      })
+      if (!uri) return
+      await vscode.workspace.fs.writeFile(uri, new TextEncoder().encode(JSON.stringify(payload, null, 2)))
+      vscode.window.showInformationMessage(`Session exported to ${uri.fsPath}`)
+    } catch (error) {
+      console.error("[Kilo New] KiloProvider: Failed to export session:", error)
+      this.postMessage({ type: "error", message: getErrorMessage(error) || "Failed to export session" })
     }
   }
 

@@ -1651,6 +1651,11 @@ export interface CompactRequest {
   modelID?: string
 }
 
+export interface ExportRequest {
+  type: "export"
+  sessionID: string
+}
+
 export interface OpenSettingsPanelRequest {
   type: "openSettingsPanel"
   tab?: string
@@ -2350,6 +2355,7 @@ export type WebviewMessage =
   | WebviewReadyRequest
   | RequestProvidersMessage
   | CompactRequest
+  | ExportRequest
   | RequestAgentsMessage
   | RequestSkillsMessage
   | RequestCommandsMessage

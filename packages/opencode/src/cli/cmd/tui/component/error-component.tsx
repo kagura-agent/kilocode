@@ -30,7 +30,7 @@ export function ErrorComponent(props: {
   })
   const [copied, setCopied] = createSignal(false)
 
-  const issueURL = new URL("https://github.com/anomalyco/opencode/issues/new?template=bug-report.yml")
+  const issueURL = new URL("https://github.com/Kilo-Org/kilocode/issues/new?template=bug-report.yml") // kilocode_change
 
   // Choose safe fallback colors per mode since theme context may not be available
   const isLight = props.mode === "light"
@@ -52,7 +52,7 @@ export function ErrorComponent(props: {
     )
   }
 
-  issueURL.searchParams.set("opencode-version", Installation.VERSION)
+  issueURL.searchParams.set("kilo-version", Installation.VERSION) // kilocode_change
 
   const copyIssueURL = () => {
     Clipboard.copy(issueURL.toString()).then(() => {

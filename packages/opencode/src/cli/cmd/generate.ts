@@ -36,7 +36,7 @@ export const GenerateCommand = {
       .replaceAll("OpenCode", "Kilo")
       .replaceAll("opencode.local", "kilo.local")
       .replaceAll("opencode serve", "kilo serve")
-      .replaceAll("https://opencode.ai/", "https://kilo.ai/")
+      .replace(/https:\/\/opencode\.ai\//g, "https://kilo.ai/")
     // kilocode_change end
 
     // Wait for stdout to finish writing before process.exit() is called

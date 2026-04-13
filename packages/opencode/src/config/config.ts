@@ -970,7 +970,7 @@ export namespace Config {
       command: z
         .record(z.string(), Command)
         .optional()
-        .describe("Command configuration, see https://opencode.ai/docs/commands"),
+        .describe("Command configuration, see https://kilo.ai/docs/customize/workflows"), // kilocode_change
       skills: Skills.optional().describe("Additional skill folder paths"),
       watcher: z
         .object({
@@ -1055,7 +1055,7 @@ export namespace Config {
         })
         .catchall(Agent)
         .optional()
-        .describe("Agent configuration, see https://opencode.ai/docs/agents"),
+        .describe("Agent configuration, see https://kilo.ai/docs/customize/custom-modes"), // kilocode_change
       provider: z
         .record(z.string(), Provider)
         .optional()

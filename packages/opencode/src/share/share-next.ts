@@ -47,7 +47,7 @@ export namespace ShareNext {
 
     const active = await Account.active()
     if (!active?.active_org_id) {
-      const baseUrl = await Config.get().then((x) => x.enterprise?.url ?? "https://opncd.ai")
+      const baseUrl = await Config.get().then((x) => x.enterprise?.url ?? "https://app.kilo.ai") // kilocode_change
       return { headers, api: legacyApi, baseUrl }
     }
 

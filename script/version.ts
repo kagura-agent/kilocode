@@ -21,6 +21,16 @@ if (!Script.preview) {
   output.push(`tag=${release.tagName}`)
   // kilocode_change start - handle both beta and rc preview channels
 } else if (Script.channel === "beta" || Script.channel === "rc") {
+  // Safety check: abort if a stable (non-prerelease) release already exists for this version
+  const existing = await $`gh release view v${Script.version} --json tagName,isPrerelease --repo ${process.env.GH_REPO}`
+    .json()
+    .catch(() => null)
+  if (existing && !existing.isPrerelease) {
+    console.error(
+      `ERROR: stable release v${Script.version} already exists — refusing to create a prerelease with the same version`,
+    )
+    process.exit(1)
+  }
   await $`gh release create v${Script.version} -d --prerelease --title "v${Script.version}" --repo ${process.env.GH_REPO}`
   const release =
     await $`gh release view v${Script.version} --json tagName,databaseId --repo ${process.env.GH_REPO}`.json()

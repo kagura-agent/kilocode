@@ -409,9 +409,10 @@ describe("KiloProvider — pending session refresh on reconnect", () => {
   })
 
   it("handleLoadSessions delegates to loadSessionsUtil", () => {
-    const start = provider.indexOf("private async handleLoadSessions()")
-    expect(start, "handleLoadSessions must exist").toBeGreaterThan(-1)
-    const snippet = provider.slice(start, start + 400)
+    const handler = fs.readFileSync(path.join(ROOT, "src/kilo-provider/handlers/session-handler.ts"), "utf-8")
+    const start = handler.indexOf("export async function handleLoadSessions")
+    expect(start, "handleLoadSessions must exist in session-handler").toBeGreaterThan(-1)
+    const snippet = handler.slice(start, start + 400)
     expect(snippet, "must call loadSessionsUtil").toContain("loadSessionsUtil")
   })
 

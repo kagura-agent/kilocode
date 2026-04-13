@@ -312,10 +312,11 @@ if (Script.release) {
     }
   }
   // kilocode_change start - log checksums for auditability and only clobber for prereleases
+  console.log("\n=== release archive checksums (sha256) ===")
   for (const archive of archives) {
     const hasher = new Bun.CryptoHasher("sha256")
     hasher.update(await Bun.file(archive).arrayBuffer())
-    console.log(`sha256 ${hasher.digest("hex")}  ${path.basename(archive)}`)
+    console.log(`${hasher.digest("hex")}  ${path.basename(archive)}`)
   }
   const clobber = Script.preview ? ["--clobber"] : []
   await $`gh release upload v${Script.version} ${archives} ${clobber}`

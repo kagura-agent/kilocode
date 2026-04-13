@@ -1185,6 +1185,12 @@ export const dict = {
   "settings.agentBehaviour.removeSkill.button": "Remover",
   "settings.agentBehaviour.rules.description":
     "Regras são arquivos de instrução que orientam o comportamento do agente. Elas são incluídas no prompt do sistema para cada conversa. Adicione caminhos de arquivos abaixo para incluir regras adicionais.",
+  "settings.agentBehaviour.systemPrompt.title": "Substituição do Prompt do Sistema",
+  "settings.agentBehaviour.systemPrompt.description":
+    "Substitua o prompt de sistema principal padrão do Kilo para todas as conversas. Deixe em branco para manter o prompt padrão.",
+  "settings.agentBehaviour.systemPrompt.statusDefault": "O prompt de sistema padrão do Kilo está ativo.",
+  "settings.agentBehaviour.systemPrompt.statusCustom": "A substituição personalizada do prompt do sistema está ativa.",
+  "settings.agentBehaviour.systemPrompt.placeholder": "Insira um prompt de sistema personalizado...",
   "settings.agentBehaviour.instructionFiles": "Arquivos de instruções adicionais",
   "settings.agentBehaviour.instructionFiles.description":
     "Caminhos para arquivos de instruções adicionais no prompt do sistema",

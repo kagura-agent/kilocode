@@ -1136,6 +1136,12 @@ export const dict = {
   "settings.agentBehaviour.removeSkill.button": "Verwijderen",
   "settings.agentBehaviour.rules.description":
     "Regels zijn instructiebestanden die het gedrag van de agent sturen. Ze worden opgenomen in de systeemprompt voor elk gesprek. Voeg hieronder bestandspaden toe om aanvullende regels op te nemen.",
+  "settings.agentBehaviour.systemPrompt.title": "Systeemprompt overschrijven",
+  "settings.agentBehaviour.systemPrompt.description":
+    "Vervang Kilo's standaard kern-systeemprompt voor elk gesprek. Laat leeg om de standaardprompt te behouden.",
+  "settings.agentBehaviour.systemPrompt.statusDefault": "De standaard systeemprompt van Kilo is actief.",
+  "settings.agentBehaviour.systemPrompt.statusCustom": "De aangepaste systeemprompt-override is actief.",
+  "settings.agentBehaviour.systemPrompt.placeholder": "Voer een aangepaste systeemprompt in...",
   "settings.agentBehaviour.instructionFiles": "Aanvullende Instructiebestanden",
   "settings.agentBehaviour.instructionFiles.description":
     "Paden naar aanvullende instructiebestanden die zijn opgenomen in de systeem prompt",

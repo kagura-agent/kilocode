@@ -1166,6 +1166,12 @@ export const dict = {
   "settings.agentBehaviour.removeSkill.button": "ลบ",
   "settings.agentBehaviour.rules.description":
     "กฎคือไฟล์คำสั่งที่แนะนำพฤติกรรมของเอเจนต์ กฎเหล่านี้จะถูกรวมอยู่ในพรอมต์ระบบสำหรับทุกการสนทนา เพิ่มเส้นทางไฟล์ด้านล่างเพื่อรวมกฎเพิ่มเติม",
+  "settings.agentBehaviour.systemPrompt.title": "แทนที่พรอมต์ระบบ",
+  "settings.agentBehaviour.systemPrompt.description":
+    "แทนที่พรอมต์ระบบหลักเริ่มต้นของ Kilo สำหรับทุกการสนทนา เว้นว่างไว้เพื่อใช้พรอมต์เริ่มต้นต่อไป",
+  "settings.agentBehaviour.systemPrompt.statusDefault": "พรอมต์ระบบเริ่มต้นของ Kilo กำลังใช้งานอยู่",
+  "settings.agentBehaviour.systemPrompt.statusCustom": "การแทนที่พรอมต์ระบบแบบกำหนดเองกำลังใช้งานอยู่",
+  "settings.agentBehaviour.systemPrompt.placeholder": "ป้อนพรอมต์ระบบแบบกำหนดเอง...",
   "settings.agentBehaviour.instructionFiles": "ไฟล์คำสั่งเพิ่มเติม",
   "settings.agentBehaviour.instructionFiles.description": "เส้นทางไฟล์คำสั่งเพิ่มเติมในพรอมต์ระบบ",
   "settings.agentBehaviour.claudeCompat.heading": "ความเข้ากันได้กับ Claude Code",

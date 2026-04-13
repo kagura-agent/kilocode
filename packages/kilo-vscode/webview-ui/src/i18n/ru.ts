@@ -1183,6 +1183,12 @@ export const dict = {
   "settings.agentBehaviour.removeSkill.button": "Удалить",
   "settings.agentBehaviour.rules.description":
     "Правила — это файлы инструкций, которые направляют поведение агента. Они включаются в системный промпт для каждого разговора. Добавьте пути к файлам ниже, чтобы включить дополнительные правила.",
+  "settings.agentBehaviour.systemPrompt.title": "Переопределение системного промпта",
+  "settings.agentBehaviour.systemPrompt.description":
+    "Заменяет основной системный промпт Kilo по умолчанию для каждого разговора. Оставьте поле пустым, чтобы сохранить промпт по умолчанию.",
+  "settings.agentBehaviour.systemPrompt.statusDefault": "Системный промпт Kilo по умолчанию активен.",
+  "settings.agentBehaviour.systemPrompt.statusCustom": "Пользовательское переопределение системного промпта активно.",
+  "settings.agentBehaviour.systemPrompt.placeholder": "Введите пользовательский системный промпт...",
   "settings.agentBehaviour.instructionFiles": "Дополнительные файлы инструкций",
   "settings.agentBehaviour.instructionFiles.description": "Пути к дополнительным файлам инструкций в системном промпте",
   "settings.agentBehaviour.claudeCompat.heading": "Совместимость с Claude Code",

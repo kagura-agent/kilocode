@@ -1175,6 +1175,12 @@ export const dict = {
   "settings.agentBehaviour.removeSkill.button": "Fjern",
   "settings.agentBehaviour.rules.description":
     "Regler er instruktionsfiler, der styrer agentens adfærd. De inkluderes i systemprompten for hver samtale. Tilføj filstier nedenfor for at inkludere yderligere regler.",
+  "settings.agentBehaviour.systemPrompt.title": "Tilsidesættelse af systemprompt",
+  "settings.agentBehaviour.systemPrompt.description":
+    "Erstat Kilos standardprompt for kernesystemet i hver samtale. Lad feltet stå tomt for at beholde standardprompten.",
+  "settings.agentBehaviour.systemPrompt.statusDefault": "Kilos standard systemprompt er aktiv.",
+  "settings.agentBehaviour.systemPrompt.statusCustom": "Brugerdefineret tilsidesættelse af systemprompt er aktiv.",
+  "settings.agentBehaviour.systemPrompt.placeholder": "Indtast en brugerdefineret systemprompt...",
   "settings.agentBehaviour.instructionFiles": "Yderligere instruktionsfiler",
   "settings.agentBehaviour.instructionFiles.description": "Stier til yderligere instruktionsfiler i systemprompten",
   "settings.agentBehaviour.claudeCompat.heading": "Claude Code-kompatibilitet",

@@ -1198,6 +1198,12 @@ export const dict = {
   "settings.agentBehaviour.removeSkill.button": "Entfernen",
   "settings.agentBehaviour.rules.description":
     "Regeln sind Anweisungsdateien, die das Verhalten des Agenten steuern. Sie werden in den System-Prompt für jede Konversation eingebunden. Fügen Sie unten Dateipfade hinzu, um zusätzliche Regeln einzubinden.",
+  "settings.agentBehaviour.systemPrompt.title": "System-Prompt überschreiben",
+  "settings.agentBehaviour.systemPrompt.description":
+    "Ersetzt Kilos standardmäßigen Kern-System-Prompt für jede Unterhaltung. Leer lassen, um den Standard-Prompt beizubehalten.",
+  "settings.agentBehaviour.systemPrompt.statusDefault": "Der standardmäßige Kilo-System-Prompt ist aktiv.",
+  "settings.agentBehaviour.systemPrompt.statusCustom": "Die benutzerdefinierte System-Prompt-Überschreibung ist aktiv.",
+  "settings.agentBehaviour.systemPrompt.placeholder": "Benutzerdefinierten System-Prompt eingeben...",
   "settings.agentBehaviour.instructionFiles": "Zusätzliche Anweisungsdateien",
   "settings.agentBehaviour.instructionFiles.description": "Pfade zu zusätzlichen Anweisungsdateien im System-Prompt",
   "settings.agentBehaviour.claudeCompat.heading": "Claude Code-Kompatibilität",

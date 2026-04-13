@@ -124,11 +124,11 @@ export namespace LLM {
     const system: string[] = []
     system.push(
       [
-        // kilocode_change start - soul defines core identity and personality
+        // kilocode_change start - configurable core/default prompt selection
         ...(isOpenaiOauth ? [] : [soul]),
-        // kilocode_change end
         // use agent prompt, or provider prompt when no system prompt override is configured
         ...prompts,
+        // kilocode_change end
         // any custom prompt passed into this call
         ...input.system,
         // any custom prompt from last user message

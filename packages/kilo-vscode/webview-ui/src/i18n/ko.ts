@@ -1170,6 +1170,12 @@ export const dict = {
   "settings.agentBehaviour.removeSkill.button": "제거",
   "settings.agentBehaviour.rules.description":
     "규칙은 에이전트 동작을 안내하는 지시 파일입니다. 모든 대화의 시스템 프롬프트에 포함됩니다. 추가 규칙을 포함하려면 아래에 파일 경로를 추가하세요.",
+  "settings.agentBehaviour.systemPrompt.title": "시스템 프롬프트 재정의",
+  "settings.agentBehaviour.systemPrompt.description":
+    "모든 대화에서 Kilo의 기본 핵심 시스템 프롬프트를 대체합니다. 기본 프롬프트를 유지하려면 비워 두세요.",
+  "settings.agentBehaviour.systemPrompt.statusDefault": "Kilo 기본 시스템 프롬프트가 활성화되어 있습니다.",
+  "settings.agentBehaviour.systemPrompt.statusCustom": "사용자 지정 시스템 프롬프트 재정의가 활성화되어 있습니다.",
+  "settings.agentBehaviour.systemPrompt.placeholder": "사용자 지정 시스템 프롬프트 입력...",
   "settings.agentBehaviour.instructionFiles": "추가 지시 파일",
   "settings.agentBehaviour.instructionFiles.description": "시스템 프롬프트에 포함되는 추가 지시 파일 경로",
   "settings.agentBehaviour.claudeCompat.heading": "Claude Code 호환성",

@@ -1132,6 +1132,12 @@ export const dict = {
   "settings.agentBehaviour.removeSkill.button": "Kaldır",
   "settings.agentBehaviour.rules.description":
     "Kurallar, ajanın davranışını yönlendiren talimat dosyalarıdır. Her konuşma için sistem komutuna dahil edilirler. Ek kurallar eklemek için aşağıya dosya yolları ekleyin.",
+  "settings.agentBehaviour.systemPrompt.title": "Sistem Promptunu Geçersiz Kılma",
+  "settings.agentBehaviour.systemPrompt.description":
+    "Her konuşma için Kilo'nun varsayılan çekirdek sistem promptunu değiştirin. Varsayılan promptu korumak için boş bırakın.",
+  "settings.agentBehaviour.systemPrompt.statusDefault": "Varsayılan Kilo sistem promptu etkin.",
+  "settings.agentBehaviour.systemPrompt.statusCustom": "Özel sistem promptu geçersiz kılması etkin.",
+  "settings.agentBehaviour.systemPrompt.placeholder": "Özel bir sistem promptu girin...",
   "settings.agentBehaviour.instructionFiles": "Ek Talimat Dosyaları",
   "settings.agentBehaviour.instructionFiles.description":
     "Sistem komutuna dahil edilen ek talimat dosyalarının yolları",

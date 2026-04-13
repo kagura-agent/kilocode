@@ -1176,6 +1176,12 @@ export const dict = {
   "settings.agentBehaviour.removeSkill.button": "削除",
   "settings.agentBehaviour.rules.description":
     "ルールはエージェントの動作を導く指示ファイルです。すべての会話のシステムプロンプトに含まれます。追加のルールを含めるには、以下にファイルパスを追加してください。",
+  "settings.agentBehaviour.systemPrompt.title": "システムプロンプトの上書き",
+  "settings.agentBehaviour.systemPrompt.description":
+    "すべての会話で Kilo の既定のコアシステムプロンプトを置き換えます。既定のプロンプトを使う場合は空のままにします。",
+  "settings.agentBehaviour.systemPrompt.statusDefault": "Kilo の既定のシステムプロンプトが有効です。",
+  "settings.agentBehaviour.systemPrompt.statusCustom": "カスタムシステムプロンプトの上書きが有効です。",
+  "settings.agentBehaviour.systemPrompt.placeholder": "カスタムシステムプロンプトを入力...",
   "settings.agentBehaviour.instructionFiles": "追加の指示ファイル",
   "settings.agentBehaviour.instructionFiles.description": "システムプロンプトに含まれる追加の指示ファイルへのパス",
   "settings.agentBehaviour.claudeCompat.heading": "Claude Code 互換性",

@@ -1182,6 +1182,12 @@ export const dict = {
   "settings.agentBehaviour.removeSkill.button": "Ukloni",
   "settings.agentBehaviour.rules.description":
     "Pravila su datoteke uputa koje usmjeravaju ponašanje agenta. Uključena su u sistemski prompt za svaki razgovor. Dodajte putanje datoteka ispod kako biste uključili dodatna pravila.",
+  "settings.agentBehaviour.systemPrompt.title": "Zamjena sistemskog prompta",
+  "settings.agentBehaviour.systemPrompt.description":
+    "Zamijenite Kilov zadani osnovni sistemski prompt za svaki razgovor. Ostavite prazno da zadržite zadani prompt.",
+  "settings.agentBehaviour.systemPrompt.statusDefault": "Zadani Kilo sistemski prompt je aktivan.",
+  "settings.agentBehaviour.systemPrompt.statusCustom": "Prilagođena zamjena sistemskog prompta je aktivna.",
+  "settings.agentBehaviour.systemPrompt.placeholder": "Unesite prilagođeni sistemski prompt...",
   "settings.agentBehaviour.instructionFiles": "Dodatne datoteke uputa",
   "settings.agentBehaviour.instructionFiles.description": "Putanje do dodatnih datoteka uputa u sistemskom promptu",
   "settings.agentBehaviour.claudeCompat.heading": "Claude Code kompatibilnost",

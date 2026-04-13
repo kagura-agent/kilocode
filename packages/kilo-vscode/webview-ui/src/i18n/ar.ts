@@ -1165,6 +1165,12 @@ export const dict = {
   "settings.agentBehaviour.removeSkill.button": "إزالة",
   "settings.agentBehaviour.rules.description":
     "القواعد هي ملفات تعليمات توجه سلوك الوكيل. يتم تضمينها في موجه النظام لكل محادثة. أضف مسارات الملفات أدناه لتضمين قواعد إضافية.",
+  "settings.agentBehaviour.systemPrompt.title": "تجاوز مطالبة النظام",
+  "settings.agentBehaviour.systemPrompt.description":
+    "استبدل مطالبة النظام الأساسية الافتراضية في Kilo لكل محادثة. اتركه فارغًا للإبقاء على المطالبة الافتراضية.",
+  "settings.agentBehaviour.systemPrompt.statusDefault": "مطالبة النظام الافتراضية في Kilo نشطة.",
+  "settings.agentBehaviour.systemPrompt.statusCustom": "تجاوز مطالبة النظام المخصصة نشط.",
+  "settings.agentBehaviour.systemPrompt.placeholder": "أدخل مطالبة نظام مخصصة...",
   "settings.agentBehaviour.instructionFiles": "ملفات تعليمات إضافية",
   "settings.agentBehaviour.instructionFiles.description": "مسارات ملفات التعليمات الإضافية في موجه النظام",
   "settings.agentBehaviour.claudeCompat.heading": "توافق Claude Code",

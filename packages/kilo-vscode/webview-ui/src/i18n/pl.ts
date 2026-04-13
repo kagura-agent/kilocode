@@ -1181,6 +1181,12 @@ export const dict = {
   "settings.agentBehaviour.removeSkill.button": "Usuń",
   "settings.agentBehaviour.rules.description":
     "Reguły to pliki instrukcji, które kierują zachowaniem agenta. Są one dołączane do promptu systemowego dla każdej rozmowy. Dodaj poniżej ścieżki plików, aby dołączyć dodatkowe reguły.",
+  "settings.agentBehaviour.systemPrompt.title": "Nadpisanie promptu systemowego",
+  "settings.agentBehaviour.systemPrompt.description":
+    "Zastąp domyślny główny prompt systemowy Kilo dla każdej rozmowy. Pozostaw puste, aby zachować domyślny prompt.",
+  "settings.agentBehaviour.systemPrompt.statusDefault": "Domyślny prompt systemowy Kilo jest aktywny.",
+  "settings.agentBehaviour.systemPrompt.statusCustom": "Niestandardowe nadpisanie promptu systemowego jest aktywne.",
+  "settings.agentBehaviour.systemPrompt.placeholder": "Wpisz niestandardowy prompt systemowy...",
   "settings.agentBehaviour.instructionFiles": "Dodatkowe pliki instrukcji",
   "settings.agentBehaviour.instructionFiles.description":
     "Ścieżki do dodatkowych plików instrukcji w prompcie systemowym",

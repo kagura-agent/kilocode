@@ -1148,6 +1148,12 @@ export const dict = {
   "settings.agentBehaviour.removeSkill.button": "移除",
   "settings.agentBehaviour.rules.description":
     "规则是指导代理行为的指令文件。它们会被包含在每次对话的系统提示词中。在下方添加文件路径以包含额外的规则。",
+  "settings.agentBehaviour.systemPrompt.title": "覆盖系统提示词",
+  "settings.agentBehaviour.systemPrompt.description":
+    "为每次对话替换 Kilo 的默认核心系统提示词。留空则保留默认提示词。",
+  "settings.agentBehaviour.systemPrompt.statusDefault": "Kilo 默认系统提示词已启用。",
+  "settings.agentBehaviour.systemPrompt.statusCustom": "自定义系统提示词覆盖已启用。",
+  "settings.agentBehaviour.systemPrompt.placeholder": "输入自定义系统提示词...",
   "settings.agentBehaviour.instructionFiles": "附加指令文件",
   "settings.agentBehaviour.instructionFiles.description": "包含在系统提示词中的附加指令文件路径",
   "settings.agentBehaviour.claudeCompat.heading": "Claude Code 兼容性",

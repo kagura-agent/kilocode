@@ -1134,6 +1134,12 @@ export const dict = {
   "settings.agentBehaviour.removeSkill.button": "Видалити",
   "settings.agentBehaviour.rules.description":
     "Правила — це файли інструкцій, що спрямовують поведінку агента. Вони включаються до системного запиту для кожної розмови. Додайте шляхи до файлів нижче для додаткових правил.",
+  "settings.agentBehaviour.systemPrompt.title": "Перевизначення системного промпта",
+  "settings.agentBehaviour.systemPrompt.description":
+    "Замініть стандартний основний системний промпт Kilo для кожної розмови. Залиште порожнім, щоб зберегти стандартний промпт.",
+  "settings.agentBehaviour.systemPrompt.statusDefault": "Стандартний системний промпт Kilo активний.",
+  "settings.agentBehaviour.systemPrompt.statusCustom": "Користувацьке перевизначення системного промпта активне.",
+  "settings.agentBehaviour.systemPrompt.placeholder": "Введіть користувацький системний промпт...",
   "settings.agentBehaviour.instructionFiles": "Додаткові файли інструкцій",
   "settings.agentBehaviour.instructionFiles.description":
     "Шляхи до додаткових файлів інструкцій, що включаються до системного запиту",

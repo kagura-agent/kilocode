@@ -9,7 +9,7 @@
  * - Simpler flat structure without overflow containers
  */
 
-import { Component, createMemo, For, Show, createSignal, createEffect, on } from "solid-js"
+import { Component, createMemo, For, Show, createSignal, createEffect, on, onCleanup } from "solid-js"
 import { Dynamic } from "solid-js/web"
 import { UserMessageDisplay } from "@kilocode/kilo-ui/message-part"
 import { Collapsible } from "@kilocode/kilo-ui/collapsible"
@@ -121,12 +121,51 @@ export const VscodeSessionTurn: Component<VscodeSessionTurnProps> = (props) => {
 
   const [open, setOpen] = createSignal(false)
   const [expanded, setExpanded] = createSignal<string[]>([])
+  const [full, setFull] = createSignal<FileDiff[] | undefined>()
+  const [diffLoading, setDiffLoading] = createSignal(false)
+  const [diffError, setDiffError] = createSignal<string | undefined>()
+  let seq = 0
+
+  const fullByFile = createMemo(() => new Map((full() ?? []).map((diff) => [diff.file, diff])))
+
+  function loadDiffs() {
+    if (full() || diffLoading()) return
+    const token = ++seq
+    setDiffLoading(true)
+    setDiffError(undefined)
+    session
+      .loadMessageDiff(props.sessionID, props.messageID)
+      .then((diffs) => {
+        if (token !== seq || !open()) return
+        setFull(diffs as FileDiff[])
+      })
+      .catch((err: unknown) => {
+        if (token !== seq || !open()) return
+        setDiffError(err instanceof Error ? err.message : String(err))
+      })
+      .finally(() => {
+        if (token === seq) setDiffLoading(false)
+      })
+  }
+
+  onCleanup(() => {
+    seq++
+  })
 
   createEffect(
     on(
       open,
       (value, prev) => {
-        if (!value && prev) setExpanded([])
+        if (value) {
+          loadDiffs()
+          return
+        }
+        if (!prev) return
+        seq++
+        setExpanded([])
+        setFull(undefined)
+        setDiffError(undefined)
+        setDiffLoading(false)
       },
       { defer: true },
     ),
@@ -219,6 +258,7 @@ export const VscodeSessionTurn: Component<VscodeSessionTurnProps> = (props) => {
                         <For each={diffs()}>
                           {(diff) => {
                             const active = createMemo(() => expanded().includes(diff.file))
+                            const loaded = createMemo(() => fullByFile().get(diff.file))
                             const [visible, setVisible] = createSignal(false)
 
                             createEffect(
@@ -263,13 +303,26 @@ export const VscodeSessionTurn: Component<VscodeSessionTurnProps> = (props) => {
                                 </StickyAccordionHeader>
                                 <Accordion.Content>
                                   <Show when={visible()}>
-                                    <div data-slot="session-turn-diff-view" data-scrollable>
-                                      <Dynamic
-                                        component={diffComponent}
-                                        before={{ name: diff.file, contents: diff.before }}
-                                        after={{ name: diff.file, contents: diff.after }}
-                                      />
-                                    </div>
+                                    <Show
+                                      when={loaded()}
+                                      fallback={
+                                        <div data-slot="session-turn-diff-placeholder">
+                                          {diffLoading()
+                                            ? language.t("session.review.loadingChanges")
+                                            : diffError() || language.t("session.review.noChanges")}
+                                        </div>
+                                      }
+                                    >
+                                      {(item) => (
+                                        <div data-slot="session-turn-diff-view" data-scrollable>
+                                          <Dynamic
+                                            component={diffComponent}
+                                            before={{ name: item().file, contents: item().before }}
+                                            after={{ name: item().file, contents: item().after }}
+                                          />
+                                        </div>
+                                      )}
+                                    </Show>
                                   </Show>
                                 </Accordion.Content>
                               </Accordion.Item>

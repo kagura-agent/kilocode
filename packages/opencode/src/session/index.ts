@@ -496,32 +496,35 @@ export namespace Session {
       const updateMessage = <T extends MessageV2.Info>(msg: T): Effect.Effect<T> =>
         Effect.gen(function* () {
           // kilocode_change start - ignore FK errors when session was deleted while processor was still running
+          const info = MessageV2.stripMessageMetadata(msg) as T
           yield* Effect.sync(() =>
-            KiloSession.runSyncSafe(
-              () => SyncEvent.run(MessageV2.Event.Updated, { sessionID: msg.sessionID, info: msg }),
-              { type: "message update", id: msg.id, sessionID: msg.sessionID },
-            ),
+            KiloSession.runSyncSafe(() => SyncEvent.run(MessageV2.Event.Updated, { sessionID: info.sessionID, info }), {
+              type: "message update",
+              id: info.id,
+              sessionID: info.sessionID,
+            }),
           )
           // kilocode_change end
-          return msg
+          return info
         }).pipe(Effect.withSpan("Session.updateMessage"))
 
       const updatePart = <T extends MessageV2.Part>(part: T): Effect.Effect<T> =>
         Effect.gen(function* () {
-          // kilocode_change start - ignore FK errors when session was deleted while processor was still running
+          // kilocode_change start - strip bulky metadata and ignore FK errors when session was deleted while processor was still running
+          const info = MessageV2.stripPartMetadata(part) as T
           yield* Effect.sync(() =>
             KiloSession.runSyncSafe(
               () =>
                 SyncEvent.run(MessageV2.Event.PartUpdated, {
-                  sessionID: part.sessionID,
-                  part: structuredClone(part),
+                  sessionID: info.sessionID,
+                  part: structuredClone(info),
                   time: Date.now(),
                 }),
-              { type: "part update", id: part.id, sessionID: part.sessionID },
+              { type: "part update", id: info.id, sessionID: info.sessionID },
             ),
           )
           // kilocode_change end
-          return part
+          return info
         }).pipe(Effect.withSpan("Session.updatePart"))
 
       const create = Effect.fn("Session.create")(function* (input?: {

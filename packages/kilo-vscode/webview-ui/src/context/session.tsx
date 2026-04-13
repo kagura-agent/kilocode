@@ -15,6 +15,7 @@ import { useLanguage } from "./language"
 import { showToast } from "@kilocode/kilo-ui/toast"
 import type {
   SessionInfo,
+  SessionFileDiff,
   Message,
   Part,
   PartDelta,
@@ -60,6 +61,21 @@ interface SessionStore {
   variantSelections: Record<string, string> // "providerID/modelID" -> variant name
   recentModels: ModelSelection[]
   favoriteModels: ModelSelection[]
+}
+
+interface DiffRequest {
+  promise: Promise<SessionFileDiff[]>
+  resolve: (diffs: SessionFileDiff[]) => void
+  reject: (err: Error) => void
+}
+
+function deferred(): DiffRequest {
+  const req = {} as DiffRequest
+  req.promise = new Promise<SessionFileDiff[]>((resolve, reject) => {
+    req.resolve = resolve
+    req.reject = reject
+  })
+  return req
 }
 
 interface SessionContextValue {
@@ -194,6 +210,7 @@ interface SessionContextValue {
   createSession: () => void
   clearCurrentSession: () => void
   loadSessions: () => void
+  loadMessageDiff: (sessionID: string, messageID: string) => Promise<SessionFileDiff[]>
   selectSession: (id: string) => void
   deleteSession: (id: string) => void
   renameSession: (id: string, title: string) => void
@@ -322,6 +339,27 @@ export const SessionProvider: ParentComponent = (props) => {
   // Tracks optimistic messageIDs that haven't been confirmed by the server yet.
   // Prevents handleMessagesLoaded from wiping them when it replaces the array.
   const pendingOptimistic = new Map<string, Set<string>>()
+
+  const diffRequests = new Map<string, DiffRequest>()
+  const diffKey = (sessionID: string, messageID: string) => `${sessionID}\u0000${messageID}`
+
+  function loadMessageDiff(sessionID: string, messageID: string): Promise<SessionFileDiff[]> {
+    const key = diffKey(sessionID, messageID)
+    const hit = diffRequests.get(key)
+    if (hit) return hit.promise
+
+    const req = deferred()
+    diffRequests.set(key, req)
+    vscode.postMessage({ type: "requestSessionMessageDiff", sessionID, messageID })
+    return req.promise
+  }
+
+  onCleanup(() => {
+    for (const req of diffRequests.values()) {
+      req.reject(new Error("Session provider disposed"))
+    }
+    diffRequests.clear()
+  })
 
   // Store for sessions, messages, parts, todos, modelSelections, agentSelections
   const [store, setStore] = createStore<SessionStore>({
@@ -655,6 +693,24 @@ export const SessionProvider: ParentComponent = (props) => {
         case "messageCreated":
           handleMessageCreated(message.message)
           break
+
+        case "sessionMessageDiffLoaded": {
+          const req = diffRequests.get(diffKey(message.sessionID, message.messageID))
+          if (req) {
+            diffRequests.delete(diffKey(message.sessionID, message.messageID))
+            req.resolve(message.diffs)
+          }
+          break
+        }
+
+        case "sessionMessageDiffError": {
+          const req = diffRequests.get(diffKey(message.sessionID, message.messageID))
+          if (req) {
+            diffRequests.delete(diffKey(message.sessionID, message.messageID))
+            req.reject(new Error(message.error))
+          }
+          break
+        }
 
         case "partUpdated":
           handlePartUpdated(message.sessionID, message.messageID, message.part, message.delta)
@@ -1876,6 +1932,7 @@ export const SessionProvider: ParentComponent = (props) => {
     createSession,
     clearCurrentSession,
     loadSessions,
+    loadMessageDiff,
     selectSession,
     deleteSession,
     renameSession,

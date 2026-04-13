@@ -67,7 +67,7 @@ export namespace SessionRevert {
       await Storage.write(["session_diff", input.sessionID], diffs)
       Bus.publish(Session.Event.Diff, {
         sessionID: input.sessionID,
-        diff: diffs,
+        diff: SessionSummary.slim(diffs), // kilocode_change
       })
       // kilocode_change start - strip full file contents before persisting to DB
       const summaryDiffs = diffs.map((d) => ({

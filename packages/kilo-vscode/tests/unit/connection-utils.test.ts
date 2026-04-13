@@ -46,6 +46,14 @@ describe("resolveEventSessionId", () => {
     expect(resolveEventSessionId(e, noLookup)).toBe("s4")
   })
 
+  it("returns sessionID from session.diff", () => {
+    const e = event({
+      type: "session.diff",
+      properties: { sessionID: "s5", diff: [] },
+    })
+    expect(resolveEventSessionId(e, noLookup)).toBe("s5")
+  })
+
   it("returns sessionID from message.updated and calls onMessageUpdated", () => {
     const e = event({
       type: "message.updated",

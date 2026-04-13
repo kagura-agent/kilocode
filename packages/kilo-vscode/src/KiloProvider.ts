@@ -622,6 +622,9 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
           // isn't blocked by slow responses for earlier sessions.
           void this.handleLoadMessages(message.sessionID)
           break
+        case "requestSessionMessageDiff":
+          void this.handleLoadSessionMessageDiff(message.sessionID, message.messageID)
+          break
         case "syncSession":
           this.handleSyncSession(message.sessionID, message.parentSessionID).catch((e) =>
             console.error("[Kilo New] handleSyncSession failed:", e),
@@ -1365,6 +1368,38 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
         type: "error",
         message: getErrorMessage(error) || "Failed to load messages",
         sessionID,
+      })
+    }
+  }
+
+  private async handleLoadSessionMessageDiff(sessionID: string, messageID: string): Promise<void> {
+    if (!this.client) {
+      this.postMessage({
+        type: "sessionMessageDiffError",
+        sessionID,
+        messageID,
+        error: "Not connected to CLI backend",
+      })
+      return
+    }
+
+    try {
+      const workspaceDir = this.getWorkspaceDirectory(sessionID)
+      const { data } = await retry(() =>
+        this.client!.session.diff({ sessionID, messageID, directory: workspaceDir }, { throwOnError: true }),
+      )
+      this.postMessage({
+        type: "sessionMessageDiffLoaded",
+        sessionID,
+        messageID,
+        diffs: data ?? [],
+      })
+    } catch (error) {
+      this.postMessage({
+        type: "sessionMessageDiffError",
+        sessionID,
+        messageID,
+        error: getErrorMessage(error) || "Failed to load message diff",
       })
     }
   }

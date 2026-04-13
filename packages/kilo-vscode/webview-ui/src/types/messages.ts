@@ -560,6 +560,20 @@ export interface MessageCreatedMessage {
   message: Message
 }
 
+export interface SessionMessageDiffLoadedMessage {
+  type: "sessionMessageDiffLoaded"
+  sessionID: string
+  messageID: string
+  diffs: SessionFileDiff[]
+}
+
+export interface SessionMessageDiffErrorMessage {
+  type: "sessionMessageDiffError"
+  sessionID: string
+  messageID: string
+  error: string
+}
+
 export interface SessionsLoadedMessage {
   type: "sessionsLoaded"
   sessions: SessionInfo[]
@@ -1419,6 +1433,8 @@ export type ExtensionMessage =
   | MessageRemovedMessage
   | MessagesLoadedMessage
   | MessageCreatedMessage
+  | SessionMessageDiffLoadedMessage
+  | SessionMessageDiffErrorMessage
   | SessionsLoadedMessage
   | CloudSessionsLoadedMessage
   | GitRemoteUrlLoadedMessage
@@ -1567,6 +1583,12 @@ export interface ClearSessionRequest {
 export interface LoadMessagesRequest {
   type: "loadMessages"
   sessionID: string
+}
+
+export interface RequestSessionMessageDiffRequest {
+  type: "requestSessionMessageDiff"
+  sessionID: string
+  messageID: string
 }
 
 export interface LoadSessionsRequest {
@@ -2334,6 +2356,7 @@ export type WebviewMessage =
   | CreateSessionRequest
   | ClearSessionRequest
   | LoadMessagesRequest
+  | RequestSessionMessageDiffRequest
   | LoadSessionsRequest
   | RequestCloudSessionsMessage
   | RequestGitRemoteUrlMessage

@@ -11,6 +11,16 @@ import { Bus } from "@/bus"
 import { NotFoundError } from "@/storage/db"
 
 export namespace SessionSummary {
+  // kilocode_change start - keep chat diff summaries lightweight
+  export function slim(diffs: Snapshot.FileDiff[]): Snapshot.FileDiff[] {
+    return diffs.map((diff) => ({
+      ...diff,
+      before: "",
+      after: "",
+    }))
+  }
+  // kilocode_change end
+
   function unquoteGitPath(input: string) {
     if (!input.startsWith('"')) return input
     if (!input.endsWith('"')) return input
@@ -100,7 +110,7 @@ export namespace SessionSummary {
     await Storage.write(["session_diff", input.sessionID], diffs)
     Bus.publish(Session.Event.Diff, {
       sessionID: input.sessionID,
-      diff: diffs,
+      diff: slim(diffs), // kilocode_change
     })
   }
 
@@ -114,7 +124,7 @@ export namespace SessionSummary {
     const diffs = await computeDiff({ messages })
     userMsg.summary = {
       ...userMsg.summary,
-      diffs,
+      diffs: slim(diffs), // kilocode_change
     }
     await Session.updateMessage(userMsg)
   }
@@ -125,23 +135,43 @@ export namespace SessionSummary {
       messageID: MessageID.zod.optional(),
     }),
     async (input) => {
+      // kilocode_change start - share diff cleanup with lazy per-message loads
+      const clean = (diffs: Snapshot.FileDiff[]) =>
+        diffs.map((item) => {
+          const file = unquoteGitPath(item.file)
+          const oversized =
+            Buffer.byteLength(item.before) > Snapshot.MAX_DIFF_SIZE ||
+            Buffer.byteLength(item.after) > Snapshot.MAX_DIFF_SIZE
+          if (file === item.file && !oversized) return item
+          return {
+            ...item,
+            file,
+            before: oversized ? "" : item.before,
+            after: oversized ? "" : item.after,
+          }
+        })
+      // kilocode_change end
+
+      // kilocode_change start - lazily compute full per-message diffs for chat expansion
+      if (input.messageID) {
+        const all = await Session.messages({ sessionID: input.sessionID })
+        const messages = all.filter(
+          (msg) =>
+            msg.info.id === input.messageID || (msg.info.role === "assistant" && msg.info.parentID === input.messageID),
+        )
+        return clean(await computeDiff({ messages }))
+      }
+      // kilocode_change end
+
       const diffs = await Storage.read<Snapshot.FileDiff[]>(["session_diff", input.sessionID]).catch(() => [])
       // kilocode_change start — scrub oversized diffs from stored session_diff
-      const next = diffs.map((item) => {
-        const file = unquoteGitPath(item.file)
-        const oversized =
-          Buffer.byteLength(item.before) > Snapshot.MAX_DIFF_SIZE ||
-          Buffer.byteLength(item.after) > Snapshot.MAX_DIFF_SIZE
-        if (file === item.file && !oversized) return item
-        return {
-          ...item,
-          file,
-          before: oversized ? "" : item.before,
-          after: oversized ? "" : item.after,
-        }
-      })
+      const next = clean(diffs)
       const changed = next.some((item, i) => item !== diffs[i])
-      if (changed) Storage.write(["session_diff", input.sessionID], next).catch(() => {})
+      if (changed) {
+        Storage.write(["session_diff", input.sessionID], next).catch((err) => {
+          console.warn("failed to update session diff cache", err)
+        })
+      }
       // kilocode_change end
       return next
     },

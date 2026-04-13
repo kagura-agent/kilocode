@@ -332,6 +332,21 @@ export type EventTodoUpdated = {
   }
 }
 
+export type EventSessionTurnOpen = {
+  type: "session.turn.open"
+  properties: {
+    sessionID: string
+  }
+}
+
+export type EventSessionTurnClose = {
+  type: "session.turn.close"
+  properties: {
+    sessionID: string
+    reason: "completed" | "error" | "interrupted"
+  }
+}
+
 export type SessionStatus =
   | {
       type: "idle"
@@ -395,21 +410,6 @@ export type EventCommandExecuted = {
     sessionID: string
     arguments: string
     messageID: string
-  }
-}
-
-export type EventSessionTurnOpen = {
-  type: "session.turn.open"
-  properties: {
-    sessionID: string
-  }
-}
-
-export type EventSessionTurnClose = {
-  type: "session.turn.close"
-  properties: {
-    sessionID: string
-    reason: "completed" | "error" | "interrupted"
   }
 }
 
@@ -1075,14 +1075,14 @@ export type Event =
   | EventQuestionReplied
   | EventQuestionRejected
   | EventTodoUpdated
+  | EventSessionTurnOpen
+  | EventSessionTurnClose
   | EventSessionStatus
   | EventSessionIdle
   | EventSessionCompacted
   | EventFileEdited
   | EventFileWatcherUpdated
   | EventCommandExecuted
-  | EventSessionTurnOpen
-  | EventSessionTurnClose
   | EventSessionDiff
   | EventSessionError
   | EventVcsBranchUpdated
@@ -1604,6 +1604,10 @@ export type Config = {
    * Custom username to display in conversations instead of system username
    */
   username?: string
+  /**
+   * Override Kilo's default core system prompt. Set to null to remove the override.
+   */
+  system_prompt?: string | null
   /**
    * @deprecated Use `agent` field instead.
    */

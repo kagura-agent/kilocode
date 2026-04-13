@@ -1118,6 +1118,12 @@ export const dict = {
   "settings.agentBehaviour.removeSkill.button": "Remove",
   "settings.agentBehaviour.rules.description":
     "Rules are instruction files that guide agent behaviour. They are included in the system prompt for every conversation. Add file paths below to include additional rules.",
+  "settings.agentBehaviour.systemPrompt.title": "System Prompt Override",
+  "settings.agentBehaviour.systemPrompt.description":
+    "Replace Kilo's default core system prompt for every conversation. Leave blank to keep the default prompt.",
+  "settings.agentBehaviour.systemPrompt.statusDefault": "Default Kilo system prompt is active.",
+  "settings.agentBehaviour.systemPrompt.statusCustom": "Custom system prompt override is active.",
+  "settings.agentBehaviour.systemPrompt.placeholder": "Enter a custom system prompt...",
   "settings.agentBehaviour.instructionFiles": "Additional Instruction Files",
   "settings.agentBehaviour.instructionFiles.description":
     "Paths to additional instruction files that are included in the system prompt",

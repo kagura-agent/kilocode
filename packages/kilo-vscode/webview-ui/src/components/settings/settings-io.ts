@@ -25,6 +25,7 @@ export const KNOWN_KEYS: ReadonlyArray<string> = [
   "remote_control",
   "share",
   "username",
+  "system_prompt",
   "watcher",
   "formatter",
   "lsp",

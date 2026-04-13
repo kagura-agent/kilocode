@@ -963,6 +963,36 @@ const AgentBehaviourTab: Component = () => {
         {language.t("settings.agentBehaviour.rules.description")}
       </div>
 
+      <Card style={{ "margin-bottom": "16px" }}>
+        <div data-slot="settings-row-label-title" style={{ "margin-bottom": "8px" }}>
+          {language.t("settings.agentBehaviour.systemPrompt.title")}
+        </div>
+        <div data-slot="settings-row-label-subtitle" style={{ "margin-bottom": "8px" }}>
+          {language.t("settings.agentBehaviour.systemPrompt.description")}
+        </div>
+        <div
+          style={{
+            "font-size": "12px",
+            color: config().system_prompt
+              ? "var(--text-success-base, var(--vscode-testing-iconPassed))"
+              : "var(--text-weak-base, var(--vscode-descriptionForeground))",
+            "margin-bottom": "8px",
+          }}
+        >
+          {language.t(
+            config().system_prompt
+              ? "settings.agentBehaviour.systemPrompt.statusCustom"
+              : "settings.agentBehaviour.systemPrompt.statusDefault",
+          )}
+        </div>
+        <TextField
+          value={config().system_prompt ?? ""}
+          placeholder={language.t("settings.agentBehaviour.systemPrompt.placeholder")}
+          multiline
+          onChange={(val) => updateConfig({ system_prompt: val || null })}
+        />
+      </Card>
+
       <Card>
         <div
           style={{

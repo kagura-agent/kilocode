@@ -1026,6 +1026,13 @@ export namespace Config {
         .string()
         .optional()
         .describe("Custom username to display in conversations instead of system username"),
+      // kilocode_change start - configurable core system prompt
+      system_prompt: z
+        .string()
+        .nullable()
+        .optional()
+        .describe("Override Kilo's default core system prompt. Set to null to remove the override."),
+      // kilocode_change end
       mode: z
         .object({
           build: Agent.optional(),

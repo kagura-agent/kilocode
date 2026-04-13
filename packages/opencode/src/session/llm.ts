@@ -115,14 +115,20 @@ export namespace LLM {
     // TODO: move this to a proper hook
     const isOpenaiOauth = provider.id === "openai" && auth?.type === "oauth"
 
+    // kilocode_change start - allow config to override Kilo default prompts
+    const custom = typeof cfg.system_prompt === "string"
+    const soul = custom ? cfg.system_prompt : SystemPrompt.soul()
+    const prompts = input.agent.prompt ? [input.agent.prompt] : custom ? [] : SystemPrompt.provider(input.model)
+    // kilocode_change end
+
     const system: string[] = []
     system.push(
       [
         // kilocode_change start - soul defines core identity and personality
-        ...(isOpenaiOauth ? [] : [SystemPrompt.soul()]),
+        ...(isOpenaiOauth ? [] : [soul]),
         // kilocode_change end
-        // use agent prompt otherwise provider prompt
-        ...(input.agent.prompt ? [input.agent.prompt] : SystemPrompt.provider(input.model)),
+        // use agent prompt, or provider prompt when no system prompt override is configured
+        ...prompts,
         // any custom prompt passed into this call
         ...input.system,
         // any custom prompt from last user message
@@ -161,8 +167,8 @@ export namespace LLM {
       mergeDeep(variant),
     )
     if (isOpenaiOauth) {
-      // kilocode_change start - prepend soul to instructions
-      options.instructions = SystemPrompt.soul() + "\n" + system.join("\n")
+      // kilocode_change start - prepend configurable soul to instructions
+      options.instructions = [soul, system.join("\n")].filter((x) => x).join("\n")
       // kilocode_change end
     }
 

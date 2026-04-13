@@ -425,6 +425,7 @@ export interface Config {
   remote_control?: boolean
   share?: "manual" | "auto" | "disabled"
   username?: string
+  system_prompt?: string | null
   watcher?: WatcherConfig
   formatter?: false | Record<string, unknown>
   lsp?: false | Record<string, unknown>

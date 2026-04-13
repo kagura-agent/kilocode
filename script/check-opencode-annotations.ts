@@ -51,6 +51,16 @@ function changedFiles() {
   return out ? out.split("\n").filter(Boolean) : []
 }
 
+function isUpstreamMerge() {
+  const out = run("git", ["log", "--format=%P%x09%s", `${base}..HEAD`])
+  return out.split("\n").some((line) => {
+    const [parents = "", subject = ""] = line.split("\t")
+    if (!parents.includes(" ")) return false
+    const s = subject.toLowerCase()
+    return s.startsWith("merge: upstream ") || s.startsWith("resolve merge conflict")
+  })
+}
+
 function isExempt(file: string) {
   const norm = file.replaceAll("\\", "/").toLowerCase()
   return norm.split("/").some((part) => part.includes("kilocode") || part.startsWith("kilo-"))
@@ -120,6 +130,11 @@ function coveredLines(text: string): { lines: string[]; covered: Set<number> } {
 }
 
 // --- main ---
+
+if (isUpstreamMerge()) {
+  console.log("Skipping opencode annotation check — upstream opencode merge detected.")
+  process.exit(0)
+}
 
 const files = changedFiles().filter((f) => !isExempt(f) && isSource(f))
 

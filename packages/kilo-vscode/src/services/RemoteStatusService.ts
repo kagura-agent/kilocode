@@ -61,6 +61,7 @@ export class RemoteStatusService implements vscode.Disposable {
   async toggle(): Promise<void> {
     if (!this.client) return
     const { data } = await this.client.remote.status(undefined, { throwOnError: true })
+    if (!data) return
     await this.setEnabled(!data.enabled)
   }
 

@@ -949,6 +949,7 @@ export function Part(props: MessagePartProps) {
 export interface ToolProps {
   input: Record<string, any>
   metadata: Record<string, any>
+  partMetadata?: Record<string, any>
   tool: string
   partID?: string
   callID?: string
@@ -1060,7 +1061,8 @@ PART_MAPPING["tool"] = function ToolPartDisplay(props) {
 
   const input = () => part.state?.input ?? emptyInput
   // @ts-expect-error
-  const partMetadata = () => part.state?.metadata ?? emptyMetadata
+  const meta = () => part.state?.metadata ?? emptyMetadata
+  const top = () => part.metadata ?? emptyMetadata
 
   const render = createMemo(() => ToolRegistry.render(part.tool) ?? McpTool)
 
@@ -1122,7 +1124,8 @@ PART_MAPPING["tool"] = function ToolPartDisplay(props) {
               tool={part.tool}
               partID={part.id}
               callID={part.callID}
-              metadata={partMetadata()}
+              metadata={meta()}
+              partMetadata={top()}
               // @ts-expect-error
               output={part.state.output}
               status={part.state.status}

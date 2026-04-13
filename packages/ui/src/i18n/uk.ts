@@ -153,6 +153,7 @@ export const dict = {
   "ui.message.revert": "Повернутися до цього місця",
   "ui.message.interrupted": "Перервано",
   "ui.message.queued": "В черзі",
+  "ui.message.deleteQueued": "Remove queued message",
   "ui.message.attachment.alt": "вкладення",
   "ui.message.duration.seconds": "{{count}}с",
   "ui.message.duration.minutesSeconds": "{{minutes}}хв {{seconds}}с",

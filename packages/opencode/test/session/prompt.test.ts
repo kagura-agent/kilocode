@@ -250,9 +250,9 @@ describe("session.prompt regression", () => {
         git: true,
         init: async (dir) => {
           await Bun.write(
-            path.join(dir, "opencode.json"),
+            path.join(dir, "kilo.json"), // kilocode_change
             JSON.stringify({
-              $schema: "https://opencode.ai/config.json",
+              $schema: "https://app.kilo.ai/config.json", // kilocode_change
               enabled_providers: ["alibaba"],
               provider: {
                 alibaba: {
@@ -319,9 +319,9 @@ describe("session.prompt regression", () => {
         git: true,
         init: async (dir) => {
           await Bun.write(
-            path.join(dir, "opencode.json"),
+            path.join(dir, "kilo.json"), // kilocode_change
             JSON.stringify({
-              $schema: "https://opencode.ai/config.json",
+              $schema: "https://app.kilo.ai/config.json", // kilocode_change
               enabled_providers: ["alibaba"],
               provider: {
                 alibaba: {
@@ -501,10 +501,10 @@ describe("session.prompt abort", () => {
       await using tmp = await tmpdir({
         git: true,
         init: async (root) => {
-          const dir = path.join(root, ".opencode")
+          const dir = path.join(root, ".kilo")
           await fs.mkdir(dir, { recursive: true })
           await Bun.write(
-            path.join(dir, "opencode.json"),
+            path.join(dir, "kilo.json"),
             JSON.stringify({
               $schema: "https://app.kilo.ai/config.json",
               enabled_providers: ["openai"],

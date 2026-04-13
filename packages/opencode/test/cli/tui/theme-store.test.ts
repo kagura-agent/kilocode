@@ -1,3 +1,4 @@
+// kilocode_change start
 import { expect, test } from "bun:test"
 
 const { DEFAULT_THEMES, allThemes, addTheme, hasTheme, resolveTheme } = await import(
@@ -6,15 +7,15 @@ const { DEFAULT_THEMES, allThemes, addTheme, hasTheme, resolveTheme } = await im
 
 test("addTheme writes into module theme store", () => {
   const name = `plugin-theme-${Date.now()}`
-  expect(addTheme(name, DEFAULT_THEMES.opencode)).toBe(true)
+  expect(addTheme(name, DEFAULT_THEMES.kilo)).toBe(true)
 
   expect(allThemes()[name]).toBeDefined()
 })
 
 test("addTheme keeps first theme for duplicate names", () => {
   const name = `plugin-theme-keep-${Date.now()}`
-  const one = structuredClone(DEFAULT_THEMES.opencode)
-  const two = structuredClone(DEFAULT_THEMES.opencode)
+  const one = structuredClone(DEFAULT_THEMES.kilo)
+  const two = structuredClone(DEFAULT_THEMES.kilo)
   one.theme.primary = "#101010"
   two.theme.primary = "#fefefe"
 
@@ -34,12 +35,12 @@ test("addTheme ignores entries without a theme object", () => {
 test("hasTheme checks theme presence", () => {
   const name = `plugin-theme-has-${Date.now()}`
   expect(hasTheme(name)).toBe(false)
-  expect(addTheme(name, DEFAULT_THEMES.opencode)).toBe(true)
+  expect(addTheme(name, DEFAULT_THEMES.kilo)).toBe(true)
   expect(hasTheme(name)).toBe(true)
 })
 
 test("resolveTheme rejects circular color refs", () => {
-  const item = structuredClone(DEFAULT_THEMES.opencode)
+  const item = structuredClone(DEFAULT_THEMES.kilo)
   item.defs = {
     ...(item.defs ?? {}),
     one: "two",
@@ -49,3 +50,4 @@ test("resolveTheme rejects circular color refs", () => {
 
   expect(() => resolveTheme(item, "dark")).toThrow("Circular color reference")
 })
+// kilocode_change end

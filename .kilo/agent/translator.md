@@ -13,7 +13,7 @@ Requirements:
 - Preserve meaning, intent, tone, and formatting (including Markdown/MDX structure).
 - Preserve all technical terms and artifacts exactly: product/company names, API names, identifiers, code, commands/flags, file paths, URLs, versions, error messages, config keys/values, and anything inside inline code or code blocks.
 - Also preserve every term listed in the Do-Not-Translate glossary below.
-- Also apply locale-specific guidance from `.opencode/glossary/<locale>.md` when available (for example, `zh-cn.md`).
+- Also apply locale-specific guidance from `.kilo/glossary/<locale>.md` when available (for example, `zh-cn.md`).
 - Do not modify fenced code blocks.
 - Output ONLY the translation (no commentary).
 
@@ -720,7 +720,7 @@ zenobi-us/opencode-skillful
 ## Paths, filenames, globs, and URLs
 
 ```text
-./.opencode/themes/*.json
+./.kilo/themes/*.json
 ./<project-slug>/storage/
 ./config/#custom-directory
 ./global/storage/
@@ -739,30 +739,30 @@ zenobi-us/opencode-skillful
 .NET SDK
 .npmrc
 .ocamlformat
-.opencode
-.opencode/
-.opencode/agents/
-.opencode/commands/
-.opencode/commands/test.md
-.opencode/modes/
-.opencode/plans/*.md
-.opencode/plugins/
-.opencode/skills/<name>/SKILL.md
-.opencode/skills/git-release/SKILL.md
-.opencode/tools/
+.kilo
+.kilo/
+.kilo/agents/
+.kilo/commands/
+.kilo/commands/test.md
+.kilo/modes/
+.kilo/plans/*.md
+.kilo/plugins/
+.kilo/skills/<name>/SKILL.md
+.kilo/skills/git-release/SKILL.md
+.kilo/tools/
 .well-known/opencode
 { type: "raw" \| "patch", content: string }
 {file:path/to/file}
 **/*.js
 %USERPROFILE%/intelephense/license.txt
 %USERPROFILE%\.cache\opencode
-%USERPROFILE%\.config\opencode\opencode.jsonc
-%USERPROFILE%\.config\opencode\plugins
+%USERPROFILE%\.config\kilo\kilo.jsonc
+%USERPROFILE%\.config\kilo\plugins
 %USERPROFILE%\.local\share\opencode
 %USERPROFILE%\.local\share\opencode\log
-<project-root>/.opencode/themes/*.json
+<project-root>/.kilo/themes/*.json
 <providerId>/<modelId>
-<your-project>/.opencode/plugins/
+<your-project>/.kilo/plugins/
 ~
 ~/...
 ~/.agents/skills/*/SKILL.md
@@ -775,25 +775,25 @@ zenobi-us/opencode-skillful
 ~/.claude/skills/
 ~/.claude/skills/*/SKILL.md
 ~/.claude/skills/<name>/SKILL.md
-~/.config/opencode
-~/.config/opencode/AGENTS.md
-~/.config/opencode/agents/
-~/.config/opencode/commands/
-~/.config/opencode/modes/
-~/.config/opencode/opencode.json
-~/.config/opencode/opencode.jsonc
-~/.config/opencode/plugins/
-~/.config/opencode/skills/*/SKILL.md
-~/.config/opencode/skills/<name>/SKILL.md
-~/.config/opencode/themes/*.json
-~/.config/opencode/tools/
+~/.config/kilo
+~/.config/kilo/AGENTS.md
+~/.config/kilo/agents/
+~/.config/kilo/commands/
+~/.config/kilo/modes/
+~/.config/kilo/kilo.json
+~/.config/kilo/kilo.jsonc
+~/.config/kilo/plugins/
+~/.config/kilo/skills/*/SKILL.md
+~/.config/kilo/skills/<name>/SKILL.md
+~/.config/kilo/themes/*.json
+~/.config/kilo/tools/
 ~/.config/zed/settings.json
 ~/.local/share
 ~/.local/share/opencode/
 ~/.local/share/opencode/auth.json
 ~/.local/share/opencode/log/
 ~/.local/share/opencode/mcp-auth.json
-~/.local/share/opencode/opencode.jsonc
+~/.local/share/opencode/kilo.jsonc
 ~/.npmrc
 ~/.zshrc
 ~/code/

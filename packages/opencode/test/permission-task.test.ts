@@ -1,3 +1,4 @@
+// kilocode_change start
 import { afterEach, describe, test, expect } from "bun:test"
 import { Permission } from "../src/permission"
 import { Config } from "../src/config/config"
@@ -143,7 +144,7 @@ describe("Permission.disabled for task tool", () => {
 
 // Integration tests that load permissions from real config files
 describe("permission.task with real config files", () => {
-  test("loads task permissions from opencode.json config", async () => {
+  test("loads task permissions from kilo.json config", async () => {
     await using tmp = await tmpdir({
       git: true,
       config: {
@@ -321,3 +322,4 @@ describe("permission.task with real config files", () => {
     })
   })
 })
+// kilocode_change end

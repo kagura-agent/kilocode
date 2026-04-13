@@ -1,3 +1,4 @@
+// kilocode_change start
 import { describe, expect, test } from "bun:test"
 import path from "path"
 import { Agent } from "../../src/agent/agent"
@@ -15,7 +16,7 @@ describe("session.system", () => {
           ["alpha-skill", "Alpha skill."],
           ["middle-skill", "Middle skill."],
         ]) {
-          const skillDir = path.join(dir, ".opencode", "skill", name)
+          const skillDir = path.join(dir, ".kilo", "skill", name)
           await Bun.write(
             path.join(skillDir, "SKILL.md"),
             `---
@@ -57,3 +58,4 @@ description: ${description}
     }
   })
 })
+// kilocode_change end

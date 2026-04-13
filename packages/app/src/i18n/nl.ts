@@ -294,7 +294,7 @@ export const dict = {
   "dialog.mcp.empty": "Geen MCP's geconfigureerd",
 
   "dialog.lsp.empty": "LSP's automatisch gedetecteerd aan de hand van bestandstypen",
-  "dialog.plugins.empty": "Plug-ins geconfigureerd in opencode.json",
+  "dialog.plugins.empty": "Plug-ins geconfigureerd in kilo.json",
 
   "mcp.status.connected": "verbonden",
   "mcp.status.failed": "mislukt",
@@ -478,7 +478,7 @@ export const dict = {
   "error.chain.responseBody": "Reactie-body:\n{{body}}",
   "error.chain.didYouMean": "Bedoelde u: {{suggestions}}",
   "error.chain.modelNotFound": "Model niet gevonden: {{provider}}/{{model}}",
-  "error.chain.checkConfig": "Controleer uw config (opencode.json) provider/modelnamen",
+  "error.chain.checkConfig": "Controleer uw config (kilo.json) provider/modelnamen",
   "error.chain.mcpFailed": 'MCP-server "{{name}}" is mislukt. Let op, Kilo ondersteunt nog geen MCP-authenticatie.',
   "error.chain.providerAuthFailed": "Providerauthenticatie mislukt ({{provider}}): {{message}}",
   "error.chain.providerInitFailed":

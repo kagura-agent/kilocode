@@ -266,7 +266,7 @@ export const dict = {
   "dialog.mcp.empty": "MCP не налаштовано",
 
   "dialog.lsp.empty": "LSP автоматично визначаються за типами файлів",
-  "dialog.plugins.empty": "Плагіни налаштовуються в opencode.json",
+  "dialog.plugins.empty": "Плагіни налаштовуються в kilo.json",
 
   "mcp.status.connected": "підключено",
   "mcp.status.failed": "помилка",
@@ -448,7 +448,7 @@ export const dict = {
   "error.chain.responseBody": "Тіло відповіді:\n{{body}}",
   "error.chain.didYouMean": "Можливо ви мали на увазі: {{suggestions}}",
   "error.chain.modelNotFound": "Модель не знайдено: {{provider}}/{{model}}",
-  "error.chain.checkConfig": "Перевірте назви провайдера/моделі у файлі конфігурації (opencode.json)",
+  "error.chain.checkConfig": "Перевірте назви провайдера/моделі у файлі конфігурації (kilo.json)",
   "error.chain.mcpFailed": 'MCP-сервер "{{name}}" зазнав помилки. Примітка: Kilo поки не підтримує автентифікацію MCP.',
   "error.chain.providerAuthFailed": "Автентифікація провайдера не вдалася ({{provider}}): {{message}}",
   "error.chain.providerInitFailed":
@@ -1166,9 +1166,9 @@ export const dict = {
   "settings.agentBehaviour.workflowsPlaceholder":
     "Робочими процесами керують файли робочих процесів у вашому робочому просторі.",
   "settings.agentBehaviour.workflows.description":
-    "Робочі процеси — це власні команди з косою рискою, визначені у вашій конфігурації. Введіть /назва-команди в чаті, щоб викликати їх. Команди налаштовуються в розділі 'command' файлу opencode.json.",
+    "Робочі процеси — це власні команди з косою рискою, визначені у вашій конфігурації. Введіть /назва-команди в чаті, щоб викликати їх. Команди налаштовуються в розділі 'command' файлу kilo.json.",
   "settings.agentBehaviour.workflows.empty":
-    "Власних команд не налаштовано. Додайте команди до opencode.json, щоб вони з'явилися тут.",
+    "Власних команд не налаштовано. Додайте команди до kilo.json, щоб вони з'явилися тут.",
   "settings.agentBehaviour.workflows.detail.description": "Опис",
   "settings.agentBehaviour.workflows.detail.template": "Шаблон",
 

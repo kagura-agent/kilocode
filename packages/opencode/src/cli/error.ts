@@ -14,7 +14,7 @@ export function FormatError(input: unknown) {
       `Model not found: ${providerID}/${modelID}`,
       ...(Array.isArray(suggestions) && suggestions.length ? ["Did you mean: " + suggestions.join(", ")] : []),
       `Try: \`kilo models\` to list available models`, // kilocode_change
-      `Or check your config (opencode.json) provider/model names`,
+      `Or check your config (kilo.json) provider/model names`, // kilocode_change
     ].join("\n")
   }
   if (Provider.InitError.isInstance(input)) {

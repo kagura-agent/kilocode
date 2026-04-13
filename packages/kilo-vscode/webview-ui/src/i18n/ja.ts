@@ -264,7 +264,7 @@ export const dict = {
   "dialog.mcp.empty": "MCPが設定されていません",
 
   "dialog.lsp.empty": "ファイルタイプから自動検出されたLSP",
-  "dialog.plugins.empty": "opencode.jsonで設定されたプラグイン",
+  "dialog.plugins.empty": "kilo.jsonで設定されたプラグイン",
 
   "mcp.status.connected": "接続済み",
   "mcp.status.failed": "失敗",
@@ -442,7 +442,7 @@ export const dict = {
   "error.chain.responseBody": "レスポンス本文:\n{{body}}",
   "error.chain.didYouMean": "もしかして: {{suggestions}}",
   "error.chain.modelNotFound": "モデルが見つかりません: {{provider}}/{{model}}",
-  "error.chain.checkConfig": "config (opencode.json) のプロバイダー/モデル名を確認してください",
+  "error.chain.checkConfig": "config (kilo.json) のプロバイダー/モデル名を確認してください",
   "error.chain.mcpFailed": 'MCPサーバー "{{name}}" が失敗しました。注意: KiloはまだMCP認証をサポートしていません。',
   "error.chain.providerAuthFailed": "プロバイダー認証に失敗しました ({{provider}}): {{message}}",
   "error.chain.providerInitFailed":
@@ -1192,9 +1192,9 @@ export const dict = {
   "settings.agentBehaviour.workflowsPlaceholder":
     "ワークフローはワークスペース内のワークフローファイルを通じて管理されます。",
   "settings.agentBehaviour.workflows.description":
-    "ワークフローは設定で定義されたカスタムスラッシュコマンドです。チャットで /command-name と入力して呼び出します。コマンドは opencode.json の 'command' セクションで設定します。",
+    "ワークフローは設定で定義されたカスタムスラッシュコマンドです。チャットで /command-name と入力して呼び出します。コマンドは kilo.json の 'command' セクションで設定します。",
   "settings.agentBehaviour.workflows.empty":
-    "カスタムコマンドが設定されていません。opencode.json にコマンドを追加するとここに表示されます。",
+    "カスタムコマンドが設定されていません。kilo.json にコマンドを追加するとここに表示されます。",
   "settings.agentBehaviour.workflows.detail.description": "説明",
   "settings.agentBehaviour.workflows.detail.template": "テンプレート",
 

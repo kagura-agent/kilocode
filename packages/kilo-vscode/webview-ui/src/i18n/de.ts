@@ -270,7 +270,7 @@ export const dict = {
   "dialog.mcp.empty": "Keine MCPs konfiguriert",
 
   "dialog.lsp.empty": "LSPs automatisch nach Dateityp erkannt",
-  "dialog.plugins.empty": "In opencode.json konfigurierte Plugins",
+  "dialog.plugins.empty": "In kilo.json konfigurierte Plugins",
 
   "mcp.status.connected": "verbunden",
   "mcp.status.failed": "fehlgeschlagen",
@@ -449,7 +449,7 @@ export const dict = {
   "error.chain.responseBody": "Antwort-Body:\n{{body}}",
   "error.chain.didYouMean": "Meinten Sie: {{suggestions}}",
   "error.chain.modelNotFound": "Modell nicht gefunden: {{provider}}/{{model}}",
-  "error.chain.checkConfig": "Überprüfen Sie Ihre Konfiguration (opencode.json) auf Anbieter-/Modellnamen",
+  "error.chain.checkConfig": "Überprüfen Sie Ihre Konfiguration (kilo.json) auf Anbieter-/Modellnamen",
   "error.chain.mcpFailed":
     'MCP-Server "{{name}}" fehlgeschlagen. Hinweis: Kilo unterstützt noch keine MCP-Authentifizierung.',
   "error.chain.providerAuthFailed": "Anbieter-Authentifizierung fehlgeschlagen ({{provider}}): {{message}}",
@@ -1214,9 +1214,9 @@ export const dict = {
   "settings.agentBehaviour.workflowsPlaceholder":
     "Workflows werden über Workflow-Dateien in Ihrem Arbeitsbereich verwaltet.",
   "settings.agentBehaviour.workflows.description":
-    "Workflows sind benutzerdefinierte Slash-Befehle, die in Ihrer Konfiguration definiert sind. Geben Sie /command-name im Chat ein, um sie aufzurufen. Befehle werden in opencode.json im Abschnitt 'command' konfiguriert.",
+    "Workflows sind benutzerdefinierte Slash-Befehle, die in Ihrer Konfiguration definiert sind. Geben Sie /command-name im Chat ein, um sie aufzurufen. Befehle werden in kilo.json im Abschnitt 'command' konfiguriert.",
   "settings.agentBehaviour.workflows.empty":
-    "Keine benutzerdefinierten Befehle konfiguriert. Fügen Sie Befehle zu opencode.json hinzu, um sie hier zu sehen.",
+    "Keine benutzerdefinierten Befehle konfiguriert. Fügen Sie Befehle zu kilo.json hinzu, um sie hier zu sehen.",
   "settings.agentBehaviour.workflows.detail.description": "Beschreibung",
   "settings.agentBehaviour.workflows.detail.template": "Vorlage",
 

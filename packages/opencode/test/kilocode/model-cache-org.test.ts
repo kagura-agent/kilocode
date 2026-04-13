@@ -52,7 +52,7 @@ test("model fetch uses accountId from OAuth auth as kilocodeOrganizationId", asy
   await using tmp = await tmpdir({
     init: async (dir) => {
       await Bun.write(
-        path.join(dir, "opencode.json"),
+        path.join(dir, "kilo.json"),
         JSON.stringify({
           $schema: "https://app.kilo.ai/config.json",
         }),
@@ -91,7 +91,7 @@ test("model fetch without OAuth accountId does not set kilocodeOrganizationId", 
   await using tmp = await tmpdir({
     init: async (dir) => {
       await Bun.write(
-        path.join(dir, "opencode.json"),
+        path.join(dir, "kilo.json"),
         JSON.stringify({
           $schema: "https://app.kilo.ai/config.json",
         }),
@@ -126,7 +126,7 @@ test("ModelCache.clear removes cached entry so next fetch hits the network", asy
   await using tmp = await tmpdir({
     init: async (dir) => {
       await Bun.write(
-        path.join(dir, "opencode.json"),
+        path.join(dir, "kilo.json"),
         JSON.stringify({
           $schema: "https://app.kilo.ai/config.json",
         }),

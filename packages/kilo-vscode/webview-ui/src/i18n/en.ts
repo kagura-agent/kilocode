@@ -266,7 +266,7 @@ export const dict = {
   "dialog.mcp.empty": "No MCPs configured",
 
   "dialog.lsp.empty": "LSPs auto-detected from file types",
-  "dialog.plugins.empty": "Plugins configured in opencode.json",
+  "dialog.plugins.empty": "Plugins configured in kilo.json",
 
   "mcp.status.connected": "connected",
   "mcp.status.failed": "failed",
@@ -446,7 +446,7 @@ export const dict = {
   "error.chain.responseBody": "Response body:\n{{body}}",
   "error.chain.didYouMean": "Did you mean: {{suggestions}}",
   "error.chain.modelNotFound": "Model not found: {{provider}}/{{model}}",
-  "error.chain.checkConfig": "Check your config (opencode.json) provider/model names",
+  "error.chain.checkConfig": "Check your config (kilo.json) provider/model names",
   "error.chain.mcpFailed": 'MCP server "{{name}}" failed. Note, Kilo does not support MCP authentication yet.',
   "error.chain.providerAuthFailed": "Provider authentication failed ({{provider}}): {{message}}",
   "error.chain.providerInitFailed":
@@ -1149,9 +1149,9 @@ export const dict = {
     "No MCP servers configured. Add MCP servers in kilo.jsonc, or ask the agent to add them for you.",
   "settings.agentBehaviour.workflowsPlaceholder": "Workflows are managed via workflow files in your workspace.",
   "settings.agentBehaviour.workflows.description":
-    "Workflows are custom slash commands defined in your config. Type /command-name in the chat to invoke them. Commands are configured in opencode.json under the 'command' section.",
+    "Workflows are custom slash commands defined in your config. Type /command-name in the chat to invoke them. Commands are configured in kilo.json under the 'command' section.",
   "settings.agentBehaviour.workflows.empty":
-    "No custom commands configured. Add commands to your opencode.json to see them here.",
+    "No custom commands configured. Add commands to your kilo.json to see them here.",
   "settings.agentBehaviour.workflows.detail.description": "Description",
   "settings.agentBehaviour.workflows.detail.template": "Template",
 

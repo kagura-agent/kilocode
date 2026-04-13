@@ -265,7 +265,7 @@ export const dict = {
   "dialog.mcp.empty": "Nenhum MCP configurado",
 
   "dialog.lsp.empty": "LSPs detectados automaticamente pelos tipos de arquivo",
-  "dialog.plugins.empty": "Plugins configurados em opencode.json",
+  "dialog.plugins.empty": "Plugins configurados em kilo.json",
   "mcp.status.connected": "conectado",
   "mcp.status.failed": "falhou",
   "mcp.status.needs_auth": "precisa de autenticação",
@@ -442,7 +442,7 @@ export const dict = {
   "error.chain.responseBody": "Corpo da resposta:\n{{body}}",
   "error.chain.didYouMean": "Você quis dizer: {{suggestions}}",
   "error.chain.modelNotFound": "Modelo não encontrado: {{provider}}/{{model}}",
-  "error.chain.checkConfig": "Verifique os nomes de provedor/modelo na sua configuração (opencode.json)",
+  "error.chain.checkConfig": "Verifique os nomes de provedor/modelo na sua configuração (kilo.json)",
   "error.chain.mcpFailed": 'Servidor MCP "{{name}}" falhou. Nota: Kilo ainda não suporta autenticação MCP.',
   "error.chain.providerAuthFailed": "Autenticação do provedor falhou ({{provider}}): {{message}}",
   "error.chain.providerInitFailed":
@@ -1202,9 +1202,9 @@ export const dict = {
   "settings.agentBehaviour.workflowsPlaceholder":
     "Fluxos de trabalho são gerenciados por arquivos de fluxo de trabalho no espaço de trabalho.",
   "settings.agentBehaviour.workflows.description":
-    "Fluxos de trabalho são comandos de barra personalizados definidos na sua configuração. Digite /command-name no chat para invocá-los. Os comandos são configurados no opencode.json na seção 'command'.",
+    "Fluxos de trabalho são comandos de barra personalizados definidos na sua configuração. Digite /command-name no chat para invocá-los. Os comandos são configurados no kilo.json na seção 'command'.",
   "settings.agentBehaviour.workflows.empty":
-    "Nenhum comando personalizado configurado. Adicione comandos ao opencode.json para vê-los aqui.",
+    "Nenhum comando personalizado configurado. Adicione comandos ao kilo.json para vê-los aqui.",
   "settings.agentBehaviour.workflows.detail.description": "Descrição",
   "settings.agentBehaviour.workflows.detail.template": "Modelo",
 

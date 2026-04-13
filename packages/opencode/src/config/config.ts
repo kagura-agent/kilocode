@@ -277,16 +277,7 @@ export namespace Config {
       })
       if (!md) continue
 
-      const patterns = [
-        "/.kilo/command/",
-        "/.kilo/commands/",
-        "/.kilocode/command/",
-        "/.kilocode/commands/",
-        "/.opencode/command/",
-        "/.opencode/commands/",
-        "/command/",
-        "/commands/",
-      ]
+      const patterns = ["/.kilo/command/", "/.kilo/commands/", "/command/", "/commands/"] // kilocode_change
       const file = rel(item, patterns) ?? path.basename(item)
       const name = trim(file)
 
@@ -337,16 +328,7 @@ export namespace Config {
       if (!md) continue
 
       // kilocode_change start
-      const patterns = [
-        "/.kilo/agent/",
-        "/.kilo/agents/",
-        "/.kilocode/agent/",
-        "/.kilocode/agents/",
-        "/.opencode/agent/",
-        "/.opencode/agents/",
-        "/agent/",
-        "/agents/",
-      ]
+      const patterns = ["/.kilo/agent/", "/.kilo/agents/", "/agent/", "/agents/"]
       // kilocode_change end
       const file = rel(item, patterns) ?? path.basename(item)
       const agentName = trim(file)
@@ -455,17 +437,19 @@ export namespace Config {
     return resolved
   }
 
+  // kilocode_change start
   /**
    * Deduplicates plugins by name, with later entries (higher priority) winning.
    * Priority order (highest to lowest):
    * 1. Local plugin/ directory
-   * 2. Local opencode.json
+   * 2. Local kilo.json
    * 3. Global plugin/ directory
-   * 4. Global opencode.json
+   * 4. Global kilo.json
    *
    * Since plugins are added in low-to-high priority order,
    * we reverse, deduplicate (keeping first occurrence), then restore order.
    */
+  // kilocode_change end
   export function deduplicatePlugins(plugins: PluginSpec[]): PluginSpec[] {
     const seenNames = new Set<string>()
     const uniqueSpecifiers: PluginSpec[] = []
@@ -1196,7 +1180,7 @@ export namespace Config {
 
   function globalConfigFile() {
     // kilocode_change start
-    const candidates = ["kilo.jsonc", "kilo.json", "opencode.jsonc", "opencode.json", "config.json"].map((file) =>
+    const candidates = ["kilo.jsonc", "kilo.json", "config.json"].map((file) =>
       // kilocode_change end
       path.join(Global.Path.config, file),
     )
@@ -1329,7 +1313,7 @@ export namespace Config {
             delete copy.theme
             delete copy.keybinds
             delete copy.tui
-            log.warn("tui keys in opencode config are deprecated; move them to tui.json", { path: source })
+            log.warn("tui keys in kilo config are deprecated; move them to tui.json", { path: source }) // kilocode_change
             return copy
           })()
 
@@ -1372,8 +1356,6 @@ export namespace Config {
             mergeDeep(yield* loadFile(path.join(Global.Path.config, "kilo.json"))),
             mergeDeep(yield* loadFile(path.join(Global.Path.config, "kilo.jsonc"))),
             // kilocode_change end
-            mergeDeep(yield* loadFile(path.join(Global.Path.config, "opencode.json"))),
-            mergeDeep(yield* loadFile(path.join(Global.Path.config, "opencode.jsonc"))),
           )
 
           const legacy = path.join(Global.Path.config, "config")
@@ -1513,7 +1495,7 @@ export namespace Config {
 
           if (!Flag.KILO_DISABLE_PROJECT_CONFIG) {
             // kilocode_change start
-            for (const name of ["kilo", "opencode"] as const) {
+            for (const name of ["kilo"] as const) {
               for (const file of yield* Effect.promise(() =>
                 ConfigPaths.projectFiles(name, ctx.directory, ctx.worktree),
               )) {
@@ -1593,7 +1575,7 @@ export namespace Config {
               yield* loadConfig(process.env.KILO_CONFIG_CONTENT, {
                 dir: ctx.directory,
                 source: "KILO_CONFIG_CONTENT",
-              // kilocode_change start
+                // kilocode_change start
               }).pipe(
                 Effect.tap(() => Effect.sync(() => log.debug("loaded custom config from KILO_CONFIG_CONTENT"))),
                 Effect.catchDefect((err: unknown) => {

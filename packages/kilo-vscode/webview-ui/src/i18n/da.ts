@@ -265,7 +265,7 @@ export const dict = {
   "dialog.mcp.empty": "Ingen MCP'er konfigureret",
 
   "dialog.lsp.empty": "LSP'er registreret automatisk fra filtyper",
-  "dialog.plugins.empty": "Plugins konfigureret i opencode.json",
+  "dialog.plugins.empty": "Plugins konfigureret i kilo.json",
 
   "mcp.status.connected": "forbundet",
   "mcp.status.failed": "mislykkedes",
@@ -444,7 +444,7 @@ export const dict = {
   "error.chain.responseBody": "Svarindhold:\n{{body}}",
   "error.chain.didYouMean": "Mente du: {{suggestions}}",
   "error.chain.modelNotFound": "Model ikke fundet: {{provider}}/{{model}}",
-  "error.chain.checkConfig": "Tjek dine konfigurations (opencode.json) udbyder/modelnavne",
+  "error.chain.checkConfig": "Tjek dine konfigurations (kilo.json) udbyder/modelnavne",
   "error.chain.mcpFailed": 'MCP-server "{{name}}" fejlede. Bemærk, Kilo understøtter ikke MCP-godkendelse endnu.',
   "error.chain.providerAuthFailed": "Udbydergodkendelse mislykkedes ({{provider}}): {{message}}",
   "error.chain.providerInitFailed":
@@ -1190,9 +1190,9 @@ export const dict = {
     "Ingen MCP-servere konfigureret. Tilføj MCP-servere i kilo.jsonc, eller bed agenten om at tilføje dem.",
   "settings.agentBehaviour.workflowsPlaceholder": "Workflows administreres via workflow-filer i dit arbejdsområde.",
   "settings.agentBehaviour.workflows.description":
-    "Workflows er brugerdefinerede slash-kommandoer defineret i din konfiguration. Skriv /command-name i chatten for at aktivere dem. Kommandoer konfigureres i opencode.json under sektionen 'command'.",
+    "Workflows er brugerdefinerede slash-kommandoer defineret i din konfiguration. Skriv /command-name i chatten for at aktivere dem. Kommandoer konfigureres i kilo.json under sektionen 'command'.",
   "settings.agentBehaviour.workflows.empty":
-    "Ingen brugerdefinerede kommandoer konfigureret. Tilføj kommandoer til opencode.json for at se dem her.",
+    "Ingen brugerdefinerede kommandoer konfigureret. Tilføj kommandoer til kilo.json for at se dem her.",
   "settings.agentBehaviour.workflows.detail.description": "Beskrivelse",
   "settings.agentBehaviour.workflows.detail.template": "Skabelon",
 

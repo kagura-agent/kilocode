@@ -8,13 +8,13 @@
 
 The old Kilo Code extension had an "Architect mode" that would write the resulting plan as a `.md` file into a `/plans` directory in the project root. Users adopted this workflow and now miss it.
 
-The new extension has Plan mode, but plans are stored only inside `.opencode/` — not as human-readable `.md` files in the project. Users can't see or reference their plans easily.
+The new extension has Plan mode, but plans are stored only inside `.kilo/` — not as human-readable `.md` files in the project. Users can't see or reference their plans easily.
 
 ## Remaining Work
 
 Options (pick one or combine):
 
-1. **Enhance Plan mode** — After a plan is finalized, automatically write it as a `.md` file to a `/plans` directory in the project root. The filename could be based on the plan title or a timestamp. This happens in addition to the internal `.opencode/` storage.
+1. **Enhance Plan mode** — After a plan is finalized, automatically write it as a `.md` file to a `/plans` directory in the project root. The filename could be based on the plan title or a timestamp. This happens in addition to the internal `.kilo/` storage.
 
 2. **Re-add Architect mode** — Add a distinct "Architect" mode that is specifically focused on writing plans as `.md` files to `/plans`.
 

@@ -1,3 +1,4 @@
+// kilocode_change start
 import { test, expect, describe } from "bun:test"
 import path from "path"
 import { unlink } from "fs/promises"
@@ -14,7 +15,7 @@ test("Bedrock: config region takes precedence over AWS_REGION env var", async ()
   await using tmp = await tmpdir({
     init: async (dir) => {
       await Filesystem.write(
-        path.join(dir, "opencode.json"),
+        path.join(dir, "kilo.json"),
         JSON.stringify({
           $schema: "https://app.kilo.ai/config.json",
           provider: {
@@ -46,7 +47,7 @@ test("Bedrock: falls back to AWS_REGION env var when no config region", async ()
   await using tmp = await tmpdir({
     init: async (dir) => {
       await Filesystem.write(
-        path.join(dir, "opencode.json"),
+        path.join(dir, "kilo.json"),
         JSON.stringify({
           $schema: "https://app.kilo.ai/config.json",
         }),
@@ -71,7 +72,7 @@ test("Bedrock: loads when bearer token from auth.json is present", async () => {
   await using tmp = await tmpdir({
     init: async (dir) => {
       await Filesystem.write(
-        path.join(dir, "opencode.json"),
+        path.join(dir, "kilo.json"),
         JSON.stringify({
           $schema: "https://app.kilo.ai/config.json",
           provider: {
@@ -139,7 +140,7 @@ test("Bedrock: config profile takes precedence over AWS_PROFILE env var", async 
   await using tmp = await tmpdir({
     init: async (dir) => {
       await Filesystem.write(
-        path.join(dir, "opencode.json"),
+        path.join(dir, "kilo.json"),
         JSON.stringify({
           $schema: "https://app.kilo.ai/config.json",
           provider: {
@@ -172,7 +173,7 @@ test("Bedrock: includes custom endpoint in options when specified", async () => 
   await using tmp = await tmpdir({
     init: async (dir) => {
       await Filesystem.write(
-        path.join(dir, "opencode.json"),
+        path.join(dir, "kilo.json"),
         JSON.stringify({
           $schema: "https://app.kilo.ai/config.json",
           provider: {
@@ -205,7 +206,7 @@ test("Bedrock: autoloads when AWS_WEB_IDENTITY_TOKEN_FILE is present", async () 
   await using tmp = await tmpdir({
     init: async (dir) => {
       await Filesystem.write(
-        path.join(dir, "opencode.json"),
+        path.join(dir, "kilo.json"),
         JSON.stringify({
           $schema: "https://app.kilo.ai/config.json",
           provider: {
@@ -243,7 +244,7 @@ test("Bedrock: model with us. prefix should not be double-prefixed", async () =>
   await using tmp = await tmpdir({
     init: async (dir) => {
       await Filesystem.write(
-        path.join(dir, "opencode.json"),
+        path.join(dir, "kilo.json"),
         JSON.stringify({
           $schema: "https://app.kilo.ai/config.json",
           provider: {
@@ -280,7 +281,7 @@ test("Bedrock: model with global. prefix should not be prefixed", async () => {
   await using tmp = await tmpdir({
     init: async (dir) => {
       await Filesystem.write(
-        path.join(dir, "opencode.json"),
+        path.join(dir, "kilo.json"),
         JSON.stringify({
           $schema: "https://app.kilo.ai/config.json",
           provider: {
@@ -316,7 +317,7 @@ test("Bedrock: model with eu. prefix should not be double-prefixed", async () =>
   await using tmp = await tmpdir({
     init: async (dir) => {
       await Filesystem.write(
-        path.join(dir, "opencode.json"),
+        path.join(dir, "kilo.json"),
         JSON.stringify({
           $schema: "https://app.kilo.ai/config.json",
           provider: {
@@ -352,7 +353,7 @@ test("Bedrock: model without prefix in US region should get us. prefix added", a
   await using tmp = await tmpdir({
     init: async (dir) => {
       await Filesystem.write(
-        path.join(dir, "opencode.json"),
+        path.join(dir, "kilo.json"),
         JSON.stringify({
           $schema: "https://app.kilo.ai/config.json",
           provider: {
@@ -445,3 +446,4 @@ describe("Bedrock cross-region prefix detection", () => {
     expect(hasPrefix).toBe(false)
   })
 })
+// kilocode_change end

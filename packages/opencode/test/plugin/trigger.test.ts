@@ -1,3 +1,4 @@
+// kilocode_change start
 import { afterAll, afterEach, describe, expect, test } from "bun:test"
 import path from "path"
 import { pathToFileURL } from "url"
@@ -27,10 +28,10 @@ async function project(source: string) {
       const file = path.join(dir, "plugin.ts")
       await Bun.write(file, source)
       await Bun.write(
-        path.join(dir, "opencode.json"),
+        path.join(dir, "kilo.json"),
         JSON.stringify(
           {
-            $schema: "https://opencode.ai/config.json",
+            $schema: "https://app.kilo.ai/config.json",
             plugin: [pathToFileURL(file).href],
           },
           null,
@@ -109,3 +110,4 @@ describe("plugin.trigger", () => {
     expect(out.system).toEqual(["async"])
   })
 })
+// kilocode_change end

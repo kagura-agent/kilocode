@@ -78,7 +78,7 @@ export const defaultConfig: MergeConfig = {
     ".github/workflows/close-stale-prs.yml",
     ".github/pull_request_template.md",
     // Kilo-specific command files
-    ".opencode/command/commit.md",
+    ".kilo/command/commit.md",
     // Kilo-specific publish scripts
     "packages/opencode/script/publish-registries.ts",
     // Generated OpenAPI spec - kept ours and regenerated post-merge via script/generate.ts

@@ -268,7 +268,7 @@ export const dict = {
   "dialog.mcp.empty": "구성된 MCP 없음",
 
   "dialog.lsp.empty": "파일 유형에서 자동 감지된 LSP",
-  "dialog.plugins.empty": "opencode.json에 구성된 플러그인",
+  "dialog.plugins.empty": "kilo.json에 구성된 플러그인",
 
   "mcp.status.connected": "연결됨",
   "mcp.status.failed": "실패",
@@ -446,7 +446,7 @@ export const dict = {
   "error.chain.responseBody": "응답 본문:\n{{body}}",
   "error.chain.didYouMean": "혹시 {{suggestions}}을(를) 의미하셨나요?",
   "error.chain.modelNotFound": "모델을 찾을 수 없음: {{provider}}/{{model}}",
-  "error.chain.checkConfig": "구성(opencode.json)의 공급자/모델 이름을 확인하세요",
+  "error.chain.checkConfig": "구성(kilo.json)의 공급자/모델 이름을 확인하세요",
   "error.chain.mcpFailed": 'MCP 서버 "{{name}}" 실패. 참고: Kilo는 아직 MCP 인증을 지원하지 않습니다.',
   "error.chain.providerAuthFailed": "공급자 인증 실패 ({{provider}}): {{message}}",
   "error.chain.providerInitFailed": '공급자 "{{provider}}" 초기화 실패. 자격 증명과 구성을 확인하세요.',
@@ -1185,9 +1185,9 @@ export const dict = {
     "MCP 서버가 구성되지 않았습니다. kilo.jsonc에서 MCP 서버를 추가하거나 에이전트에게 추가를 요청하세요.",
   "settings.agentBehaviour.workflowsPlaceholder": "워크플로우는 워크스페이스의 워크플로우 파일을 통해 관리됩니다.",
   "settings.agentBehaviour.workflows.description":
-    "워크플로우는 구성에서 정의된 사용자 정의 슬래시 명령입니다. 채팅에서 /command-name을 입력하여 실행합니다. 명령은 opencode.json의 'command' 섹션에서 구성됩니다.",
+    "워크플로우는 구성에서 정의된 사용자 정의 슬래시 명령입니다. 채팅에서 /command-name을 입력하여 실행합니다. 명령은 kilo.json의 'command' 섹션에서 구성됩니다.",
   "settings.agentBehaviour.workflows.empty":
-    "구성된 사용자 정의 명령이 없습니다. opencode.json에 명령을 추가하면 여기에 표시됩니다.",
+    "구성된 사용자 정의 명령이 없습니다. kilo.json에 명령을 추가하면 여기에 표시됩니다.",
   "settings.agentBehaviour.workflows.detail.description": "설명",
   "settings.agentBehaviour.workflows.detail.template": "템플릿",
 

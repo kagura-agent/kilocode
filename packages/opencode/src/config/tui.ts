@@ -142,7 +142,7 @@ export namespace TuiConfig {
     }
 
     for (const dir of unique(directories)) {
-      if (!dir.endsWith(".kilo") && !dir.endsWith(".opencode") && dir !== Flag.KILO_CONFIG_DIR) continue // kilocode_change
+      if (!dir.endsWith(".kilo") && dir !== Flag.KILO_CONFIG_DIR) continue // kilocode_change
       for (const file of ConfigPaths.fileInDirectory(dir, "tui")) {
         await mergeFile(acc, file)
       }
@@ -167,7 +167,7 @@ export namespace TuiConfig {
     const deps: Promise<void>[] = []
     if (acc.result.plugin?.length) {
       for (const dir of unique(directories)) {
-        if (!dir.endsWith(".opencode") && dir !== Flag.KILO_CONFIG_DIR) continue
+        if (!dir.endsWith(".kilo") && dir !== Flag.KILO_CONFIG_DIR) continue // kilocode_change
         deps.push(installDeps(dir))
       }
     }
@@ -201,7 +201,7 @@ export namespace TuiConfig {
     if (!isRecord(raw)) return {}
 
     // Flatten a nested "tui" key so users who wrote `{ "tui": { ... } }` inside tui.json
-    // (mirroring the old opencode.json shape) still get their settings applied.
+    // (mirroring the old kilo.json shape) still get their settings applied. // kilocode_change
     const normalized = normalize(raw)
 
     const parsed = Info.safeParse(normalized)

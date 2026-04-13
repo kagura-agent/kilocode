@@ -90,10 +90,10 @@ Project-level configs can be committed to version control to share with your tea
 
 The CLI accepts several config filenames. The recommended file is `kilo.json`:
 
-| Scope       | Recommended Path                     | Also supported                                                 |
-| ----------- | ------------------------------------ | -------------------------------------------------------------- |
-| **Global**  | `~/.config/kilo/kilo.json`           | `kilo.jsonc`, `opencode.json`, `opencode.jsonc`, `config.json` |
-| **Project** | `./kilo.json` or `./.kilo/kilo.json` | `kilo.jsonc`, `opencode.jsonc`, `opencode.json`                |
+| Scope       | Recommended Path                     | Also supported |
+| ----------- | ------------------------------------ | -------------- |
+| **Global**  | `~/.config/kilo/kilo.json`           | `kilo.jsonc`   |
+| **Project** | `./kilo.json` or `./.kilo/kilo.json` | `kilo.jsonc`   |
 
 {% /tab %}
 {% /tabs %}

@@ -17,8 +17,6 @@
  * - anomalyco/opencode -> Kilo-Org/kilocode (GitHub repo)
  *
  * Preserved (not replaced):
- * - opencode.json (actual config filename)
- * - .opencode/ (actual directory name)
  * - Lines with `// kilocode_change`
  */
 
@@ -74,6 +72,18 @@ const I18N_REPLACEMENTS: StringReplacement[] = [
     description: "Main domain (excluding zen)",
   },
 
+  // Config paths
+  {
+    pattern: /opencode\.json/g,
+    replacement: "kilo.json",
+    description: "Config filename",
+  },
+  {
+    pattern: /\.opencode/g,
+    replacement: ".kilo",
+    description: "Config directory",
+  },
+
   // Product name (specific phrases first)
   {
     pattern: /OpenCode Desktop/g,
@@ -119,7 +129,7 @@ const I18N_REPLACEMENTS: StringReplacement[] = [
   },
 
   // Generic product name replacement (must come after specific patterns)
-  // Only replace "OpenCode" when it's a standalone word (not part of opencode.json, etc.)
+  // Only replace "OpenCode" when it's a standalone word (not part of Kilo config filenames, etc.)
   {
     pattern: /\bOpenCode\b(?!\.json|\/| Zen)/g,
     replacement: "Kilo",
@@ -135,13 +145,7 @@ const I18N_REPLACEMENTS: StringReplacement[] = [
 ]
 
 // Patterns that should NOT be replaced (preserved as-is)
-const PRESERVE_PATTERNS = [
-  /opencode\.json/g, // Config filename
-  /\.opencode\//g, // Directory name
-  /\.opencode`/g, // Directory name in template strings
-  /"\.opencode"/g, // Directory name in quotes
-  /'\.opencode'/g, // Directory name in single quotes
-]
+const PRESERVE_PATTERNS: RegExp[] = []
 
 /**
  * Check if a line should be preserved (has kilocode_change marker)

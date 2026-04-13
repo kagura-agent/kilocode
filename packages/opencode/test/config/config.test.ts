@@ -56,7 +56,7 @@ async function check(map: (dir: string) => string) {
   await Config.invalidate()
   try {
     await writeConfig(globalTmp.path, {
-      $schema: "https://opencode.ai/config.json",
+      $schema: "https://app.kilo.ai/config.json", // kilocode_change
       snapshot: false,
     })
     await Instance.provide({
@@ -106,6 +106,56 @@ test("loads JSON config file", async () => {
   })
 })
 
+// kilocode_change start
+
+test("ignores legacy config file names and directories", async () => {
+  await using tmp = await tmpdir({
+    init: async (dir) => {
+      await writeConfig(
+        dir,
+        {
+          $schema: "https://app.kilo.ai/config.json",
+          model: "legacy/root",
+        },
+        "opencode.json",
+      )
+      await Filesystem.write(
+        path.join(dir, ".kilo", "opencode.json"),
+        JSON.stringify({ $schema: "https://app.kilo.ai/config.json", model: "legacy/name" }),
+      )
+      await Filesystem.write(
+        path.join(dir, ".opencode", "kilo.json"),
+        JSON.stringify({ $schema: "https://app.kilo.ai/config.json", model: "legacy/opencode-dir" }),
+      )
+      await Filesystem.write(
+        path.join(dir, ".kilocode", "kilo.json"),
+        JSON.stringify({ $schema: "https://app.kilo.ai/config.json", model: "legacy/kilocode-dir" }),
+      )
+      await Filesystem.write(
+        path.join(dir, ".opencode", "command", "legacy.md"),
+        `---
+description: Legacy command
+---
+Legacy command`,
+      )
+    },
+  })
+
+  await Instance.provide({
+    directory: tmp.path,
+    fn: async () => {
+      const config = await Config.get()
+      expect(config.model).not.toBe("legacy/root")
+      expect(config.model).not.toBe("legacy/name")
+      expect(config.model).not.toBe("legacy/opencode-dir")
+      expect(config.model).not.toBe("legacy/kilocode-dir")
+      expect(config.command?.legacy).toBeUndefined()
+    },
+  })
+})
+
+// kilocode_change end
+
 test("loads project config from Git Bash and MSYS2 paths on Windows", async () => {
   // Git Bash and MSYS2 both use /<drive>/... paths on Windows.
   await check((dir) => {
@@ -123,11 +173,12 @@ test("loads project config from Cygwin paths on Windows", async () => {
   })
 })
 
-test("ignores legacy tui keys in opencode config", async () => {
+test("ignores legacy tui keys in kilo config", async () => { // kilocode_change
+  // kilocode_change
   await using tmp = await tmpdir({
     init: async (dir) => {
       await writeConfig(dir, {
-        $schema: "https://opencode.ai/config.json",
+        $schema: "https://app.kilo.ai/config.json", // kilocode_change
         model: "test/model",
         theme: "legacy",
         tui: { scroll_speed: 4 },
@@ -197,7 +248,8 @@ test("merges multiple config files with correct precedence", async () => {
   })
 })
 
-test("prefers .kilo directory config over legacy .kilocode", async () => {
+test("ignores legacy .kilocode directory config when .kilo exists", async () => { // kilocode_change
+  // kilocode_change
   await using tmp = await tmpdir({
     init: async (dir) => {
       await Filesystem.write(
@@ -733,7 +785,8 @@ Nested command template`,
   })
 })
 
-test("prefers .kilo commands over legacy .kilocode commands", async () => {
+test("ignores legacy .kilocode commands when .kilo commands exist", async () => { // kilocode_change
+  // kilocode_change
   await using tmp = await tmpdir({
     init: async (dir) => {
       await Filesystem.write(
@@ -1903,7 +1956,7 @@ describe("resolvePluginSpec", () => {
       },
     })
 
-    const file = path.join(tmp.path, "opencode.json")
+    const file = path.join(tmp.path, "kilo.json") // kilocode_change
     const hit = await Config.resolvePluginSpec(".\\plugin", file)
     expect(Config.pluginSpecifier(hit)).toBe(pathToFileURL(path.join(tmp.path, "plugin", "index.ts")).href)
   })
@@ -1948,7 +2001,7 @@ describe("resolvePluginSpec", () => {
       },
     })
 
-    const file = path.join(tmp.path, "opencode.json")
+    const file = path.join(tmp.path, "kilo.json") // kilocode_change
     const hit = await Config.resolvePluginSpec("./plugin", file)
     expect(Config.pluginSpecifier(hit)).toBe(pathToFileURL(path.join(tmp.path, "plugin", "index.ts")).href)
   })
@@ -2231,7 +2284,7 @@ describe("KILO_CONFIG_CONTENT token substitution", () => {
     const originalTestVar = process.env["TEST_CONFIG_VAR"]
     process.env["TEST_CONFIG_VAR"] = "test_api_key_12345"
     process.env["KILO_CONFIG_CONTENT"] = JSON.stringify({
-      $schema: "https://opencode.ai/config.json",
+      $schema: "https://app.kilo.ai/config.json", // kilocode_change
       username: "{env:TEST_CONFIG_VAR}",
     })
 
@@ -2266,7 +2319,7 @@ describe("KILO_CONFIG_CONTENT token substitution", () => {
         init: async (dir) => {
           await Filesystem.write(path.join(dir, "api_key.txt"), "secret_key_from_file")
           process.env["KILO_CONFIG_CONTENT"] = JSON.stringify({
-            $schema: "https://opencode.ai/config.json",
+            $schema: "https://app.kilo.ai/config.json", // kilocode_change
             username: "{file:./api_key.txt}",
           })
         },

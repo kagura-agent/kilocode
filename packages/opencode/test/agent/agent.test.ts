@@ -114,7 +114,7 @@ test("ask agent denies edit/write/bash even when user config adds a specific edi
 // kilocode_change end
 
 // kilocode_change start
-test("plan agent asks before edits except .kilo/plans/* and .opencode/plans/*", async () => {
+test("plan agent asks before edits except .kilo/plans/*", async () => {
   await using tmp = await tmpdir()
   await Instance.provide({
     directory: tmp.path,
@@ -123,12 +123,7 @@ test("plan agent asks before edits except .kilo/plans/* and .opencode/plans/*", 
       expect(plan).toBeDefined()
       // Wildcard requires permission
       expect(evalPerm(plan, "edit")).toBe("ask")
-      // kilocode_change start
-      // .kilo/plans/ is the primary allowed path
       expect(Permission.evaluate("edit", ".kilo/plans/foo.md", plan!.permission).action).toBe("allow")
-      // kilocode_change end
-      // .opencode/plans/ is also allowed as backward compat fallback
-      expect(Permission.evaluate("edit", ".opencode/plans/foo.md", plan!.permission).action).toBe("allow")
     },
   })
 })

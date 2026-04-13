@@ -1,3 +1,4 @@
+// kilocode_change start
 import { test, expect, mock, beforeEach } from "bun:test"
 
 // Mock UnauthorizedError to match the SDK's class
@@ -105,9 +106,9 @@ test("first connect to OAuth server shows needs_auth instead of failed", async (
   await using tmp = await tmpdir({
     init: async (dir) => {
       await Bun.write(
-        `${dir}/opencode.json`,
+        `${dir}/kilo.json`,
         JSON.stringify({
-          $schema: "https://opencode.ai/config.json",
+          $schema: "https://app.kilo.ai/config.json",
           mcp: {
             "test-oauth": {
               type: "remote",
@@ -197,3 +198,4 @@ test("state() returns existing state when one is saved", async () => {
     },
   })
 })
+// kilocode_change end

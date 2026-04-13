@@ -265,7 +265,7 @@ export const dict = {
   "dialog.mcp.empty": "未配置 MCPs",
 
   "dialog.lsp.empty": "已从文件类型自动检测到 LSPs",
-  "dialog.plugins.empty": "在 opencode.json 中配置的插件",
+  "dialog.plugins.empty": "在 kilo.json 中配置的插件",
 
   "mcp.status.connected": "已连接",
   "mcp.status.failed": "失败",
@@ -439,7 +439,7 @@ export const dict = {
   "error.chain.responseBody": "响应内容：\n{{body}}",
   "error.chain.didYouMean": "你是不是想输入：{{suggestions}}",
   "error.chain.modelNotFound": "未找到模型：{{provider}}/{{model}}",
-  "error.chain.checkConfig": "请检查你的配置 (opencode.json) 中的 provider/model 名称",
+  "error.chain.checkConfig": "请检查你的配置 (kilo.json) 中的 provider/model 名称",
   "error.chain.mcpFailed": 'MCP 服务器 "{{name}}" 启动失败。注意: Kilo 暂不支持 MCP 认证。',
   "error.chain.providerAuthFailed": "提供商认证失败（{{provider}}）：{{message}}",
   "error.chain.providerInitFailed": '无法初始化提供商 "{{provider}}"。请检查凭据和配置。',
@@ -1162,8 +1162,8 @@ export const dict = {
   "settings.agentBehaviour.mcpEmpty": "未配置 MCP 服务器。在 kilo.jsonc 中添加 MCP 服务器，或让代理为您添加。",
   "settings.agentBehaviour.workflowsPlaceholder": "工作流通过工作区中的工作流文件管理。",
   "settings.agentBehaviour.workflows.description":
-    "工作流是在配置中定义的自定义斜杠命令。在聊天中输入 /command-name 来调用它们。命令在 opencode.json 的 'command' 部分中配置。",
-  "settings.agentBehaviour.workflows.empty": "未配置自定义命令。将命令添加到 opencode.json 即可在此处看到。",
+    "工作流是在配置中定义的自定义斜杠命令。在聊天中输入 /command-name 来调用它们。命令在 kilo.json 的 'command' 部分中配置。",
+  "settings.agentBehaviour.workflows.empty": "未配置自定义命令。将命令添加到 kilo.json 即可在此处看到。",
   "settings.agentBehaviour.workflows.detail.description": "描述",
   "settings.agentBehaviour.workflows.detail.template": "模板",
 

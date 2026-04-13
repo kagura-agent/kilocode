@@ -1,3 +1,4 @@
+// kilocode_change start
 import { test, expect, mock, beforeEach } from "bun:test"
 
 // Track what options were passed to each transport constructor
@@ -51,7 +52,7 @@ test("headers are passed to transports when oauth is enabled (default)", async (
   await using tmp = await tmpdir({
     init: async (dir) => {
       await Bun.write(
-        `${dir}/opencode.json`,
+        `${dir}/kilo.json`,
         JSON.stringify({
           $schema: "https://app.kilo.ai/config.json",
           mcp: {
@@ -151,3 +152,4 @@ test("no requestInit when headers are not provided", async () => {
     },
   })
 })
+// kilocode_change end

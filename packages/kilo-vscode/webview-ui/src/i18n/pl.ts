@@ -265,7 +265,7 @@ export const dict = {
   "dialog.mcp.empty": "Brak skonfigurowanych MCP",
 
   "dialog.lsp.empty": "LSP wykryte automatycznie na podstawie typów plików",
-  "dialog.plugins.empty": "Wtyczki skonfigurowane w opencode.json",
+  "dialog.plugins.empty": "Wtyczki skonfigurowane w kilo.json",
 
   "mcp.status.connected": "połączono",
   "mcp.status.failed": "niepowodzenie",
@@ -444,7 +444,7 @@ export const dict = {
   "error.chain.responseBody": "Treść odpowiedzi:\n{{body}}",
   "error.chain.didYouMean": "Czy miałeś na myśli: {{suggestions}}",
   "error.chain.modelNotFound": "Model nie znaleziony: {{provider}}/{{model}}",
-  "error.chain.checkConfig": "Sprawdź swoją konfigurację (opencode.json) nazwy dostawców/modeli",
+  "error.chain.checkConfig": "Sprawdź swoją konfigurację (kilo.json) nazwy dostawców/modeli",
   "error.chain.mcpFailed":
     'Serwer MCP "{{name}}" nie powiódł się. Uwaga, Kilo nie obsługuje jeszcze uwierzytelniania MCP.',
   "error.chain.providerAuthFailed": "Uwierzytelnianie dostawcy nie powiodło się ({{provider}}): {{message}}",
@@ -1197,9 +1197,9 @@ export const dict = {
     "Brak skonfigurowanych serwerów MCP. Dodaj serwery MCP w kilo.jsonc lub poproś agenta o ich dodanie.",
   "settings.agentBehaviour.workflowsPlaceholder": "Przepływy pracy zarządzane są za pomocą plików przepływów pracy.",
   "settings.agentBehaviour.workflows.description":
-    "Przepływy pracy to niestandardowe komendy slash zdefiniowane w konfiguracji. Wpisz /command-name na czacie, aby je uruchomić. Komendy konfiguruje się w opencode.json w sekcji 'command'.",
+    "Przepływy pracy to niestandardowe komendy slash zdefiniowane w konfiguracji. Wpisz /command-name na czacie, aby je uruchomić. Komendy konfiguruje się w kilo.json w sekcji 'command'.",
   "settings.agentBehaviour.workflows.empty":
-    "Brak skonfigurowanych niestandardowych komend. Dodaj komendy do opencode.json, aby je tu zobaczyć.",
+    "Brak skonfigurowanych niestandardowych komend. Dodaj komendy do kilo.json, aby je tu zobaczyć.",
   "settings.agentBehaviour.workflows.detail.description": "Opis",
   "settings.agentBehaviour.workflows.detail.template": "Szablon",
 

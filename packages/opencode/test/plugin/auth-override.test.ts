@@ -1,3 +1,4 @@
+// kilocode_change start
 import { describe, expect, test } from "bun:test"
 import path from "path"
 import fs from "fs/promises"
@@ -10,7 +11,7 @@ describe("plugin.auth-override", () => {
   test("user plugin overrides built-in github-copilot auth", async () => {
     await using tmp = await tmpdir({
       init: async (dir) => {
-        const pluginDir = path.join(dir, ".opencode", "plugin")
+        const pluginDir = path.join(dir, ".kilo", "plugin")
         await fs.mkdir(pluginDir, { recursive: true })
 
         await Bun.write(
@@ -72,3 +73,4 @@ describe("plugin.config-hook-error-isolation", () => {
     expect(pattern.test(src)).toBe(true)
   })
 })
+// kilocode_change end

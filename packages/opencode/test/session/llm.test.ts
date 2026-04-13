@@ -306,7 +306,7 @@ describe("session.llm.stream", () => {
     await using tmp = await tmpdir({
       init: async (dir) => {
         await Bun.write(
-          path.join(dir, "opencode.json"),
+          path.join(dir, "kilo.json"), // kilocode_change
           JSON.stringify({
             $schema: "https://app.kilo.ai/config.json",
             enabled_providers: [providerID],
@@ -399,9 +399,9 @@ describe("session.llm.stream", () => {
     await using tmp = await tmpdir({
       init: async (dir) => {
         await Bun.write(
-          path.join(dir, "opencode.json"),
+          path.join(dir, "kilo.json"), // kilocode_change
           JSON.stringify({
-            $schema: "https://opencode.ai/config.json",
+            $schema: "https://app.kilo.ai/config.json", // kilocode_change
             enabled_providers: [providerID],
             provider: {
               [providerID]: {
@@ -473,9 +473,9 @@ describe("session.llm.stream", () => {
     await using tmp = await tmpdir({
       init: async (dir) => {
         await Bun.write(
-          path.join(dir, "opencode.json"),
+          path.join(dir, "kilo.json"), // kilocode_change
           JSON.stringify({
-            $schema: "https://opencode.ai/config.json",
+            $schema: "https://app.kilo.ai/config.json", // kilocode_change
             enabled_providers: [providerID],
             provider: {
               [providerID]: {
@@ -564,9 +564,9 @@ describe("session.llm.stream", () => {
     await using tmp = await tmpdir({
       init: async (dir) => {
         await Bun.write(
-          path.join(dir, "opencode.json"),
+          path.join(dir, "kilo.json"), // kilocode_change
           JSON.stringify({
-            $schema: "https://opencode.ai/config.json",
+            $schema: "https://app.kilo.ai/config.json", // kilocode_change
             enabled_providers: [providerID],
             provider: {
               [providerID]: {
@@ -675,7 +675,7 @@ describe("session.llm.stream", () => {
     await using tmp = await tmpdir({
       init: async (dir) => {
         await Bun.write(
-          path.join(dir, "opencode.json"),
+          path.join(dir, "kilo.json"), // kilocode_change
           JSON.stringify({
             $schema: "https://app.kilo.ai/config.json",
             enabled_providers: ["openai"],
@@ -797,9 +797,9 @@ describe("session.llm.stream", () => {
     await using tmp = await tmpdir({
       init: async (dir) => {
         await Bun.write(
-          path.join(dir, "opencode.json"),
+          path.join(dir, "kilo.json"), // kilocode_change
           JSON.stringify({
-            $schema: "https://opencode.ai/config.json",
+            $schema: "https://app.kilo.ai/config.json", // kilocode_change
             enabled_providers: ["openai"],
             provider: {
               openai: {
@@ -928,7 +928,7 @@ describe("session.llm.stream", () => {
     await using tmp = await tmpdir({
       init: async (dir) => {
         await Bun.write(
-          path.join(dir, "opencode.json"),
+          path.join(dir, "kilo.json"), // kilocode_change
           JSON.stringify({
             $schema: "https://app.kilo.ai/config.json",
             enabled_providers: [providerID],
@@ -1029,7 +1029,7 @@ describe("session.llm.stream", () => {
     await using tmp = await tmpdir({
       init: async (dir) => {
         await Bun.write(
-          path.join(dir, "opencode.json"),
+          path.join(dir, "kilo.json"), // kilocode_change
           JSON.stringify({
             $schema: "https://app.kilo.ai/config.json",
             enabled_providers: [providerID],

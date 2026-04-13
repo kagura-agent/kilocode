@@ -28,22 +28,17 @@ export namespace KilocodeConfig {
   /** Kilo-specific config file names (highest-to-lowest precedence within kilo). */
   export const KILO_CONFIG_FILES = ["kilo.jsonc", "kilo.json"] as const
 
-  /** All config file names in precedence order (kilo + opencode). */
-  export const ALL_CONFIG_FILES = ["kilo.jsonc", "kilo.json", "opencode.jsonc", "opencode.json"] as const
+  /** All config file names in precedence order. */
+  export const ALL_CONFIG_FILES = ["kilo.jsonc", "kilo.json"] as const
 
-  /** Directory suffixes that Kilo recognizes in addition to .opencode. */
-  export const KILO_DIR_SUFFIXES = [".kilo", ".kilocode"] as const
+  /** Directory suffixes that Kilo recognizes. */
+  export const KILO_DIR_SUFFIXES = [".kilo"] as const
 
   /** Path patterns for resolving kilo agent names from file paths. */
-  export const AGENT_PATTERNS = ["/.kilo/agent/", "/.kilo/agents/", "/.kilocode/agent/", "/.kilocode/agents/"] as const
+  export const AGENT_PATTERNS = ["/.kilo/agent/", "/.kilo/agents/"] as const
 
   /** Path patterns for resolving kilo command names from file paths. */
-  export const COMMAND_PATTERNS = [
-    "/.kilo/command/",
-    "/.kilo/commands/",
-    "/.kilocode/command/",
-    "/.kilocode/commands/",
-  ] as const
+  export const COMMAND_PATTERNS = ["/.kilo/command/", "/.kilo/commands/"] as const
 
   // ── Warning helpers ──────────────────────────────────────────────────
 
@@ -235,7 +230,7 @@ export namespace KilocodeConfig {
 
   // ── Bash permission migration ────────────────────────────────────────
 
-  const GLOBAL_CONFIG_FILES = ["config.json", "kilo.json", "kilo.jsonc", "opencode.json", "opencode.jsonc"]
+  const GLOBAL_CONFIG_FILES = ["config.json", "kilo.json", "kilo.jsonc"]
 
   /**
    * Migrate bash permission for existing users before config is consumed.
@@ -339,6 +334,6 @@ export namespace KilocodeConfig {
 
   /** Check whether a directory path should be treated as a config directory (for loading config files). */
   export function isConfigDir(dir: string, flagDir?: string): boolean {
-    return dir.endsWith(".kilo") || dir.endsWith(".kilocode") || dir.endsWith(".opencode") || dir === flagDir
+    return dir.endsWith(".kilo") || dir === flagDir
   }
 }

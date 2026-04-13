@@ -265,7 +265,7 @@ export const dict = {
   "dialog.mcp.empty": "Yapılandırılmış MCP yok",
 
   "dialog.lsp.empty": "LSP'ler dosya türlerinden otomatik algılanır",
-  "dialog.plugins.empty": "Eklentiler opencode.json içinde yapılandırılır",
+  "dialog.plugins.empty": "Eklentiler kilo.json içinde yapılandırılır",
 
   "mcp.status.connected": "bağlı",
   "mcp.status.failed": "başarısız",
@@ -445,7 +445,7 @@ export const dict = {
   "error.chain.responseBody": "Yanıt gövdesi:\n{{body}}",
   "error.chain.didYouMean": "Bunu mu demek istediniz: {{suggestions}}",
   "error.chain.modelNotFound": "Model bulunamadı: {{provider}}/{{model}}",
-  "error.chain.checkConfig": "Yapılandırma dosyanızı (opencode.json) sağlayıcı/model adlarını kontrol edin",
+  "error.chain.checkConfig": "Yapılandırma dosyanızı (kilo.json) sağlayıcı/model adlarını kontrol edin",
   "error.chain.mcpFailed":
     'MCP sunucusu "{{name}}" başarısız oldu. Not: Kilo henüz MCP kimlik doğrulamasını desteklemiyor.',
   "error.chain.providerAuthFailed": "Sağlayıcı kimlik doğrulaması başarısız ({{provider}}): {{message}}",
@@ -1164,9 +1164,9 @@ export const dict = {
     "Yapılandırılmış MCP sunucusu yok. kilo.jsonc dosyasına MCP sunucuları ekleyin veya ajanın eklemesini isteyin.",
   "settings.agentBehaviour.workflowsPlaceholder": "İş akışları çalışma alanınızdaki iş akışı dosyaları ile yönetilir.",
   "settings.agentBehaviour.workflows.description":
-    "İş akışları, yapılandırmanızda tanımlanan özel eğik çizgi komutlarıdır. Çağırmak için sohbette /command-name yazın. Komutlar opencode.json dosyasındaki 'command' bölümünde yapılandırılır.",
+    "İş akışları, yapılandırmanızda tanımlanan özel eğik çizgi komutlarıdır. Çağırmak için sohbette /command-name yazın. Komutlar kilo.json dosyasındaki 'command' bölümünde yapılandırılır.",
   "settings.agentBehaviour.workflows.empty":
-    "Yapılandırılmış özel komut yok. Burada görmek için opencode.json dosyasına komutlar ekleyin.",
+    "Yapılandırılmış özel komut yok. Burada görmek için kilo.json dosyasına komutlar ekleyin.",
   "settings.agentBehaviour.workflows.detail.description": "Açıklama",
   "settings.agentBehaviour.workflows.detail.template": "Şablon",
 

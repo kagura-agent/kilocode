@@ -22,9 +22,9 @@ test("loads tui config with the same precedence order as server config paths", a
     init: async (dir) => {
       await Bun.write(path.join(Global.Path.config, "tui.json"), JSON.stringify({ theme: "global" }, null, 2))
       await Bun.write(path.join(dir, "tui.json"), JSON.stringify({ theme: "project" }, null, 2))
-      await fs.mkdir(path.join(dir, ".opencode"), { recursive: true })
+      await fs.mkdir(path.join(dir, ".kilo"), { recursive: true }) // kilocode_change
       await Bun.write(
-        path.join(dir, ".opencode", "tui.json"),
+        path.join(dir, ".kilo", "tui.json"), // kilocode_change
         JSON.stringify({ theme: "local", diff_style: "stacked" }, null, 2),
       )
     },
@@ -253,7 +253,7 @@ test("migration backup preserves JSONC comments", async () => {
   })
 })
 
-test("migrates legacy tui keys across multiple opencode.json levels", async () => {
+test("migrates legacy tui keys across multiple kilo.json levels", async () => { // kilocode_change
   await using tmp = await tmpdir({
     init: async (dir) => {
       const nested = path.join(dir, "apps", "client")
@@ -487,11 +487,11 @@ test("loads managed tui config and gives it highest precedence", async () => {
   })
 })
 
-test("loads .opencode/tui.json", async () => {
+test("loads .kilo/tui.json", async () => { // kilocode_change
   await using tmp = await tmpdir({
     init: async (dir) => {
-      await fs.mkdir(path.join(dir, ".opencode"), { recursive: true })
-      await Bun.write(path.join(dir, ".opencode", "tui.json"), JSON.stringify({ diff_style: "stacked" }, null, 2))
+      await fs.mkdir(path.join(dir, ".kilo"), { recursive: true }) // kilocode_change
+      await Bun.write(path.join(dir, ".kilo", "tui.json"), JSON.stringify({ diff_style: "stacked" }, null, 2)) // kilocode_change
     },
   })
 

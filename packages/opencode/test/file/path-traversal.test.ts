@@ -1,3 +1,4 @@
+// kilocode_change start
 import { test, expect, describe } from "bun:test"
 import path from "path"
 import fs from "fs/promises"
@@ -136,8 +137,8 @@ describe("Instance.containsPath", () => {
     await Instance.provide({
       directory: subdir,
       fn: () => {
-        // .opencode at worktree root, but we're running from packages/lib
-        expect(Instance.containsPath(path.join(tmp.path, ".opencode", "state"))).toBe(true)
+        // .kilo at worktree root, but we're running from packages/lib
+        expect(Instance.containsPath(path.join(tmp.path, ".kilo", "state"))).toBe(true)
         // sibling package should also be accessible
         expect(Instance.containsPath(path.join(tmp.path, "packages", "other", "file.ts"))).toBe(true)
         // worktree root itself
@@ -196,3 +197,4 @@ describe("Instance.containsPath", () => {
     })
   })
 })
+// kilocode_change end

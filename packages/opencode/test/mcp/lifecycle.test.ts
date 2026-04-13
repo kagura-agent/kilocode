@@ -1,3 +1,4 @@
+// kilocode_change start
 import { test, expect, mock, beforeEach } from "bun:test"
 
 // --- Mock infrastructure ---
@@ -175,9 +176,9 @@ function withInstance(config: Record<string, any>, fn: () => Promise<void>) {
     await using tmp = await tmpdir({
       init: async (dir) => {
         await Bun.write(
-          `${dir}/opencode.json`,
+          `${dir}/kilo.json`,
           JSON.stringify({
-            $schema: "https://opencode.ai/config.json",
+            $schema: "https://app.kilo.ai/config.json",
             mcp: config,
           }),
         )
@@ -748,3 +749,4 @@ test(
     expect(transportCloseCount).toBeGreaterThanOrEqual(2)
   }),
 )
+// kilocode_change end

@@ -61,6 +61,18 @@ const BRANDING_REPLACEMENTS: BrandingReplacement[] = [
     description: "Main domain (excluding zen)",
   },
 
+  // Config paths
+  {
+    pattern: /opencode\.json/g,
+    replacement: "kilo.json",
+    description: "Config filename",
+  },
+  {
+    pattern: /\.opencode/g,
+    replacement: ".kilo",
+    description: "Config directory",
+  },
+
   // Product name (specific phrases first)
   {
     pattern: /OpenCode Desktop/g,
@@ -135,11 +147,6 @@ const BRANDING_REPLACEMENTS: BrandingReplacement[] = [
 
 // Patterns that should NOT be replaced (preserved as-is)
 const PRESERVE_PATTERNS = [
-  /opencode\.json/g, // Config filename
-  /\.opencode\//g, // Directory name
-  /\.opencode`/g, // Directory name in template strings
-  /"\.opencode"/g, // Directory name in quotes
-  /'\.opencode'/g, // Directory name in single quotes
   /\/\/\s*kilocode_change/g, // Already has marker
 ]
 

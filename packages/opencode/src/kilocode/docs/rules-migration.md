@@ -21,7 +21,7 @@ The migration **never modifies project files**. We only:
 If you have existing opencode config with `instructions`, the Kilocode rules are **combined**, not replaced:
 
 ```typescript
-// Example: User has opencode.json with:
+// Example: User has kilo.json with:
 { "instructions": ["AGENTS.md", "custom-rules.md"] }
 
 // Kilocode rules add:
@@ -70,7 +70,7 @@ The migrator reads rules from these locations:
 
 - `AGENTS.md` in project root
 - `CLAUDE.md` in project root
-- `~/.opencode/AGENTS.md` (global)
+- `~/.config/kilo/AGENTS.md` (global)
 
 ## Not Migrated
 

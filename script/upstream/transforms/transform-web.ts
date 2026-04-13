@@ -55,6 +55,18 @@ const WEB_REPLACEMENTS: WebReplacement[] = [
     description: "Main domain (excluding zen)",
   },
 
+  // Config paths
+  {
+    pattern: /opencode\.json/g,
+    replacement: "kilo.json",
+    description: "Config filename",
+  },
+  {
+    pattern: /\.opencode/g,
+    replacement: ".kilo",
+    description: "Config directory",
+  },
+
   // Product names
   {
     pattern: /OpenCode Desktop/g,
@@ -106,7 +118,7 @@ const WEB_REPLACEMENTS: WebReplacement[] = [
 ]
 
 // Patterns to preserve
-const PRESERVE_PATTERNS = [/opencode\.json/g, /\.opencode\//g, /`\.opencode`/g]
+const PRESERVE_PATTERNS: RegExp[] = []
 
 /**
  * Check if file is a web/docs file

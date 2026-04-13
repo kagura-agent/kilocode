@@ -1,3 +1,4 @@
+// kilocode_change start
 import { test, expect, mock, beforeEach } from "bun:test"
 import { EventEmitter } from "events"
 
@@ -109,7 +110,7 @@ test("BrowserOpenFailed event is published when open() throws", async () => {
   await using tmp = await tmpdir({
     init: async (dir) => {
       await Bun.write(
-        `${dir}/opencode.json`,
+        `${dir}/kilo.json`,
         JSON.stringify({
           $schema: "https://app.kilo.ai/config.json",
           mcp: {
@@ -160,7 +161,7 @@ test("BrowserOpenFailed event is NOT published when open() succeeds", async () =
   await using tmp = await tmpdir({
     init: async (dir) => {
       await Bun.write(
-        `${dir}/opencode.json`,
+        `${dir}/kilo.json`,
         JSON.stringify({
           $schema: "https://app.kilo.ai/config.json",
           mcp: {
@@ -209,7 +210,7 @@ test("open() is called with the authorization URL", async () => {
   await using tmp = await tmpdir({
     init: async (dir) => {
       await Bun.write(
-        `${dir}/opencode.json`,
+        `${dir}/kilo.json`,
         JSON.stringify({
           $schema: "https://app.kilo.ai/config.json",
           mcp: {
@@ -247,3 +248,4 @@ test("open() is called with the authorization URL", async () => {
     },
   })
 })
+// kilocode_change end

@@ -204,7 +204,7 @@ const ProvidersTab: Component = () => {
                 <Show
                   when={canDisconnect(item)}
                   fallback={
-                    <span
+                    <div
                       style={{
                         display: "flex",
                         "align-items": "center",
@@ -225,7 +225,7 @@ const ProvidersTab: Component = () => {
                           <Icon name="help" size="small" />
                         </Tooltip>
                       </Show>
-                    </span>
+                    </div>
                   }
                 >
                   <div style={{ display: "flex", gap: "4px" }}>

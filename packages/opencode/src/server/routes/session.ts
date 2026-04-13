@@ -699,7 +699,12 @@ export const SessionRoutes = lazy(() =>
       ),
       async (c) => {
         const params = c.req.valid("param")
-        await SessionPrompt.assertNotBusy(params.sessionID)
+        // kilocode_change start
+        const messages = await Session.messages({ sessionID: params.sessionID })
+        const target = messages.find((msg) => msg.info.id === params.messageID)
+        const newer = messages.find((msg) => msg.info.role === "user" && msg.info.id > params.messageID)
+        if (!target || target.info.role !== "user" || !newer) await SessionPrompt.assertNotBusy(params.sessionID)
+        // kilocode_change end
         await Session.removeMessage({
           sessionID: params.sessionID,
           messageID: params.messageID,

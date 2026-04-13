@@ -15,6 +15,7 @@ export namespace SessionSummary {
   export function slim(diffs: Snapshot.FileDiff[]): Snapshot.FileDiff[] {
     return diffs.map((diff) => ({
       ...diff,
+      file: unquoteGitPath(diff.file),
       before: "",
       after: "",
     }))
@@ -108,10 +109,12 @@ export namespace SessionSummary {
       },
     })
     await Storage.write(["session_diff", input.sessionID], diffs)
+    // kilocode_change start - publish lightweight normalized diff summaries
     Bus.publish(Session.Event.Diff, {
       sessionID: input.sessionID,
-      diff: slim(diffs), // kilocode_change
+      diff: slim(diffs),
     })
+    // kilocode_change end
   }
 
   async function summarizeMessage(input: { messageID: string; messages: MessageV2.WithParts[] }) {
@@ -121,21 +124,23 @@ export namespace SessionSummary {
     const msgWithParts = messages.find((m) => m.info.id === input.messageID)
     if (!msgWithParts || msgWithParts.info.role !== "user") return
     const userMsg = msgWithParts.info
+    // kilocode_change start - store lightweight normalized per-message diff summaries
     const diffs = await computeDiff({ messages })
     userMsg.summary = {
       ...userMsg.summary,
-      diffs: slim(diffs), // kilocode_change
+      diffs: slim(diffs),
     }
+    // kilocode_change end
     await Session.updateMessage(userMsg)
   }
 
+  // kilocode_change start - normalize and lazily compute session diffs
   export const diff = fn(
     z.object({
       sessionID: SessionID.zod,
       messageID: MessageID.zod.optional(),
     }),
     async (input) => {
-      // kilocode_change start - share diff cleanup with lazy per-message loads
       const clean = (diffs: Snapshot.FileDiff[]) =>
         diffs.map((item) => {
           const file = unquoteGitPath(item.file)
@@ -150,9 +155,7 @@ export namespace SessionSummary {
             after: oversized ? "" : item.after,
           }
         })
-      // kilocode_change end
 
-      // kilocode_change start - lazily compute full per-message diffs for chat expansion
       if (input.messageID) {
         const all = await Session.messages({ sessionID: input.sessionID })
         const messages = all.filter(
@@ -161,10 +164,8 @@ export namespace SessionSummary {
         )
         return clean(await computeDiff({ messages }))
       }
-      // kilocode_change end
 
       const diffs = await Storage.read<Snapshot.FileDiff[]>(["session_diff", input.sessionID]).catch(() => [])
-      // kilocode_change start — scrub oversized diffs from stored session_diff
       const next = clean(diffs)
       const changed = next.some((item, i) => item !== diffs[i])
       if (changed) {
@@ -172,10 +173,10 @@ export namespace SessionSummary {
           console.warn("failed to update session diff cache", err)
         })
       }
-      // kilocode_change end
       return next
     },
   )
+  // kilocode_change end
 
   export async function computeDiff(input: { messages: MessageV2.WithParts[] }) {
     let from: string | undefined

@@ -320,10 +320,9 @@ if (Script.release) {
   }
   // Only allow --clobber for drafts (fresh stable builds) and prereleases (retries).
   // Published stable releases reject overwrites to protect homebrew/AUR checksums.
-  const rel =
-    await $`gh release view v${Script.version} --json isPrerelease,isDraft --repo ${process.env.GH_REPO}`.json()
+  const rel = await $`gh release view v${Script.version} --json isPrerelease,isDraft`.json()
   const clobber = rel.isDraft || rel.isPrerelease ? ["--clobber"] : []
-  await $`gh release upload v${Script.version} ${archives} ${clobber} --repo ${process.env.GH_REPO}`
+  await $`gh release upload v${Script.version} ${archives} ${clobber}`
   // kilocode_change end
 }
 

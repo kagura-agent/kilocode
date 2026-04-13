@@ -89,6 +89,8 @@ export const dict = {
   "revert.disabled.agentBusy": "Vent til agenten er ferdig",
   "command.session.compact": "Komprimer sesjon",
   "command.session.compact.description": "Oppsummer sesjonen for å redusere kontekststørrelsen",
+  "command.session.export": "Eksporter økt",
+  "command.session.export.description": "Eksporter økt til JSON-fil for feilsøking",
   "command.session.fork": "Forgren fra melding",
   "command.session.fork.description": "Opprett en ny sesjon fra en tidligere melding",
   "command.session.share": "Del sesjon",

@@ -90,6 +90,8 @@ export const dict = {
   "revert.disabled.agentBusy": "Warten bis der Agent fertig ist",
   "command.session.compact": "Sitzung komprimieren",
   "command.session.compact.description": "Sitzung zusammenfassen, um die Kontextgröße zu reduzieren",
+  "command.session.export": "Sitzung exportieren",
+  "command.session.export.description": "Sitzung zum Debuggen in eine JSON-Datei exportieren",
   "command.session.fork": "Von Nachricht abzweigen",
   "command.session.fork.description": "Neue Sitzung aus einer früheren Nachricht erstellen",
   "command.session.share": "Sitzung teilen",

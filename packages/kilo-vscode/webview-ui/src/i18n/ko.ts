@@ -90,6 +90,8 @@ export const dict = {
   "revert.disabled.agentBusy": "에이전트가 완료될 때까지 기다리세요",
   "command.session.compact": "세션 압축",
   "command.session.compact.description": "컨텍스트 크기를 줄이기 위해 세션 요약",
+  "command.session.export": "세션 내보내기",
+  "command.session.export.description": "디버깅을 위해 세션을 JSON 파일로 내보내기",
   "command.session.fork": "메시지에서 분기",
   "command.session.fork.description": "이전 메시지에서 새 세션 생성",
   "command.session.share": "세션 공유",

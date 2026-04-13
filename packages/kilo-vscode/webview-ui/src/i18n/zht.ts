@@ -90,6 +90,8 @@ export const dict = {
   "revert.disabled.agentBusy": "等待 Agent 完成",
   "command.session.compact": "精簡工作階段",
   "command.session.compact.description": "總結工作階段以減少上下文大小",
+  "command.session.export": "匯出工作階段",
+  "command.session.export.description": "將工作階段匯出為 JSON 檔案以進行偵錯",
   "command.session.fork": "從訊息分支",
   "command.session.fork.description": "從先前的訊息建立新工作階段",
   "command.session.share": "分享工作階段",

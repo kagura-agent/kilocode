@@ -86,6 +86,8 @@ export const dict = {
   "revert.disabled.agentBusy": "انتظر انتهاء الوكيل",
   "command.session.compact": "ضغط الجلسة",
   "command.session.compact.description": "تلخيص الجلسة لتقليل حجم السياق",
+  "command.session.export": "تصدير الجلسة",
+  "command.session.export.description": "تصدير الجلسة إلى ملف JSON لتصحيح الأخطاء",
   "command.session.fork": "تشعب من الرسالة",
   "command.session.fork.description": "إنشاء جلسة جديدة من رسالة سابقة",
   "command.session.share": "مشاركة الجلسة",

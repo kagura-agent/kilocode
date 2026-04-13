@@ -86,6 +86,8 @@ export const dict = {
   "revert.disabled.agentBusy": "Ajanın bitmesini bekleyin",
   "command.session.compact": "Oturumu sıkıştır",
   "command.session.compact.description": "Bağlam boyutunu azaltmak için oturumu özetle",
+  "command.session.export": "Oturumu dışa aktar",
+  "command.session.export.description": "Hata ayıklama için oturumu JSON dosyasına dışa aktar",
   "command.session.fork": "Mesajdan dallandır",
   "command.session.fork.description": "Önceki bir mesajdan yeni oturum oluştur",
   "command.session.share": "Oturumu paylaş",

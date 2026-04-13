@@ -157,6 +157,9 @@ export const MessageList: Component<MessageListProps> = (props) => {
                     sessionID={session.currentSessionID() ?? ""}
                     messageID={msg.id}
                     queued={queued()}
+                    onDeleteQueued={
+                      queued() ? () => session.deleteMessage(session.currentSessionID() ?? "", msg.id) : undefined
+                    }
                   />
                 )
               }}

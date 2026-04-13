@@ -826,6 +826,9 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
         case "deleteSession":
           await this.handleDeleteSession(message.sessionID)
           break
+        case "deleteMessage":
+          await this.handleDeleteMessage(message.sessionID, message.messageID)
+          break
         case "renameSession":
           await this.handleRenameSession(message.sessionID, message.title)
           break
@@ -1497,6 +1500,25 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
       this.postMessage({
         type: "error",
         message: getErrorMessage(error) || "Failed to delete session",
+      })
+    }
+  }
+
+  private async handleDeleteMessage(sessionID: string, messageID: string): Promise<void> {
+    if (!this.client) {
+      this.postMessage({ type: "error", message: "Not connected to CLI backend" })
+      return
+    }
+
+    try {
+      const dir = this.getWorkspaceDirectory(sessionID)
+      await this.client.session.deleteMessage({ sessionID, messageID, directory: dir }, { throwOnError: true })
+    } catch (error) {
+      console.error("[Kilo New] KiloProvider: Failed to delete message:", error)
+      this.postMessage({
+        type: "error",
+        message: getErrorMessage(error) || "Failed to delete message",
+        sessionID,
       })
     }
   }

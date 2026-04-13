@@ -311,10 +311,7 @@ if (Script.release) {
       archives.push(out) // kilocode_change
     }
   }
-  // kilocode_change start - use --clobber only for prereleases to prevent overwriting stable release assets
-  const clobber = Script.preview ? ["--clobber"] : []
-  await $`gh release upload v${Script.version} ${archives} ${clobber}`
-  // kilocode_change end
+  await $`gh release upload v${Script.version} ${archives} --clobber` // kilocode_change
 }
 
 export { binaries }

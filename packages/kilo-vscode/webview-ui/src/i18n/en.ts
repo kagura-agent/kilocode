@@ -953,7 +953,8 @@ export const dict = {
   "prompt.placeholder.error": "Connection failed. Check the output panel or restart the extension.",
 
   "context.usage.sessionCost": "Session cost",
-  "context.usage.olderSessions": "{{count}} older sessions",
+  "context.usage.olderSessions_one": "{{count}} older session",
+  "context.usage.olderSessions_other": "{{count}} older sessions",
   "context.stats.thisSession": "This session",
 
   "time.justNow": "just now",

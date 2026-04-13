@@ -957,7 +957,8 @@ export const dict = {
   "prompt.placeholder.default": "Wpisz wiadomość... (Enter, aby wysłać, Shift+Enter dla nowej linii)",
 
   "context.usage.sessionCost": "Koszt sesji",
-  "context.usage.olderSessions": "{{count}} starszych sesji",
+  "context.usage.olderSessions_one": "{{count}} starsza sesja",
+  "context.usage.olderSessions_other": "{{count}} starszych sesji",
   "context.stats.thisSession": "Ta sesja",
 
   "time.justNow": "przed chwilą",

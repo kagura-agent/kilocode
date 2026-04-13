@@ -942,7 +942,8 @@ export const dict = {
   "prompt.placeholder.default": "輸入訊息... (Enter 送出，Shift+Enter 換行)",
 
   "context.usage.sessionCost": "工作階段費用",
-  "context.usage.olderSessions": "{{count}} 個較早的工作階段",
+  "context.usage.olderSessions_one": "{{count}} 個較早的工作階段",
+  "context.usage.olderSessions_other": "{{count}} 個較早的工作階段",
   "context.stats.thisSession": "此工作階段",
 
   "time.justNow": "剛剛",

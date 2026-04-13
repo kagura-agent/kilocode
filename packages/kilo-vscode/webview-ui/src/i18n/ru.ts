@@ -960,7 +960,8 @@ export const dict = {
   "prompt.placeholder.default": "Введите сообщение... (Enter для отправки, Shift+Enter для новой строки)",
 
   "context.usage.sessionCost": "Стоимость сессии",
-  "context.usage.olderSessions": "{{count}} предыдущих сессий",
+  "context.usage.olderSessions_one": "{{count}} предыдущая сессия",
+  "context.usage.olderSessions_other": "{{count}} предыдущих сессий",
   "context.stats.thisSession": "Эта сессия",
 
   "time.justNow": "только что",

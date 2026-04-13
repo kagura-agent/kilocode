@@ -940,7 +940,8 @@ export const dict = {
   "prompt.placeholder.default": "输入消息... (Enter 发送，Shift+Enter 换行)",
 
   "context.usage.sessionCost": "会话费用",
-  "context.usage.olderSessions": "{{count}} 个较早的会话",
+  "context.usage.olderSessions_one": "{{count}} 个较早的会话",
+  "context.usage.olderSessions_other": "{{count}} 个较早的会话",
   "context.stats.thisSession": "此会话",
 
   "time.justNow": "刚刚",

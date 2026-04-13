@@ -48,7 +48,9 @@ export const TaskHeader: Component<TaskHeaderProps> = (props) => {
     const items = breakdown()
     if (items.length <= 1) return <span>{language.t("context.usage.sessionCost")}</span>
     const collapsed = collapseCostBreakdown(items, (n) =>
-      language.t("context.usage.olderSessions", { count: String(n) }),
+      n === 1
+        ? language.t("context.usage.olderSessions_one", { count: String(n) })
+        : language.t("context.usage.olderSessions_other", { count: String(n) }),
     )
     return (
       <div style={{ "text-align": "left", "white-space": "nowrap" }}>

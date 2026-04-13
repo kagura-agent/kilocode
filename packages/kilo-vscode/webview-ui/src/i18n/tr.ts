@@ -956,7 +956,8 @@ export const dict = {
   "prompt.placeholder.error": "Bağlantı başarısız. Çıktı panelini kontrol edin veya uzantıyı yeniden başlatın.",
 
   "context.usage.sessionCost": "Oturum maliyeti",
-  "context.usage.olderSessions": "{{count}} eski oturum",
+  "context.usage.olderSessions_one": "{{count}} eski oturum",
+  "context.usage.olderSessions_other": "{{count}} eski oturum",
   "context.stats.thisSession": "Bu oturum",
 
   "time.justNow": "az önce",

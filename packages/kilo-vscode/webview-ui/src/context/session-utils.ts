@@ -154,9 +154,11 @@ const VISIBLE_CHILDREN = 8
 /**
  * Collapse a cost breakdown for display in the tooltip.
  * - The root entry (first item) always stays at the top.
- * - Child entries are shown in reverse order (most recent first).
+ * - Child entries are shown in reverse discovery order (approximately
+ *   newest-first for direct children; nested subagents may appear
+ *   out of strict chronological order).
  * - When there are more than VISIBLE_CHILDREN child entries, the
- *   oldest are aggregated into a single summary line.
+ *   tail entries are aggregated into a single summary line.
  *
  * Pure function — no store dependency.
  */

@@ -318,7 +318,9 @@ if (Script.release) {
     hasher.update(await Bun.file(archive).arrayBuffer())
     console.log(`${hasher.digest("hex")}  ${path.basename(archive)}`)
   }
-  const clobber = Script.preview ? ["--clobber"] : []
+  // Verify the target release is actually a prerelease before allowing --clobber
+  const rel = await $`gh release view v${Script.version} --json isPrerelease,isDraft`.json()
+  const clobber = rel.isPrerelease || rel.isDraft ? ["--clobber"] : []
   await $`gh release upload v${Script.version} ${archives} ${clobber}`
   // kilocode_change end
 }

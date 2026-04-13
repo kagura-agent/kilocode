@@ -21,14 +21,21 @@ if (!Script.preview) {
   output.push(`tag=${release.tagName}`)
   // kilocode_change start - handle both beta and rc preview channels
 } else if (Script.channel === "beta" || Script.channel === "rc") {
-  // Safety check: abort if a stable (non-prerelease) release already exists for this version
-  const existing = await $`gh release view v${Script.version} --json tagName,isPrerelease --repo ${process.env.GH_REPO}`
-    .json()
-    .catch(() => null)
-  if (existing && !existing.isPrerelease) {
-    console.error(
-      `ERROR: stable release v${Script.version} already exists — refusing to create a prerelease with the same version`,
-    )
+  // Safety check: abort if a stable (non-prerelease) release already exists for this version.
+  // Fail closed: only treat "not found" (exit code 1 with "release not found") as safe to proceed.
+  const check = await $`gh release view v${Script.version} --json tagName,isPrerelease --repo ${process.env.GH_REPO}`
+    .quiet()
+    .nothrow()
+  if (check.exitCode === 0) {
+    const existing = JSON.parse(check.stdout.toString())
+    if (!existing.isPrerelease) {
+      console.error(
+        `ERROR: stable release v${Script.version} already exists — refusing to create a prerelease with the same version`,
+      )
+      process.exit(1)
+    }
+  } else if (!check.stderr.toString().includes("release not found")) {
+    console.error(`ERROR: failed to check existing release for v${Script.version}: ${check.stderr}`)
     process.exit(1)
   }
   await $`gh release create v${Script.version} -d --prerelease --title "v${Script.version}" --repo ${process.env.GH_REPO}`

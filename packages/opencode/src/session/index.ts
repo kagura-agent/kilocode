@@ -504,8 +504,8 @@ export namespace Session {
               sessionID: info.sessionID,
             }),
           )
-          // kilocode_change end
           return info
+          // kilocode_change end
         }).pipe(Effect.withSpan("Session.updateMessage"))
 
       const updatePart = <T extends MessageV2.Part>(part: T): Effect.Effect<T> =>
@@ -523,8 +523,8 @@ export namespace Session {
               { type: "part update", id: info.id, sessionID: info.sessionID },
             ),
           )
-          // kilocode_change end
           return info
+          // kilocode_change end
         }).pipe(Effect.withSpan("Session.updatePart"))
 
       const create = Effect.fn("Session.create")(function* (input?: {

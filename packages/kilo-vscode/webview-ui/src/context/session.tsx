@@ -678,6 +678,26 @@ export const SessionProvider: ParentComponent = (props) => {
     vscode.postMessage({ type: "toggleFavorite", action, providerID, modelID })
   }
 
+  function handleDiffMessage(message: ExtensionMessage): void {
+    if (message.type === "sessionMessageDiffLoaded") {
+      const key = diffKey(message.sessionID, message.messageID)
+      const req = diffRequests.get(key)
+      diffRequests.delete(key)
+      req?.resolve(message.diffs)
+      return
+    }
+
+    if (message.type === "sessionMessageDiffError") {
+      const key = diffKey(message.sessionID, message.messageID)
+      const req = diffRequests.get(key)
+      diffRequests.delete(key)
+      req?.reject(new Error(message.error))
+    }
+  }
+
+  const unsubDiffs = vscode.onMessage(handleDiffMessage)
+  onCleanup(unsubDiffs)
+
   // Handle messages from extension
   onMount(() => {
     const unsubscribe = vscode.onMessage((message: ExtensionMessage) => {
@@ -693,24 +713,6 @@ export const SessionProvider: ParentComponent = (props) => {
         case "messageCreated":
           handleMessageCreated(message.message)
           break
-
-        case "sessionMessageDiffLoaded": {
-          const req = diffRequests.get(diffKey(message.sessionID, message.messageID))
-          if (req) {
-            diffRequests.delete(diffKey(message.sessionID, message.messageID))
-            req.resolve(message.diffs)
-          }
-          break
-        }
-
-        case "sessionMessageDiffError": {
-          const req = diffRequests.get(diffKey(message.sessionID, message.messageID))
-          if (req) {
-            diffRequests.delete(diffKey(message.sessionID, message.messageID))
-            req.reject(new Error(message.error))
-          }
-          break
-        }
 
         case "partUpdated":
           handlePartUpdated(message.sessionID, message.messageID, message.part, message.delta)

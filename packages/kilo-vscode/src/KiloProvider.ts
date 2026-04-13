@@ -170,7 +170,10 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
   private sessionDirectories = new Map<string, string>()
   /** Project ID for the current workspace, used to filter out sessions from other repositories. */
   private projectID: string | undefined
-  // loadMessagesAbort moved to kilo-provider/handlers/session-handler.ts
+  /** Abort controller for the current loadMessages request; aborted when a new session is selected. */
+  private loadMessagesAbort: AbortController | null = null
+  /** Abort controllers for active retry loops, keyed by session ID. */
+  private retryAbortControllers = new Map<string, AbortController>()
   /** Set when refreshSessions() is called before the client is ready.
    *  Cleared and retried once the connection transitions to "connected". */
   private pendingSessionRefresh = false
@@ -1276,6 +1279,13 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
       set projectID(v) {
         self.projectID = v
       },
+      get loadMessagesAbort() {
+        return self.loadMessagesAbort
+      },
+      set loadMessagesAbort(v) {
+        self.loadMessagesAbort = v
+      },
+      retryControllers: this.retryAbortControllers,
       postMessage: (msg) => this.postMessage(msg),
       getWorkspaceDirectory: (sid) => this.getWorkspaceDirectory(sid),
       getContextDirectory: () => this.getContextDirectory(),

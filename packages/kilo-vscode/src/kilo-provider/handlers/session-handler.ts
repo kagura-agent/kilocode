@@ -33,6 +33,10 @@ export interface SessionContext {
   readonly slimEditMetadata: boolean
   pendingSessionRefresh: boolean
   projectID: string | undefined
+  /** Per-instance abort controller for the current loadMessages request. */
+  loadMessagesAbort: AbortController | null
+  /** Per-instance abort controllers for active retry loops, keyed by session ID. */
+  readonly retryControllers: Map<string, AbortController>
   postMessage(msg: unknown): void
   getWorkspaceDirectory(sessionId?: string): string
   getContextDirectory(): string
@@ -72,9 +76,6 @@ export async function handleCreateSession(ctx: SessionContext): Promise<void> {
   }
 }
 
-/** Abort controller for the current loadMessages request; aborted when a new session is selected. */
-let loadMessagesAbort: AbortController | null = null
-
 export async function handleLoadMessages(ctx: SessionContext, sessionID: string): Promise<void> {
   ctx.trackedSessionIds.add(sessionID)
   ctx.focusSession(sessionID)
@@ -87,9 +88,9 @@ export async function handleLoadMessages(ctx: SessionContext, sessionID: string)
 
   // Abort any previous in-flight loadMessages request so the backend
   // isn't overwhelmed when the user switches sessions rapidly.
-  loadMessagesAbort?.abort()
+  ctx.loadMessagesAbort?.abort()
   const abort = new AbortController()
-  loadMessagesAbort = abort
+  ctx.loadMessagesAbort = abort
 
   try {
     const dir = ctx.getWorkspaceDirectory(sessionID)
@@ -324,9 +325,6 @@ export async function handleRenameSession(ctx: SessionContext, sessionID: string
 
 // --- Message send, abort, revert, compact ---
 
-/** Abort controllers for active retry loops, keyed by session ID */
-const retryControllers = new Map<string, AbortController>()
-
 /** Execute an SDK call with visible exponential backoff for retryable HTTP errors. */
 export async function withRetry(
   ctx: SessionContext,
@@ -335,7 +333,7 @@ export async function withRetry(
   messageID?: string,
 ): Promise<void> {
   const abort = new AbortController()
-  retryControllers.set(sid, abort)
+  ctx.retryControllers.set(sid, abort)
 
   try {
     for (let attempt = 1; ; attempt++) {
@@ -387,13 +385,13 @@ export async function withRetry(
       if (ctx.confirmations.has(messageID)) return
     }
   } finally {
-    retryControllers.delete(sid)
+    ctx.retryControllers.delete(sid)
   }
 }
 
 /** Cancel an active retry loop for a session */
 export function cancelRetry(ctx: SessionContext, sid: string): void {
-  const controller = retryControllers.get(sid)
+  const controller = ctx.retryControllers.get(sid)
   if (controller) {
     controller.abort()
     ctx.postMessage({ type: "sessionStatus", sessionID: sid, status: "idle" })

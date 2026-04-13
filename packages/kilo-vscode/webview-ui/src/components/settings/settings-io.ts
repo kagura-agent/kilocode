@@ -63,7 +63,8 @@ export function buildExport(cfg: Config): Record<string, unknown> {
   const out: Record<string, unknown> = { _meta: meta }
 
   for (const [key, value] of Object.entries(cfg)) {
-    if (value === undefined || value === null) continue
+    if (value === undefined) continue
+    if (value === null && key !== "system_prompt") continue
     out[key] = value
   }
 

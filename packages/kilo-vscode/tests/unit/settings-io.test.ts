@@ -88,6 +88,11 @@ describe("buildExport", () => {
     expect(result.share).toBe("manual")
   })
 
+  it("preserves null system_prompt so exports can clear overrides", () => {
+    const result = buildExport({ system_prompt: null })
+    expect(result.system_prompt).toBeNull()
+  })
+
   it("handles empty config", () => {
     const result = buildExport({})
     expect(result._meta).toBeDefined()

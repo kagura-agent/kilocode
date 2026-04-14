@@ -360,15 +360,15 @@ export const SessionProvider: ParentComponent = (props) => {
 
   function resolveModel(agentName: string, override?: ModelSelection | null): ModelSelection | null {
     const kiloDefault = provider.defaults()["kilo"]
-    const fallback = kiloDefault ? { providerID: "kilo", modelID: kiloDefault } : KILO_AUTO
+    const global = getGlobalModel() ?? (kiloDefault ? { providerID: "kilo", modelID: kiloDefault } : null)
     return resolveModelSelection({
       providers: provider.providers(),
       connected: provider.connected(),
       override,
       mode: getModeModel(agentName),
-      global: getGlobalModel(),
+      global,
       recent: store.recentModels,
-      fallback,
+      fallback: KILO_AUTO,
     })
   }
 

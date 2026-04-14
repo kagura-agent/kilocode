@@ -25,7 +25,6 @@ import { Snapshot } from "@/snapshot"
 import { ProjectID } from "../project/schema"
 import { WorkspaceID } from "../control-plane/schema"
 import { SessionID, MessageID, PartID } from "./schema"
-import { Filesystem } from "../util/filesystem" // kilocode_change: normalize directory for Windows drive-letter casing
 import { KiloSession } from "@/kilocode/session" // kilocode_change
 
 import type { Provider } from "@/provider/provider"
@@ -790,15 +789,10 @@ export namespace Session {
     limit?: number
   }) {
     const project = Instance.project
-    const conditions = [eq(SessionTable.project_id, project.id)]
+    const conditions = KiloSession.filters({ projectID: project.id, directory: input?.directory }) // kilocode_change
 
     if (input?.workspaceID) {
       conditions.push(eq(SessionTable.workspace_id, input.workspaceID))
-    }
-    if (input?.directory) {
-      // kilocode_change start: vscode uri.fsPath gives lowercase drive letter on Windows; resolve() canonicalises to match stored path
-      conditions.push(eq(SessionTable.directory, Filesystem.resolve(input.directory)))
-      // kilocode_change end
     }
     if (input?.roots) {
       conditions.push(isNull(SessionTable.parent_id))

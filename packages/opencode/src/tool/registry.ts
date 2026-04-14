@@ -116,9 +116,8 @@ export namespace ToolRegistry {
 
       const all = Effect.fn("ToolRegistry.all")(function* (custom: Tool.Info[]) {
         const cfg = yield* config.get()
-        const question =
-          ["app", "cli", "desktop", "vscode"].includes(Flag.KILO_CLIENT) || Flag.KILO_ENABLE_QUESTION_TOOL
-        const suggest = ["cli", "vscode"].includes(Flag.KILO_CLIENT) && question // kilocode_change
+        const question = ["app", "cli", "desktop"].includes(Flag.KILO_CLIENT) || Flag.KILO_ENABLE_QUESTION_TOOL
+        const suggest = ["cli", "vscode"].includes(Flag.KILO_CLIENT) // kilocode_change
 
         return [
           InvalidTool,

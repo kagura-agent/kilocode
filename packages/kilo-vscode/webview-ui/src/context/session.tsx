@@ -122,7 +122,8 @@ interface SessionContextValue {
   selected: Accessor<ModelSelection | null>
   selectModel: (providerID: string, modelID: string) => void
   hasModelOverride: Accessor<boolean>
-  clearModelOverride: () => void
+  clearModelOverride: (agentName?: string) => void
+  clearModelOverrides: () => void
 
   // Cost and context usage for the current session
   costBreakdown: Accessor<Array<{ label: string; cost: number }>>
@@ -440,8 +441,7 @@ export const SessionProvider: ParentComponent = (props) => {
   })
 
   /** Clear the per-mode model override, falling back to config default. */
-  function clearModelOverride() {
-    const agentName = selectedAgentName()
+  function clearModelOverride(agentName = selectedAgentName()) {
     setUserSetAgents((prev) => {
       const next = { ...prev }
       delete next[agentName]
@@ -453,7 +453,21 @@ export const SessionProvider: ParentComponent = (props) => {
         delete selections[agentName]
       }),
     )
-    // Also clear per-session override so the session falls back to config default
+    const sid = currentSessionID()
+    const sessionAgent = sid ? (store.agentSelections[sid] ?? selectedAgentName()) : undefined
+    if (sid && sessionAgent === agentName) {
+      setStore(
+        "sessionOverrides",
+        produce((overrides) => {
+          delete overrides[sid]
+        }),
+      )
+    }
+  }
+
+  function clearModelOverrides() {
+    setUserSetAgents({})
+    setStore("modelSelections", {})
     const sid = currentSessionID()
     if (sid) {
       setStore(
@@ -1818,6 +1832,7 @@ export const SessionProvider: ParentComponent = (props) => {
     selectModel,
     hasModelOverride,
     clearModelOverride,
+    clearModelOverrides,
     costBreakdown,
     contextUsage,
     agents,

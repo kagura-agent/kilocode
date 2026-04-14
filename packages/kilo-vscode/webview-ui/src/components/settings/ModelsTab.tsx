@@ -14,6 +14,7 @@ const ModelsTab: Component = () => {
 
   function handleModelSelect(configKey: "model" | "small_model") {
     return (providerID: string, modelID: string) => {
+      if (configKey === "model") session.clearModelOverrides()
       if (!providerID || !modelID) {
         updateConfig({ [configKey]: null })
         return
@@ -26,6 +27,7 @@ const ModelsTab: Component = () => {
 
   function handleModeModelSelect(agentName: string) {
     return (providerID: string, modelID: string) => {
+      session.clearModelOverride(agentName)
       if (!providerID || !modelID) {
         updateConfig({ agent: { [agentName]: { model: null } } })
         return

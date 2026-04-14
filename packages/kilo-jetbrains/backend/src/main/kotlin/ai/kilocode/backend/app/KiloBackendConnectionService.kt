@@ -1,12 +1,9 @@
-package ai.kilocode.server
+package ai.kilocode.backend.app
 
+import ai.kilocode.backend.util.IntellijLog
+import ai.kilocode.backend.KiloBackendHttpClients
+import ai.kilocode.backend.util.KiloLog
 import ai.kilocode.jetbrains.api.client.DefaultApi
-import ai.kilocode.rpc.dto.ConnectionStateDto
-import ai.kilocode.rpc.dto.ConnectionStatusDto
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.components.Service
-import com.intellij.openapi.components.service
-import com.intellij.openapi.diagnostic.Logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -17,8 +14,6 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
@@ -41,7 +36,8 @@ sealed class ConnectionState {
 data class SseEvent(val type: String, val data: String)
 
 /**
- * App-level service managing the CLI server connection.
+ * Manages the CLI server connection: SSE stream, health polling, heartbeat,
+ * and automatic reconnection.
  *
  * Uses two separate OkHttp clients mirroring the VS Code architecture:
  * - [apiClient]: no call/read timeout — used for the generated API client and SSE
@@ -49,12 +45,21 @@ data class SseEvent(val type: String, val data: String)
  *
  * The generated [DefaultApi] is configured with [apiClient] and exposed via [api]
  * for typed access to all CLI server endpoints.
+ *
+ * Concurrency is handled by the owning [KiloBackendAppService] — `connect`,
+ * `restart`, and `reinstall` are called under its mutex. Internal reconnect
+ * attempts delegate back to the owner via [onReconnect].
+ *
+ * Not a service — owned and instantiated by [KiloBackendAppService].
  */
-@Service(Service.Level.APP)
-class KiloConnectionService(private val cs: CoroutineScope) : Disposable {
+class KiloConnectionService(
+  private val cs: CoroutineScope,
+  private val server: CliServer,
+  private val onReconnect: () -> Unit,
+  private val log: KiloLog = IntellijLog(KiloConnectionService::class.java),
+) {
 
     companion object {
-        private val LOG = Logger.getInstance(KiloConnectionService::class.java)
         private const val HEARTBEAT_TIMEOUT_MS = 15_000L
         private const val HEALTH_POLL_INTERVAL_MS = 10_000L
         private const val RECONNECT_DELAY_MS = 250L
@@ -78,36 +83,47 @@ class KiloConnectionService(private val cs: CoroutineScope) : Disposable {
 
     private val source = AtomicReference<EventSource?>(null)
     private val lastEvent = AtomicLong(0L)
+    @Volatile private var disposed = false
     private var heartbeatJob: Job? = null
     private var healthJob: Job? = null
     private var processJob: Job? = null
     private var reconnectJob: Job? = null
 
-    fun stream() = state.map(::dto).distinctUntilChanged()
-
+    /**
+     * Open a connection to the CLI server.
+     *
+     * Called under [KiloBackendAppService]'s mutex — no internal guard needed.
+     */
     suspend fun connect() {
-        if (_state.value is ConnectionState.Connected || _state.value is ConnectionState.Connecting) return
         open()
     }
 
-    /** Kill the CLI process and restart it. Tears down all connections first. */
+    /**
+     * Kill the CLI process and restart it. Tears down all connections first.
+     *
+     * Called under [KiloBackendAppService]'s mutex.
+     */
     suspend fun restart() {
-        LOG.info("restart: initiated — tearing down current connection")
+        log.info("restart: initiated — tearing down current connection")
         teardown()
-        LOG.info("restart: teardown complete — spawning new CLI process")
+        log.info("restart: teardown complete — spawning new CLI process")
         open()
-        LOG.info("restart: open() returned — CLI process started")
+        log.info("restart: open() returned — CLI process started")
     }
 
-    /** Kill the CLI process, re-extract the binary from JAR, and restart. */
+    /**
+     * Kill the CLI process, re-extract the binary from JAR, and restart.
+     *
+     * Called under [KiloBackendAppService]'s mutex.
+     */
     suspend fun reinstall() {
-        LOG.info("reinstall: initiated — tearing down current connection")
+        log.info("reinstall: initiated — tearing down current connection")
         teardown()
-        LOG.info("reinstall: teardown complete — setting forceExtract flag")
-        service<ServerManager>().forceExtract = true
-        LOG.info("reinstall: spawning new CLI process (binary will be re-extracted)")
+        log.info("reinstall: teardown complete — setting forceExtract flag")
+        server.forceExtract = true
+        log.info("reinstall: spawning new CLI process (binary will be re-extracted)")
         open()
-        LOG.info("reinstall: open() returned — CLI process started with fresh binary")
+        log.info("reinstall: open() returned — CLI process started with fresh binary")
     }
 
     /**
@@ -116,20 +132,20 @@ class KiloConnectionService(private val cs: CoroutineScope) : Disposable {
      * Order matters — reconnect/health/heartbeat jobs are cancelled first so they
      * cannot race with the SSE close or process kill.
      */
-    private suspend fun teardown() {
-        LOG.info("teardown: cancelling background jobs (reconnect, heartbeat, health, process)")
+    private fun teardown() {
+        log.info("teardown: cancelling background jobs (reconnect, heartbeat, health, process)")
         reconnectJob?.cancel()
         heartbeatJob?.cancel()
         healthJob?.cancel()
         processJob?.cancel()
-        LOG.info("teardown: closing SSE event source")
+        log.info("teardown: closing SSE event source")
         source.getAndSet(null)?.cancel()
-        LOG.info("teardown: shutting down OkHttp clients")
+        log.info("teardown: shutting down OkHttp clients")
         close()
         setState(ConnectionState.Disconnected)
-        LOG.info("teardown: killing CLI process via ServerManager.stop()")
-        service<ServerManager>().stop()
-        LOG.info("teardown: complete")
+        log.info("teardown: killing CLI process via ServerManager.stop()")
+        server.stop()
+        log.info("teardown: complete")
     }
 
     private suspend fun open() {
@@ -140,21 +156,20 @@ class KiloConnectionService(private val cs: CoroutineScope) : Disposable {
 
         setState(ConnectionState.Connecting)
 
-        val cli = service<ServerManager>()
-        val result = cli.init()
+        val result = server.init()
 
-        if (result is ServerManager.ServerState.Error) {
+        if (result is CliServer.State.Error) {
             setState(ConnectionState.Error(result.message))
             return
         }
 
-        val ready = result as ServerManager.ServerState.Ready
+        val ready = result as CliServer.State.Ready
         port = ready.port
         password = ready.password
 
         // Create dual OkHttp clients (bundled — no IntelliJ platform deps)
-        val ac = KiloHttpClients.api(password)
-        val hc = KiloHttpClients.health(password)
+        val ac = KiloBackendHttpClients.api(password)
+        val hc = KiloBackendHttpClients.health(password)
         apiClient = ac
         healthClient = hc
 
@@ -164,7 +179,7 @@ class KiloConnectionService(private val cs: CoroutineScope) : Disposable {
         startSse()
         startHeartbeatWatcher()
         healthJob = healthLoop()
-        cli.process()?.let { proc ->
+        server.process()?.let { proc ->
             processJob = monitorProcess(proc)
         }
     }
@@ -183,12 +198,12 @@ class KiloConnectionService(private val cs: CoroutineScope) : Disposable {
                 .build()
         )
         source.set(factory.newEventSource(request, listener))
-        LOG.info("SSE: connecting to port $port")
+        log.info("SSE: connecting to port $port")
     }
 
     private val listener = object : EventSourceListener() {
         override fun onOpen(src: EventSource, response: Response) {
-            LOG.info("SSE: connected")
+            log.info("SSE: connected")
             setState(ConnectionState.Connected(port, password))
             lastEvent.set(System.currentTimeMillis())
         }
@@ -200,40 +215,45 @@ class KiloConnectionService(private val cs: CoroutineScope) : Disposable {
         }
 
         override fun onClosed(src: EventSource) {
-            LOG.info("SSE: stream closed — scheduling reconnect")
+            log.info("SSE: stream closed — scheduling reconnect")
             scheduleReconnect()
         }
 
         override fun onFailure(src: EventSource, t: Throwable?, response: Response?) {
             if (t != null) {
-                LOG.warn("SSE: failure (${t.message}) — scheduling reconnect")
+                log.warn("SSE: failure (${t.message}) — scheduling reconnect")
             } else {
-                LOG.warn("SSE: failure (HTTP ${response?.code}) — scheduling reconnect")
+                log.warn("SSE: failure (HTTP ${response?.code}) — scheduling reconnect")
             }
             setState(ConnectionState.Error(t?.message ?: "SSE connection failed (HTTP ${response?.code})"))
             scheduleReconnect()
         }
     }
 
+    /**
+     * Schedule a reconnect attempt. If the CLI process is still alive,
+     * just reconnect SSE. Otherwise, delegate to [onReconnect] which
+     * goes through [KiloBackendAppService]'s mutex for a full restart.
+     */
     private fun scheduleReconnect() {
+        if (disposed) return
         if (reconnectJob?.isActive == true) return
         reconnectJob = cs.launch {
             delay(RECONNECT_DELAY_MS)
             if (!isActive) return@launch
 
-            val cli = service<ServerManager>()
-            val proc = cli.process()
+            val proc = server.process()
 
             if (proc?.isAlive == true) {
-                LOG.info("SSE: reconnecting")
+                log.info("SSE: reconnecting (process alive)")
                 source.getAndSet(null)?.cancel()
                 setState(ConnectionState.Connecting)
                 startSse()
                 return@launch
             }
 
-            LOG.warn("CLI process not running — restarting")
-            open()
+            log.warn("CLI process not running — delegating full reconnect to AppService")
+            onReconnect()
         }
     }
 
@@ -245,7 +265,7 @@ class KiloConnectionService(private val cs: CoroutineScope) : Disposable {
                 if (_state.value !is ConnectionState.Connected) continue
                 val elapsed = System.currentTimeMillis() - lastEvent.get()
                 if (elapsed > HEARTBEAT_TIMEOUT_MS) {
-                    LOG.warn("SSE: heartbeat timeout (${elapsed}ms) — forcing reconnect")
+                    log.warn("SSE: heartbeat timeout (${elapsed}ms) — forcing reconnect")
                     source.getAndSet(null)?.cancel()
                     scheduleReconnect()
                 }
@@ -259,7 +279,7 @@ class KiloConnectionService(private val cs: CoroutineScope) : Disposable {
             if (_state.value !is ConnectionState.Connected) continue
             val ok = checkHealth()
             if (!ok && _state.value is ConnectionState.Connected) {
-                LOG.warn("Health check failed — forcing SSE reconnect")
+                log.warn("Health check failed — forcing SSE reconnect")
                 source.getAndSet(null)?.cancel()
                 scheduleReconnect()
             }
@@ -274,16 +294,16 @@ class KiloConnectionService(private val cs: CoroutineScope) : Disposable {
                 .build()
             http.newCall(req).execute().use { it.isSuccessful }
         } catch (e: Exception) {
-            LOG.info("Health check exception: ${e.message}")
+            log.info("Health check exception: ${e.message}")
             false
         }
     }
 
     private fun monitorProcess(proc: Process) = cs.launch(Dispatchers.IO) {
         proc.waitFor()
-        service<ServerManager>().exited(proc)
+        server.exited(proc)
         val code = proc.exitValue()
-        LOG.warn("CLI process exited with code $code")
+        log.warn("CLI process exited with code $code")
         source.getAndSet(null)?.cancel()
         setState(ConnectionState.Error("CLI process exited with code $code"))
         scheduleReconnect()
@@ -291,35 +311,29 @@ class KiloConnectionService(private val cs: CoroutineScope) : Disposable {
 
     private fun close() {
         api = null
-        apiClient?.let { KiloHttpClients.shutdown(it) }
+        apiClient?.let { KiloBackendHttpClients.shutdown(it) }
         apiClient = null
-        healthClient?.let { KiloHttpClients.shutdown(it) }
+        healthClient?.let { KiloBackendHttpClients.shutdown(it) }
         healthClient = null
     }
 
     private fun setState(next: ConnectionState) {
+        if (disposed) return
         _state.value = next
     }
 
-    private fun dto(state: ConnectionState): ConnectionStateDto =
-        when (state) {
-            ConnectionState.Disconnected -> ConnectionStateDto(ConnectionStatusDto.DISCONNECTED)
-            ConnectionState.Connecting -> ConnectionStateDto(ConnectionStatusDto.CONNECTING)
-            is ConnectionState.Connected -> ConnectionStateDto(ConnectionStatusDto.CONNECTED)
-            is ConnectionState.Error -> ConnectionStateDto(ConnectionStatusDto.ERROR, state.message)
-        }
-
-    private fun extractType(data: String): String =
+    internal fun extractType(data: String): String =
         TYPE_REGEX.find(data)?.groupValues?.get(1) ?: "unknown"
 
-    override fun dispose() {
+    fun dispose() {
+        disposed = true
         source.getAndSet(null)?.cancel()
         heartbeatJob?.cancel()
         healthJob?.cancel()
         processJob?.cancel()
         reconnectJob?.cancel()
         close()
-        setState(ConnectionState.Disconnected)
-        LOG.info("KiloConnectionService disposed")
+        _state.value = ConnectionState.Disconnected
+        log.info("KiloConnectionService disposed")
     }
 }

@@ -1,4 +1,4 @@
-package ai.kilocode.server
+package ai.kilocode.backend
 
 import okhttp3.ConnectionPool
 import okhttp3.Interceptor
@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit
  * Both clients bundle Basic Auth via an interceptor and are fully independent
  * of any IntelliJ-platform-provided HTTP stack.
  */
-object KiloHttpClients {
+object KiloBackendHttpClients {
 
     private const val CONNECT_TIMEOUT_MS = 10_000L
     private const val HEALTH_TIMEOUT_MS = 3_000L

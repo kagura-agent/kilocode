@@ -1,16 +1,13 @@
 @file:Suppress("UnstableApiUsage")
 
-package ai.kilocode
+package ai.kilocode.client
 
-import ai.kilocode.rpc.KiloProjectRpcApi
-import ai.kilocode.rpc.dto.ConnectionStateDto
-import ai.kilocode.rpc.dto.ConnectionStatusDto
+import ai.kilocode.rpc.KiloAppRpcApi
 import ai.kilocode.rpc.dto.HealthDto
+import ai.kilocode.rpc.dto.KiloAppStateDto
+import ai.kilocode.rpc.dto.KiloAppStatusDto
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.wm.ToolWindowManager
-import com.intellij.platform.project.projectId
 import fleet.rpc.client.durable
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.CoroutineScope
@@ -22,20 +19,19 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 /**
- * Frontend project-level service for Kilo CLI interaction.
+ * App-level frontend service for Kilo CLI interaction.
  *
- * Communicates with the backend via [KiloProjectRpcApi], passing
- * [project.projectId] on every call so the backend can resolve the
- * correct project-level service without scanning ProjectManager.
+ * Communicates with the backend via [KiloAppRpcApi]. All operations
+ * are app-scoped — no project context is needed.
+ *
+ * Callers of [watch] are responsible for scheduling UI updates on
+ * the EDT and converting [KiloAppStateDto] to display text.
  */
-@Service(Service.Level.PROJECT)
-class KiloApiService(
-    private val project: Project,
-    private val cs: CoroutineScope,
-) {
+@Service(Service.Level.APP)
+class KiloAppService(private val cs: CoroutineScope) {
     companion object {
-        private val LOG = Logger.getInstance(KiloApiService::class.java)
-        private val init = ConnectionStateDto(ConnectionStatusDto.DISCONNECTED)
+        private val LOG = Logger.getInstance(KiloAppService::class.java)
+        private val init = KiloAppStateDto(KiloAppStatusDto.DISCONNECTED)
     }
 
     private val started = AtomicBoolean(false)
@@ -45,10 +41,10 @@ class KiloApiService(
     var version: String? = null
         private set
 
-    val state: StateFlow<ConnectionStateDto> = flow {
+    val state: StateFlow<KiloAppStateDto> = flow {
         durable {
-            KiloProjectRpcApi.getInstance()
-                .state(project.projectId())
+            KiloAppRpcApi.getInstance()
+                .state()
                 .collect { emit(it) }
         }
     }.stateIn(cs, SharingStarted.Eagerly, init)
@@ -57,14 +53,14 @@ class KiloApiService(
         if (!started.compareAndSet(false, true)) return
         cs.launch {
             durable {
-                KiloProjectRpcApi.getInstance().connect(project.projectId())
+                KiloAppRpcApi.getInstance().connect()
             }
         }
     }
 
     /** One-shot health check. Returns null on failure. */
     suspend fun health(): HealthDto? = try {
-        durable { KiloProjectRpcApi.getInstance().health(project.projectId()) }
+        durable { KiloAppRpcApi.getInstance().health() }
     } catch (e: Exception) {
         LOG.warn("health check failed", e)
         null
@@ -75,7 +71,7 @@ class KiloApiService(
         LOG.info("restart: resetting state and sending RPC")
         started.set(false)
         version = null
-        durable { KiloProjectRpcApi.getInstance().restart(project.projectId()) }
+        durable { KiloAppRpcApi.getInstance().restart() }
         LOG.info("restart: RPC returned — backend restart complete")
     }
 
@@ -84,7 +80,7 @@ class KiloApiService(
         LOG.info("reinstall: resetting state and sending RPC")
         started.set(false)
         version = null
-        durable { KiloProjectRpcApi.getInstance().reinstall(project.projectId()) }
+        durable { KiloAppRpcApi.getInstance().reinstall() }
         LOG.info("reinstall: RPC returned — backend reinstall complete")
     }
 
@@ -114,27 +110,18 @@ class KiloApiService(
         }
     }
 
-    fun watch(fn: (String) -> Unit): Job {
-        val mgr = ToolWindowManager.getInstance(project)
+    /**
+     * Collect app state changes and invoke [fn] for each update.
+     *
+     * The callback receives raw [KiloAppStateDto] — the caller is
+     * responsible for converting to display text and scheduling on the EDT.
+     */
+    fun watch(fn: (KiloAppStateDto) -> Unit): Job {
         return cs.launch {
             state.collect { next ->
-                // Fetch CLI version when we become connected
-                if (next.status == ConnectionStatusDto.CONNECTED) fetchVersionAsync()
-                mgr.invokeLater {
-                    fn(text(next))
-                }
+                if (next.status == KiloAppStatusDto.READY) fetchVersionAsync()
+                fn(next)
             }
         }
     }
-
-    private fun text(state: ConnectionStateDto): String =
-        when (state.status) {
-            ConnectionStatusDto.DISCONNECTED -> KiloBundle.message("toolwindow.status.disconnected")
-            ConnectionStatusDto.CONNECTING -> KiloBundle.message("toolwindow.status.connecting")
-            ConnectionStatusDto.CONNECTED -> KiloBundle.message("toolwindow.status.connected")
-            ConnectionStatusDto.ERROR -> KiloBundle.message(
-                "toolwindow.status.error",
-                state.error ?: KiloBundle.message("toolwindow.error.unknown"),
-            )
-        }
 }

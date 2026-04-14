@@ -13,6 +13,7 @@ import { SessionRevertDock } from "@/pages/session/composer/session-revert-dock"
 import type { SessionComposerState } from "@/pages/session/composer/session-composer-state"
 import { SessionTodoDock } from "@/pages/session/composer/session-todo-dock"
 import type { FollowupDraft } from "@/components/prompt-input/submit"
+import { createResizeObserver } from "@solid-primitives/resize-observer"
 
 export function SessionComposerRegion(props: {
   state: SessionComposerState
@@ -41,7 +42,6 @@ export function SessionComposerRegion(props: {
     onRestore: (id: string) => void
   }
   setPromptDockRef: (el: HTMLDivElement) => void
-  onModeAction?: (input: { mode: string; text: string; description?: string }) => void // kilocode_change
 }) {
   const prompt = usePrompt()
   const language = useLanguage()
@@ -116,13 +116,9 @@ export function SessionComposerRegion(props: {
   createEffect(() => {
     const el = store.body
     if (!el) return
-    const update = () => {
-      setStore("height", el.getBoundingClientRect().height)
-    }
+    const update = () => setStore("height", el.getBoundingClientRect().height)
+    createResizeObserver(store.body, update)
     update()
-    const observer = new ResizeObserver(update)
-    observer.observe(el)
-    onCleanup(() => observer.disconnect())
   })
 
   return (
@@ -140,12 +136,7 @@ export function SessionComposerRegion(props: {
         <Show when={props.state.questionRequest()} keyed>
           {(request) => (
             <div>
-              {/* kilocode_change: add onModeAction */}
-              <SessionQuestionDock
-                request={request}
-                onSubmit={props.onResponseSubmit}
-                onModeAction={props.onModeAction}
-              />
+              <SessionQuestionDock request={request} onSubmit={props.onResponseSubmit} />
             </div>
           )}
         </Show>

@@ -8,6 +8,9 @@ import type { Event } from "electron"
 import { app, BrowserWindow, dialog } from "electron"
 import pkg from "electron-updater"
 
+import contextMenu from "electron-context-menu"
+contextMenu({ showSaveImageAs: true, showLookUpSelection: false, showSearchWithGoogle: false })
+
 const APP_NAMES: Record<string, string> = {
   dev: "OpenCode Dev",
   beta: "OpenCode Beta",
@@ -81,6 +84,17 @@ function setupApp() {
     killSidecar()
   })
 
+  app.on("will-quit", () => {
+    killSidecar()
+  })
+
+  for (const signal of ["SIGINT", "SIGTERM"] as const) {
+    process.on(signal, () => {
+      killSidecar()
+      app.exit(0)
+    })
+  }
+
   void app.whenReady().then(async () => {
     // migrate()
     app.setAsDefaultProtocolClient("opencode")
@@ -124,7 +138,7 @@ async function initialize() {
   sidecar = child
   serverReady.resolve({
     url,
-    username: "opencode",
+    username: "kilo", // kilocode_change
     password,
   })
 
@@ -234,8 +248,15 @@ registerIpcHandlers({
 
 function killSidecar() {
   if (!sidecar) return
+  const pid = sidecar.pid
   sidecar.kill()
   sidecar = null
+  // tree-kill is async; also send process group signal as immediate fallback
+  if (pid && process.platform !== "win32") {
+    try {
+      process.kill(-pid, "SIGTERM")
+    } catch {}
+  }
 }
 
 function ensureLoopbackNoProxy() {
@@ -259,7 +280,7 @@ function ensureLoopbackNoProxy() {
 }
 
 async function getSidecarPort() {
-  const fromEnv = process.env.OPENCODE_PORT
+  const fromEnv = process.env.KILO_PORT
   if (fromEnv) {
     const parsed = Number.parseInt(fromEnv, 10)
     if (!Number.isNaN(parsed)) return parsed
@@ -284,7 +305,7 @@ async function getSidecarPort() {
 function sqliteFileExists() {
   const xdg = process.env.XDG_DATA_HOME
   const base = xdg && xdg.length > 0 ? xdg : join(homedir(), ".local", "share")
-  return existsSync(join(base, "opencode", "opencode.db"))
+  return existsSync(join(base, "opencode", "kilo.db"))
 }
 
 function setupAutoUpdater() {

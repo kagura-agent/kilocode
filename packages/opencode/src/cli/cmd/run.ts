@@ -12,7 +12,7 @@ import { createKiloClient, type Message, type KiloClient, type ToolPart } from "
 import { Server } from "../../server/server"
 import { Provider } from "../../provider/provider"
 import { Agent } from "../../agent/agent"
-import { PermissionNext } from "../../permission/next"
+import { Permission } from "../../permission"
 import { Tool } from "../../tool/tool"
 import { GlobTool } from "../../tool/glob"
 import { GrepTool } from "../../tool/grep"
@@ -30,13 +30,13 @@ import { TodoWriteTool } from "../../tool/todo"
 import { Locale } from "../../util/locale"
 import { importCloudSession, validateCloudFork } from "@/kilocode/cloud-session" // kilocode_change
 
-type ToolProps<T extends Tool.Info> = {
+type ToolProps<T> = {
   input: Tool.InferParameters<T>
   metadata: Tool.InferMetadata<T>
   part: ToolPart
 }
 
-function props<T extends Tool.Info>(part: ToolPart): ToolProps<T> {
+function props<T>(part: ToolPart): ToolProps<T> {
   const state = part.state
   return {
     input: state.input as Tool.InferParameters<T>,
@@ -250,10 +250,6 @@ export const RunCommand = cmd({
           describe: "fork the session before continuing (requires --continue or --session)",
           type: "boolean",
         })
-        .option("cloud-fork", {
-          describe: "fetch session from cloud and continue locally (requires --session)",
-          type: "boolean",
-        })
         .option("share", {
           type: "boolean",
           describe: "share the session",
@@ -287,13 +283,11 @@ export const RunCommand = cmd({
           type: "string",
           describe: "attach to a running opencode server (e.g., http://localhost:4096)",
         })
-        // kilocode_change start
         .option("password", {
           alias: ["p"],
           type: "string",
           describe: "basic auth password (defaults to KILO_SERVER_PASSWORD)",
         })
-        // kilocode_change end
         .option("dir", {
           type: "string",
           describe: "directory to run in, path on remote server if attaching",
@@ -306,18 +300,18 @@ export const RunCommand = cmd({
           type: "string",
           describe: "model variant (provider-specific reasoning effort, e.g., high, max, minimal)",
         })
-        .option("thinking", {
-          type: "boolean",
-          describe: "show thinking blocks",
-          default: false,
-        })
         // kilocode_change start - auto approve all permissions
         .option("auto", {
           type: "boolean",
           describe: "auto-approve all permissions (for autonomous/pipeline usage)",
           default: false,
         })
-      // kilocode_change end
+        // kilocode_change end
+        .option("thinking", {
+          type: "boolean",
+          describe: "show thinking blocks",
+          default: false,
+        })
     )
   },
   handler: async (args) => {
@@ -378,7 +372,7 @@ export const RunCommand = cmd({
     }
     // kilocode_change end
 
-    const rules: PermissionNext.Ruleset = [
+    const rules: Permission.Ruleset = [
       {
         permission: "question",
         action: "deny",
@@ -733,11 +727,9 @@ export const RunCommand = cmd({
 
     if (args.attach) {
       const headers = (() => {
-        // kilocode_change start
         const password = args.password ?? process.env.KILO_SERVER_PASSWORD
         if (!password) return undefined
-        const username = process.env.KILO_SERVER_USERNAME ?? "kilo"
-        // kilocode_change end
+        const username = process.env.KILO_SERVER_USERNAME ?? "kilo" // kilocode_change
         const auth = `Basic ${Buffer.from(`${username}:${password}`).toString("base64")}`
         return { Authorization: auth }
       })()

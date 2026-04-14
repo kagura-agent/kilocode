@@ -382,6 +382,11 @@ export const SessionProvider: ParentComponent = (props) => {
     setStore("modelSelections", agentName, sel)
   })
 
+  function modelOverride(agentName: string): ModelSelection | null {
+    if (!userSetAgents()[agentName]) return null
+    return store.modelSelections[agentName] ?? null
+  }
+
   // Global model selection per agent/mode
   // Precedence: per-session override > user override > per-mode config > global config model > VS Code default > kilo-auto/free
   // Each candidate is validated against the provider catalog; invalid models fall through.
@@ -392,7 +397,7 @@ export const SessionProvider: ParentComponent = (props) => {
       if (session) return session
     }
     const agentName = selectedAgentName()
-    return resolveModel(agentName, store.modelSelections[agentName])
+    return resolveModel(agentName, modelOverride(agentName))
   })
 
   function pushRecent(selection: ModelSelection) {
@@ -1854,7 +1859,7 @@ export const SessionProvider: ParentComponent = (props) => {
       const override = store.sessionOverrides[sessionID]
       if (override) return override
       const agentName = store.agentSelections[sessionID] ?? defaultAgent()
-      return resolveModel(agentName, store.modelSelections[agentName])
+      return resolveModel(agentName, modelOverride(agentName))
     },
     setSessionModel: (sessionID: string, providerID: string, modelID: string) => {
       // Only write per-session override — do NOT touch global modelSelections or

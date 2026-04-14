@@ -32,6 +32,7 @@ interface KiloRoutesDeps extends ImportDeps {
   Auth: Auth
   ModelCache: ModelCache
   z: Z
+  Instance: ImportDeps["Instance"] & { disposeAll(): Promise<void> }
 }
 
 /**

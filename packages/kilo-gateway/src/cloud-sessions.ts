@@ -61,7 +61,6 @@ export interface ImportDeps {
   Instance: {
     readonly directory: string
     readonly project: { readonly id: string }
-    disposeAll(): Promise<void>
   }
   SessionTable: object
   MessageTable: object

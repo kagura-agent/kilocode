@@ -206,6 +206,7 @@ export function createKiloRoutes(deps: KiloRoutesDeps) {
 
         ModelCache.clear("kilo")
         clearModesCache()
+        await Instance.disposeAll()
 
         return c.json(true)
       },

@@ -188,6 +188,11 @@ export class AgentManagerProvider implements Disposable {
     }
     this.panel = ctx
 
+    this.statsPoller.setVisible(ctx.visible)
+    ctx.onDidChangeVisibility((visible) => {
+      this.statsPoller.setVisible(visible)
+    })
+
     this.stateReady = this.initializeState()
     void this.sendRepoInfo()
     this.sendKeybindings()

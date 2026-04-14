@@ -1100,6 +1100,13 @@ export function Session() {
               scrollAcceleration={scrollAcceleration()}
             >
               <box height={1} />
+              {/* kilocode_change start */}
+              <Show when={session()?.parentID && messages().length === 0}>
+                <box paddingLeft={3}>
+                  <text fg={theme.textMuted}>↳ Initializing...</text>
+                </box>
+              </Show>
+              {/* kilocode_change end */}
               <For each={messages()}>
                 {(message, index) => (
                   <Switch>
@@ -2050,11 +2057,18 @@ function Task(props: ToolProps<typeof TaskTool>) {
     if (!props.input.description) return ""
     let content = [`${Locale.titlecase(props.input.subagent_type ?? "General")} Task — ${props.input.description}`]
 
-    if (isRunning() && tools().length > 0) {
-      // content[0] += ` · ${tools().length} toolcalls`
-      if (current()) content.push(`↳ ${Locale.titlecase(current()!.tool)} ${(current()!.state as any).title}`)
-      else content.push(`↳ ${tools().length} toolcalls`)
+    // kilocode_change start
+    if (isRunning()) {
+      if (tools().length === 0) {
+        content.push(`↳ Starting...`)
+      } else if (current()) {
+        // content[0] += ` · ${tools().length} toolcalls`
+        content.push(`↳ ${Locale.titlecase(current()!.tool)} ${(current()!.state as any).title}`)
+      } else {
+        content.push(`↳ ${tools().length} toolcalls`)
+      }
     }
+    // kilocode_change end
 
     if (props.part.state.status === "completed") {
       content.push(`└ ${tools().length} toolcalls · ${Locale.duration(duration())}`)

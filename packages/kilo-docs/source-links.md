@@ -55,12 +55,12 @@
   <!-- packages/kilo-vscode/webview-ui/src/components/settings/AboutKiloCodeTab.tsx -->
 - <https://github.com/Kilo-Org/kilocode/issues/6986>
   <!-- packages/kilo-vscode/src/agent-manager/constants.ts -->
+- <https://github.com/Kilo-Org/kilocode/issues/new?template=bug-report.yml>
+  <!-- packages/opencode/src/cli/cmd/tui/app.tsx -->
 - <https://github.com/Kilo-Org/kilocode/issues/new/choose>
   <!-- packages/kilo-vscode/webview-ui/src/components/chat/FeedbackDialog.tsx -->
 - <https://github.com/microsoft/vscode-eslint/archive/refs/heads/main.zip>
   <!-- packages/opencode/src/lsp/server.ts -->
-- <https://github.com/OpenRouterTeam/ai-sdk-provider/pull/344/>
-  <!-- packages/opencode/src/provider/transform.ts -->
 - <https://github.com/oven-sh/bun/issues/16682>
   <!-- packages/opencode/src/provider/provider.ts -->
 - <https://github.com/vercel/ai/blob/2dc67e0ef538307f21368db32d5a12345d98831b/packages/ai/src/logger/log-warnings.ts#L85>

@@ -48,7 +48,6 @@ interface GitStatsPollerOptions {
   intervalMs?: number
   /** Shared concurrency gate for child process spawning. */
   semaphore?: Semaphore
-  visibleIntervalMs?: number
   hiddenIntervalMs?: number
 }
 
@@ -67,7 +66,6 @@ export class GitStatsPoller {
   private readonly hiddenIntervalMs: number
   private readonly git: GitOps
   private skipWorktreeIds = new Set<string>()
-  private consecutiveNoChanges = 0
   private visible = true
 
   constructor(private readonly options: GitStatsPollerOptions) {
@@ -82,7 +80,7 @@ export class GitStatsPoller {
     if (this.active && this.timer) {
       clearTimeout(this.timer)
       this.timer = undefined
-      this.schedule(this.getAdaptiveInterval())
+      this.schedule(this.visible ? this.intervalMs : this.hiddenIntervalMs)
     }
   }
 
@@ -117,20 +115,8 @@ export class GitStatsPoller {
     this.lastStats = {}
   }
 
-  private getAdaptiveInterval(): number {
-    if (!this.visible) {
-      return this.hiddenIntervalMs
-    }
-    if (this.consecutiveNoChanges > 10) {
-      return 60000
-    }
-    if (this.consecutiveNoChanges > 5) {
-      return 30000
-    }
-    if (this.consecutiveNoChanges > 2) {
-      return 10000
-    }
-    return this.intervalMs
+  private currentInterval(): number {
+    return this.visible ? this.intervalMs : this.hiddenIntervalMs
   }
 
   private schedule(delay: number): void {
@@ -146,15 +132,11 @@ export class GitStatsPoller {
     this.busy = true
     return this.fetch().finally(() => {
       this.busy = false
-      const interval = this.getAdaptiveInterval()
-      this.schedule(interval)
+      this.schedule(this.currentInterval())
     })
   }
 
   private async fetch(): Promise<void> {
-    let worktreeChanged = false
-    let localChanged = false
-
     const client = (() => {
       try {
         return this.options.getClient()
@@ -164,23 +146,10 @@ export class GitStatsPoller {
       }
     })()
 
-    await Promise.all([
-      this.fetchWorktreeStats(client, () => {
-        worktreeChanged = true
-      }),
-      this.fetchLocalStats(client, () => {
-        localChanged = true
-      }),
-    ])
-
-    if (worktreeChanged || localChanged) {
-      this.consecutiveNoChanges = 0
-    } else {
-      this.consecutiveNoChanges++
-    }
+    await Promise.all([this.fetchWorktreeStats(client), this.fetchLocalStats(client)])
   }
 
-  private async fetchWorktreeStats(client: KiloClient | undefined, onChanged?: () => void): Promise<void> {
+  private async fetchWorktreeStats(client: KiloClient | undefined): Promise<void> {
     const worktrees = this.options.getWorktrees()
     if (worktrees.length === 0) return
 
@@ -243,11 +212,8 @@ export class GitStatsPoller {
         (item) => `${item.worktreeId}:${item.files}:${item.additions}:${item.deletions}:${item.ahead}:${item.behind}`,
       )
       .join("|")
-    if (hash === this.lastHash) {
-      return
-    }
+    if (hash === this.lastHash) return
     this.lastHash = hash
-    onChanged?.()
     this.lastStats = stats.reduce(
       (acc, item) => {
         acc[item.worktreeId] = {
@@ -296,7 +262,7 @@ export class GitStatsPoller {
     return { worktrees: worktreeStatuses, degraded: false }
   }
 
-  private async fetchLocalStats(client: KiloClient | undefined, onChanged?: () => void): Promise<void> {
+  private async fetchLocalStats(client: KiloClient | undefined): Promise<void> {
     const root = this.options.getWorkspaceRoot()
     if (!root) return
 
@@ -347,7 +313,6 @@ export class GitStatsPoller {
         return
       }
       this.lastLocalHash = hash
-      onChanged?.()
 
       this.options.log(`Local stats: emitting files=${files} +${additions} -${deletions} ↑${ahead} ↓${behind}`)
       const stats: LocalStats = { branch, files, additions, deletions, ahead, behind }

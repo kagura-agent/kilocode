@@ -28,7 +28,7 @@ describe("tool.skill", () => {
     await using tmp = await tmpdir({
       git: true,
       init: async (dir) => {
-        const skillDir = path.join(dir, ".opencode", "skill", "tool-skill")
+        const skillDir = path.join(dir, ".kilo", "skill", "tool-skill")
         await Bun.write(
           path.join(skillDir, "SKILL.md"),
           `---
@@ -69,7 +69,7 @@ description: Skill for tool tests.
           ["alpha-skill", "Alpha skill."],
           ["middle-skill", "Middle skill."],
         ]) {
-          const skillDir = path.join(dir, ".opencode", "skill", name)
+          const skillDir = path.join(dir, ".kilo", "skill", name)
           await Bun.write(
             path.join(skillDir, "SKILL.md"),
             `---
@@ -115,7 +115,7 @@ description: ${description}
     await using tmp = await tmpdir({
       git: true,
       init: async (dir) => {
-        const skillDir = path.join(dir, ".opencode", "skill", "tool-skill")
+        const skillDir = path.join(dir, ".kilo", "skill", "tool-skill")
         await Bun.write(
           path.join(skillDir, "SKILL.md"),
           `---
@@ -149,7 +149,7 @@ Use this skill.
           }
 
           const result = await tool.execute({ name: "tool-skill" }, ctx)
-          const dir = path.join(tmp.path, ".opencode", "skill", "tool-skill")
+          const dir = path.join(tmp.path, ".kilo", "skill", "tool-skill")
           const file = path.resolve(dir, "scripts", "demo.txt")
 
           expect(requests.length).toBe(1)

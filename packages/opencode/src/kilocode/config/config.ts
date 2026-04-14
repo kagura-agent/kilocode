@@ -28,10 +28,10 @@ export namespace KilocodeConfig {
   /** Kilo-specific config file names (highest-to-lowest precedence within kilo). */
   export const KILO_CONFIG_FILES = ["kilo.jsonc", "kilo.json"] as const
 
-  /** All config file names in precedence order (kilo + opencode). */
-  export const ALL_CONFIG_FILES = ["kilo.jsonc", "kilo.json", "opencode.jsonc", "opencode.json"] as const
+  /** Config file names loaded from Kilo config directories. */
+  export const ALL_CONFIG_FILES = KILO_CONFIG_FILES
 
-  /** Directory suffixes that Kilo recognizes in addition to .opencode. */
+  /** Directory suffixes that Kilo recognizes for config loading. */
   export const KILO_DIR_SUFFIXES = [".kilo", ".kilocode"] as const
 
   /** Path patterns for resolving kilo agent names from file paths. */
@@ -339,6 +339,6 @@ export namespace KilocodeConfig {
 
   /** Check whether a directory path should be treated as a config directory (for loading config files). */
   export function isConfigDir(dir: string, flagDir?: string): boolean {
-    return dir.endsWith(".kilo") || dir.endsWith(".kilocode") || dir.endsWith(".opencode") || dir === flagDir
+    return dir.endsWith(".kilo") || dir.endsWith(".kilocode") || dir === flagDir
   }
 }

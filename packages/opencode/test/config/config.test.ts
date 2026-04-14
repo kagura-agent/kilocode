@@ -1268,21 +1268,21 @@ test("keeps plugin origins aligned with merged plugin list", async () => {
   await using tmp = await tmpdir({
     init: async (dir) => {
       const project = path.join(dir, "project")
-      const local = path.join(project, ".opencode")
+      const local = path.join(project, ".kilo")
       await fs.mkdir(local, { recursive: true })
 
       await Filesystem.write(
-        path.join(dir, "opencode.json"),
+        path.join(dir, "kilo.json"),
         JSON.stringify({
-          $schema: "https://opencode.ai/config.json",
+          $schema: "https://app.kilo.ai/config.json",
           plugin: [["shared-plugin@1.0.0", { source: "global" }], "global-only@1.0.0"],
         }),
       )
 
       await Filesystem.write(
-        path.join(local, "opencode.json"),
+        path.join(local, "kilo.json"),
         JSON.stringify({
-          $schema: "https://opencode.ai/config.json",
+          $schema: "https://app.kilo.ai/config.json",
           plugin: [["shared-plugin@2.0.0", { source: "local" }], "local-only@1.0.0"],
         }),
       )
@@ -1308,6 +1308,37 @@ test("keeps plugin origins aligned with merged plugin list", async () => {
     },
   })
 })
+
+// kilocode_change start
+
+test("ignores plugins from .opencode config directories", async () => {
+  await using tmp = await tmpdir({
+    init: async (dir) => {
+      const project = path.join(dir, "project")
+      const legacy = path.join(project, ".opencode")
+      await fs.mkdir(legacy, { recursive: true })
+      await Filesystem.write(
+        path.join(legacy, "opencode.json"),
+        JSON.stringify({
+          plugin: ["legacy-local@1.0.0"],
+        }),
+      )
+    },
+  })
+
+  await Instance.provide({
+    directory: path.join(tmp.path, "project"),
+    fn: async () => {
+      const cfg = await Config.get()
+      const plugins = cfg.plugin ?? []
+      const names = plugins.map((item) => Config.pluginSpecifier(item))
+
+      expect(names).not.toContain("legacy-local@1.0.0")
+    },
+  })
+})
+
+// kilocode_change end
 
 // Legacy tools migration tests
 

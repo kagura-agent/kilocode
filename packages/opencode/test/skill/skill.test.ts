@@ -339,8 +339,8 @@ test("properly resolves directories that skills live in", async () => {
   await using tmp = await tmpdir({
     git: true,
     init: async (dir) => {
-      const opencodeSkillDir = path.join(dir, ".opencode", "skill", "agent-skill") // kilocode_change .opencode backward compat
-      const opencodeSkillsDir = path.join(dir, ".opencode", "skills", "agent-skill") // kilocode_change .opencode backward compat
+      const kiloSkillDir = path.join(dir, ".kilo", "skill", "agent-skill") // kilocode_change
+      const kilocodeSkillsDir = path.join(dir, ".kilocode", "skills", "agent-skill") // kilocode_change
       const claudeDir = path.join(dir, ".claude", "skills", "claude-skill")
       const agentDir = path.join(dir, ".agents", "skills", "agent-skill")
       await Bun.write(
@@ -364,23 +364,23 @@ description: A skill in the .agents/skills directory.
 `,
       )
       await Bun.write(
-        path.join(opencodeSkillDir, "SKILL.md"),
+        path.join(kiloSkillDir, "SKILL.md"),
         `---
-name: opencode-skill
-description: A skill in the .opencode/skill directory.
+name: kilo-skill
+description: A skill in the .kilo/skill directory.
 ---
 
-# OpenCode Skill
+# Kilo Skill
 `,
       )
       await Bun.write(
-        path.join(opencodeSkillsDir, "SKILL.md"),
+        path.join(kilocodeSkillsDir, "SKILL.md"),
         `---
-name: opencode-skill
-description: A skill in the .opencode/skills directory.
+name: kilocode-skill
+description: A skill in the .kilocode/skills directory.
 ---
 
-# OpenCode Skill
+# Kilocode Skill
 `,
       )
     },

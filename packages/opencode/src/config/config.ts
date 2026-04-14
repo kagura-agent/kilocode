@@ -257,16 +257,16 @@ export namespace Config {
       })
       if (!md) continue
 
+      // kilocode_change start
       const patterns = [
         "/.kilo/command/",
         "/.kilo/commands/",
         "/.kilocode/command/",
         "/.kilocode/commands/",
-        "/.opencode/command/",
-        "/.opencode/commands/",
         "/command/",
         "/commands/",
       ]
+      // kilocode_change end
       const file = rel(item, patterns) ?? path.basename(item)
       const name = trim(file)
 
@@ -322,8 +322,6 @@ export namespace Config {
         "/.kilo/agents/",
         "/.kilocode/agent/",
         "/.kilocode/agents/",
-        "/.opencode/agent/",
-        "/.opencode/agents/",
         "/agent/",
         "/agents/",
       ]

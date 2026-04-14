@@ -240,7 +240,6 @@ export function patchAgents(
           edit: {
             "*": "ask",
             [path.join(".kilo", "plans", "*.md")]: "allow",
-            [path.join(".opencode", "plans", "*.md")]: "allow",
             [path.relative(Instance.worktree, path.join(Global.Path.data, path.join("plans", "*.md")))]: "allow",
           },
         }),

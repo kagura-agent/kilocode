@@ -186,5 +186,9 @@ export class VscodeHost implements Host {
     void vscode.commands.executeCommand("git.refresh")
   }
 
+  openSettings(tab?: string): void {
+    void vscode.commands.executeCommand("kilo-code.new.settingsButtonClicked", tab)
+  }
+
   dispose(): void {}
 }

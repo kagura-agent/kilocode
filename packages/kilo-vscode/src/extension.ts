@@ -292,6 +292,20 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand("kilo-code.new.agentManager.showShortcuts", () => {
       agentManagerProvider.postMessage({ type: "action", action: "showShortcuts" })
     }),
+    vscode.commands.registerCommand("kilo-code.new.agentManager.configureSetupScript", () => {
+      agentManagerProvider.configureSetupScript()
+    }),
+    vscode.commands.registerCommand("kilo-code.new.agentManager.getSettings", async () => ({
+      defaultBaseBranch: (await agentManagerProvider.getDefaultBaseBranch()) ?? "",
+      reviewDiffStyle: await agentManagerProvider.getReviewDiffStyle(),
+    })),
+    vscode.commands.registerCommand("kilo-code.new.agentManager.setDefaultBaseBranch", (branch: string) =>
+      agentManagerProvider.setDefaultBaseBranch(branch || undefined),
+    ),
+    vscode.commands.registerCommand("kilo-code.new.agentManager.setReviewDiffStyle", (style: "unified" | "split") =>
+      agentManagerProvider.setReviewDiffStyle(style),
+    ),
+    vscode.commands.registerCommand("kilo-code.new.agentManager.getBranches", () => agentManagerProvider.getBranches()),
 
     vscode.commands.registerCommand("kilo-code.new.agentManager.newTab", () => {
       agentManagerProvider.postMessage({ type: "action", action: "newTab" })

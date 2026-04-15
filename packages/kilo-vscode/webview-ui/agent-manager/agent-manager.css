@@ -3652,16 +3652,6 @@ body.am-wt-dragging-active * {
   color: var(--syntax-diff-delete, #da3319);
 }
 
-/* ============ Default base branch picker dialog ============ */
-
-.am-default-base-branch {
-  min-width: 360px;
-}
-
-.am-default-base-branch .am-dropdown-list {
-  max-height: 320px;
-}
-
 .am-branch-hint {
   margin-left: auto;
   color: var(--text-weaker);

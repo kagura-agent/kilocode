@@ -30,6 +30,7 @@ import { WorktreeImporter } from "./worktree-importer"
 import { buildKeybindingMap } from "./format-keybinding"
 import { resolveVersionModels, buildInitialMessages, type CreatedVersion } from "./multi-version"
 import { Semaphore } from "./semaphore"
+import * as settings from "./settings-commands"
 import { PLATFORM } from "./constants"
 import type { AgentManagerOutMessage, AgentManagerInMessage } from "./types"
 import type { Host, PanelContext, OutputHandle, Disposable } from "./host"
@@ -380,6 +381,10 @@ export class AgentManagerProvider implements Disposable {
   ): Record<string, unknown> | null | undefined {
     if (m.type === "agentManager.configureSetupScript") {
       void this.configureSetupScript()
+      return null
+    }
+    if (m.type === "agentManager.openSettings") {
+      this.host.openSettings("agentManager")
       return null
     }
     if (handleRunMessage(this.run, m)) return null
@@ -1123,7 +1128,7 @@ export class AgentManagerProvider implements Disposable {
   // ---------------------------------------------------------------------------
 
   /** Open the worktree setup script in the editor for user configuration. */
-  private async configureSetupScript(): Promise<void> {
+  public async configureSetupScript(): Promise<void> {
     const service = this.getSetupScriptService()
     if (!service) return
     try {
@@ -1496,6 +1501,22 @@ export class AgentManagerProvider implements Disposable {
   public postMessage(message: unknown): void {
     this.panel?.postMessage(message)
   }
+
+  // Settings accessors (for extension commands wired to the settings tab)
+  private get settingsCtx(): import("./settings-commands").SettingsContext {
+    return {
+      stateReady: this.stateReady,
+      state: this.state ?? undefined,
+      getStateManager: () => this.getStateManager(),
+      getWorktreeManager: () => this.getWorktreeManager(),
+      pushState: () => this.pushState(),
+    }
+  }
+  public getDefaultBaseBranch = () => settings.getDefaultBaseBranch(this.settingsCtx)
+  public setDefaultBaseBranch = (v: string | undefined) => settings.setDefaultBaseBranch(this.settingsCtx, v)
+  public getReviewDiffStyle = () => settings.getReviewDiffStyle(this.settingsCtx)
+  public setReviewDiffStyle = (v: "unified" | "split") => settings.setReviewDiffStyle(this.settingsCtx, v)
+  public getBranches = () => settings.getBranches(this.settingsCtx)
 
   public dispose(): void {
     this.connectionService.unregisterFocused("agent-manager")

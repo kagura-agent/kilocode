@@ -426,6 +426,10 @@ export interface CompactionConfig {
   prune?: boolean
 }
 
+export interface CommitMessageConfig {
+  prompt?: string
+}
+
 export interface WatcherConfig {
   ignore?: string[]
 }
@@ -437,10 +441,6 @@ export interface ExperimentalConfig {
   primary_tools?: string[]
   continue_loop_on_deny?: boolean
   mcp_timeout?: number
-}
-
-export interface CommitMessageConfig {
-  prompt?: string
 }
 
 export interface Config {
@@ -464,9 +464,9 @@ export interface Config {
   formatter?: false | Record<string, unknown>
   lsp?: false | Record<string, unknown>
   compaction?: CompactionConfig
-  commit_message?: CommitMessageConfig
   tools?: Record<string, boolean>
   layout?: "auto" | "stretch"
+  commit_message?: CommitMessageConfig
   experimental?: ExperimentalConfig
 }
 
@@ -1548,6 +1548,8 @@ export type ExtensionMessage =
   | AgentManagerSessionForkedMessage
   | AgentManagerStateMessage
   | AgentManagerRunStatusMessage
+  | AgentManagerSettingsMessage
+  | AgentManagerBranchesSettingsMessage
   | AgentManagerKeybindingsMessage
   | AgentManagerMultiVersionProgressMessage
   | AgentManagerSetSessionModelMessage
@@ -2165,7 +2167,43 @@ export interface SetSessionsCollapsedRequest {
   collapsed: boolean
 }
 
-// Persist review diff style preference
+// Agent manager settings response (extension → webview, via SettingsEditorProvider)
+export interface AgentManagerSettingsMessage {
+  type: "agentManagerSettings"
+  defaultBaseBranch: string
+  reviewDiffStyle: "unified" | "split"
+}
+
+// Agent manager branches response (extension → webview, for default base branch picker)
+export interface AgentManagerBranchesSettingsMessage {
+  type: "agentManagerBranches"
+  branches: BranchInfo[]
+  defaultBranch: string
+}
+
+// Request agent manager settings from extension (via SettingsEditorProvider)
+export interface RequestAgentManagerSettingsMessage {
+  type: "requestAgentManagerSettings"
+}
+
+// Set a single agent manager setting (via SettingsEditorProvider → VS Code command)
+export interface SetAgentManagerSettingMessage {
+  type: "setAgentManagerSetting"
+  key: string
+  value: unknown
+}
+
+// Request branch list for default base branch picker
+export interface RequestAgentManagerBranchesMessage {
+  type: "requestAgentManagerBranches"
+}
+
+// Open extension settings panel (from agent manager)
+export interface OpenAgentManagerSettingsRequest {
+  type: "agentManager.openSettings"
+}
+
+// Persist review diff style from inline toggle (agent manager → extension)
 export interface SetReviewDiffStyleRequest {
   type: "agentManager.setReviewDiffStyle"
   style: "unified" | "split"
@@ -2546,6 +2584,10 @@ export type WebviewMessage =
   | SetWorktreeOrderRequest
   | SetSessionsCollapsedRequest
   | SetReviewDiffStyleRequest
+  | OpenAgentManagerSettingsRequest
+  | RequestAgentManagerSettingsMessage
+  | SetAgentManagerSettingMessage
+  | RequestAgentManagerBranchesMessage
   | PersistVariantRequest
   | RequestVariantsMessage
   | RequestCloudSessionDataMessage

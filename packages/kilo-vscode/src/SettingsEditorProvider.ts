@@ -108,10 +108,34 @@ export class SettingsEditorProvider implements vscode.Disposable {
     }
     provider.resolveWebviewPanel(panel)
 
-    // Listen for closePanel from the webview (back button in panel mode)
-    const closePanelDisposable = panel.webview.onDidReceiveMessage((msg) => {
+    // Listen for closePanel and agent manager settings from the webview
+    const closePanelDisposable = panel.webview.onDidReceiveMessage(async (msg) => {
       if (msg.type === "closePanel") {
         panel.dispose()
+      }
+      // Forward agent manager setup script action to the registered command
+      if (msg.type === "agentManager.configureSetupScript") {
+        void vscode.commands.executeCommand("kilo-code.new.agentManager.configureSetupScript")
+      }
+      // Agent manager settings: read current values and push to webview
+      if (msg.type === "requestAgentManagerSettings") {
+        const settings = await vscode.commands.executeCommand("kilo-code.new.agentManager.getSettings")
+        provider.postMessage({ type: "agentManagerSettings", ...(settings as object) })
+      }
+      // Agent manager settings: write a value via command
+      if (msg.type === "setAgentManagerSetting") {
+        const { key, value } = msg as { key: string; value: unknown }
+        if (key === "defaultBaseBranch") {
+          void vscode.commands.executeCommand("kilo-code.new.agentManager.setDefaultBaseBranch", value)
+        }
+        if (key === "reviewDiffStyle") {
+          void vscode.commands.executeCommand("kilo-code.new.agentManager.setReviewDiffStyle", value)
+        }
+      }
+      // Agent manager branches: fetch branch list for the default base branch picker
+      if (msg.type === "requestAgentManagerBranches") {
+        const data = await vscode.commands.executeCommand("kilo-code.new.agentManager.getBranches")
+        provider.postMessage({ type: "agentManagerBranches", ...(data as object) })
       }
     })
 

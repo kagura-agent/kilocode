@@ -436,6 +436,10 @@ interface SetDefaultBaseBranchIn {
   branch?: string
 }
 
+interface OpenSettingsIn {
+  type: "agentManager.openSettings"
+}
+
 interface RequestExternalWorktreesIn {
   type: "agentManager.requestExternalWorktrees"
 }
@@ -669,6 +673,7 @@ export type AgentManagerInMessage =
   | SetSessionsCollapsedIn
   | SetReviewDiffStyleIn
   | SetDefaultBaseBranchIn
+  | OpenSettingsIn
   | RequestExternalWorktreesIn
   | ImportFromBranchIn
   | ImportFromPRIn

@@ -946,6 +946,20 @@ export const dict = {
   "settings.notifications.title": "การแจ้งเตือน",
   "settings.context.title": "บริบท",
 
+  "settings.agentManager.title": "Agent Manager",
+  "settings.agentManager.defaultBaseBranch.title": "Default Base Branch",
+  "settings.agentManager.defaultBaseBranch.description": "Branch used as the base when creating new worktrees.",
+  "settings.agentManager.defaultBaseBranch.auto": "Auto-detect",
+  "settings.agentManager.defaultBaseBranch.search": "Search branches...",
+  "settings.agentManager.defaultBaseBranch.loading": "Loading branches...",
+  "settings.agentManager.defaultBaseBranch.empty": "No matching branches",
+  "settings.agentManager.reviewDiffStyle.title": "Review Diff Style",
+  "settings.agentManager.reviewDiffStyle.description": "How diffs are displayed in the review panel.",
+  "settings.agentManager.setupScript.title": "Setup Script",
+  "settings.agentManager.setupScript.description":
+    "Script that runs automatically when a new worktree is created (e.g. install dependencies).",
+  "settings.agentManager.setupScript.button": "Edit Setup Script",
+
   "settings.experimental.title": "ทดลอง",
   "settings.language.title": "ภาษา",
   "settings.aboutKiloCode.title": "เกี่ยวกับ Kilo Code",

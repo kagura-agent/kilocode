@@ -17,7 +17,7 @@ import DisplayTab from "./DisplayTab"
 import AutocompleteTab from "./AutocompleteTab"
 import NotificationsTab from "./NotificationsTab"
 import ContextTab from "./ContextTab"
-
+import AgentManagerTab from "./AgentManagerTab"
 import CommitMessageTab from "./CommitMessageTab"
 import ExperimentalTab from "./ExperimentalTab"
 import LanguageTab from "./LanguageTab"
@@ -139,6 +139,10 @@ const Settings: Component<SettingsProps> = (props) => {
             <span class="label">{language.t("settings.context.title")}</span>
           </Tabs.Trigger>
 
+          <Tabs.Trigger value="agentManager">
+            <Icon name="layers" />
+            <span class="label">{language.t("settings.agentManager.title")}</span>
+          </Tabs.Trigger>
           <Tabs.Trigger value="commitMessage">
             <Icon name="edit" />
             <span class="label">{language.t("settings.commitMessage.title")}</span>
@@ -198,6 +202,10 @@ const Settings: Component<SettingsProps> = (props) => {
           <ContextTab />
         </Tabs.Content>
 
+        <Tabs.Content value="agentManager">
+          <h3>{language.t("settings.agentManager.title")}</h3>
+          <AgentManagerTab />
+        </Tabs.Content>
         <Tabs.Content value="commitMessage">
           <h3>{language.t("settings.commitMessage.title")}</h3>
           <CommitMessageTab />

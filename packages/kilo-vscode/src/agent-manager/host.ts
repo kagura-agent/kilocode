@@ -125,6 +125,9 @@ export interface Host {
   /** Ask VS Code's git extension to re-scan repositories (e.g. after worktree ref migration). */
   refreshGit(): void
 
+  /** Open the extension settings panel, optionally navigating to a specific tab. */
+  openSettings(tab?: string): void
+
   /** Dispose all host resources. */
   dispose(): void
 }

@@ -32,6 +32,7 @@ import {
   resolveContextDirectory,
   resolveWorkspaceDirectory,
   mergeFileSearchResults,
+  patchConfig,
   type SessionRefreshContext,
 } from "./kilo-provider-utils"
 import { GitOps } from "./agent-manager/GitOps"
@@ -2264,12 +2265,14 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
 
       await this.client.global.config.update({ config: partial }, { throwOnError: true })
 
-      // Re-fetch the full merged config (global + project + all layers) so the
-      // webview receives the complete resolved config, not just global-only data.
-      // Config.state is reset by updateGlobal (via Instance.resetStateEntry) so
-      // config.get() returns fresh data without a full dispose cycle.
-      const dir = this.getWorkspaceDirectory()
-      const { data: merged } = await retry(() => this.client!.config.get({ directory: dir }, { throwOnError: true }))
+      // Optimistically merge the partial changes onto the cached full config
+      // instead of re-fetching via config.get(). The CLI's updateGlobal()
+      // fires Instance.disposeAll() as fire-and-forget, so the per-instance
+      // ScopedCache may still serve stale data at this point. The SSE-triggered
+      // reload (server.instance.disposed → reloadAfterAuthChange) will later
+      // bring the fully resolved config from the server.
+      const cached = (this.cachedConfigMessage as { config: Record<string, unknown> } | undefined)?.config ?? {}
+      const merged = patchConfig(cached, partial as Record<string, unknown>)
 
       this.cachedConfigMessage = { type: "configLoaded", config: merged }
       this.postMessage({ type: "configUpdated", config: merged })

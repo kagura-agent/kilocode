@@ -481,3 +481,27 @@ export function mergeFileSearchResults(input: {
   const seen = new Set(tabs)
   return [...tabs, ...input.backend.filter((p) => !seen.has(p))]
 }
+
+/**
+ * Deep-merge a partial config patch onto a full config object.
+ * - Nested plain objects are merged recursively.
+ * - `null` values act as delete sentinels (the key is removed).
+ * - Arrays and primitives are replaced outright.
+ */
+export function patchConfig(target: Record<string, unknown>, patch: Record<string, unknown>): Record<string, unknown> {
+  const result: Record<string, unknown> = { ...target }
+  for (const [key, value] of Object.entries(patch)) {
+    if (value === null) {
+      delete result[key]
+    } else if (isRecord(value) && isRecord(result[key])) {
+      result[key] = patchConfig(result[key] as Record<string, unknown>, value)
+    } else {
+      result[key] = value
+    }
+  }
+  return result
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === "object" && !Array.isArray(value)
+}

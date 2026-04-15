@@ -14,6 +14,24 @@ export namespace Heap {
   let armed = true
 
   export function start() {
+    // kilocode_change start - periodic memory logging when KILO_PROFILE is set
+    if (Flag.KILO_PROFILE) {
+      const interval = 30_000
+      const profiler = setInterval(() => {
+        const mem = process.memoryUsage()
+        log.info("memory", {
+          rss: +(mem.rss / 1024 / 1024).toFixed(1),
+          heap: +(mem.heapUsed / 1024 / 1024).toFixed(1),
+          external: +(mem.external / 1024 / 1024).toFixed(1),
+          buffers: +(mem.arrayBuffers / 1024 / 1024).toFixed(1),
+          pid: process.pid,
+        })
+      }, interval)
+      profiler.unref?.()
+      log.info("memory profiling enabled", { interval })
+    }
+    // kilocode_change end
+
     if (!Flag.KILO_AUTO_HEAP_SNAPSHOT) return
     if (timer) return
 

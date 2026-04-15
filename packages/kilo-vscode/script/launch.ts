@@ -13,6 +13,7 @@
  *   --insiders        Prefer VS Code Insiders over stable
  *   --wait            Block until the VS Code window is closed
  *   --clean           Wipe the user-data and extensions dirs before launching
+ *   --profile         Enable memory profiling for both the extension host and CLI backend
  *
  * Environment:
  *   VSCODE_EXEC_PATH  Path to VS Code executable (same as --app-path)
@@ -84,6 +85,7 @@ const insiders = opts["insiders"] === true
 const explicit = opts["app-path"] as string | undefined
 const blocking = opts["wait"] === true
 const clean = opts["clean"] === true
+const profile = opts["profile"] === true
 
 // ---------------------------------------------------------------------------
 // VS Code executable detection
@@ -308,6 +310,18 @@ async function launch() {
   const env = { ...process.env }
   for (const key of Object.keys(env)) {
     if (key.startsWith("ELECTRON_") || key.startsWith("VSCODE_")) delete env[key]
+  }
+
+  // --profile: enable memory profiling for both the extension host and CLI backend.
+  // KILO_PROFILE propagates from the VS Code extension host env to the spawned
+  // kilo serve child process (server-manager.ts spreads process.env). This enables:
+  //   - Periodic memory logging every 30s in the CLI backend
+  //   - /global/debug/memory, /global/debug/snapshot, /global/debug/gc HTTP endpoints
+  //   - Auto heap snapshots when RSS exceeds 2 GB
+  if (profile) {
+    env.KILO_PROFILE = "1"
+    env.KILO_AUTO_HEAP_SNAPSHOT = "1"
+    console.log("[launch] Memory profiling enabled (KILO_PROFILE=1, KILO_AUTO_HEAP_SNAPSHOT=1)")
   }
 
   console.log(`[launch] Starting VS Code (${mode} mode)`)

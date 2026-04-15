@@ -100,6 +100,12 @@ export class ServerManager {
         if (port !== null && !resolved) {
           resolved = true
           console.log("[Kilo New] ServerManager: 🎯 Port detected:", port)
+          if (process.env.KILO_PROFILE) {
+            console.log(`[Kilo New] ServerManager: 🔬 Memory profiling enabled. Debug endpoints:`)
+            console.log(`[Kilo New]   GET  http://127.0.0.1:${port}/global/debug/memory   — current memory stats`)
+            console.log(`[Kilo New]   POST http://127.0.0.1:${port}/global/debug/snapshot  — write heap snapshot`)
+            console.log(`[Kilo New]   POST http://127.0.0.1:${port}/global/debug/gc        — force GC + report`)
+          }
           resolve({ port, password, process: serverProcess })
         }
       })

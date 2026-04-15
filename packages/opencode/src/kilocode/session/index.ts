@@ -155,7 +155,8 @@ export namespace KiloSession {
     await removeSession(id)
     clearPlatformOverride(id)
     const [app, state] = await Promise.all([import("@/effect/app-runtime"), import("@/session/run-state")])
-    await app.AppRuntime.runPromise(state.SessionRunState.Service.use((svc) => svc.cancel(id)))
+    const { SessionID } = await import("@/session/schema")
+    await app.AppRuntime.runPromise(state.SessionRunState.Service.use((svc) => svc.cancel(SessionID.make(id))))
   }
 
   // ---------------------------------------------------------------------------

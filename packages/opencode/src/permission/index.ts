@@ -8,6 +8,7 @@ import { MessageID, SessionID } from "@/session/schema"
 import { PermissionTable } from "@/session/session.sql"
 import { Database, eq } from "@/storage/db"
 import { Log } from "@/util/log"
+import { makeRuntime } from "@/effect/run-service" // kilocode_change
 import { Wildcard } from "@/util/wildcard"
 import { Deferred, Effect, Layer, Schema, Context } from "effect"
 import os from "os"
@@ -487,5 +488,16 @@ export namespace Permission {
     }
     return result
   }
+  // kilocode_change end
+
+  // kilocode_change start - legacy promise helpers for Kilo callsites
+  const { runPromise } = makeRuntime(Service, defaultLayer)
+  export const list = () => runPromise((svc) => svc.list())
+  export const ask = (input: z.infer<typeof AskInput>) => runPromise((svc) => svc.ask(input))
+  export const reply = (input: z.infer<typeof ReplyInput>) => runPromise((svc) => svc.reply(input))
+  export const saveAlwaysRules = (input: z.infer<typeof SaveAlwaysRulesInput>) =>
+    runPromise((svc) => svc.saveAlwaysRules(input))
+  export const allowEverything = (input: z.infer<typeof AllowEverythingInput>) =>
+    runPromise((svc) => svc.allowEverything(input))
   // kilocode_change end
 }

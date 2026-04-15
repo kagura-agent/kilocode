@@ -6,6 +6,7 @@ import { Storage } from "@/storage/storage"
 import { Session } from "."
 import { MessageV2 } from "./message-v2"
 import { SessionID, MessageID } from "./schema"
+import { makeRuntime } from "@/effect/run-service" // kilocode_change
 
 export namespace SessionSummary {
   function unquoteGitPath(input: string) {
@@ -170,4 +171,10 @@ export namespace SessionSummary {
     sessionID: SessionID.zod,
     messageID: MessageID.zod.optional(),
   })
+
+  // kilocode_change start - legacy promise helpers for Kilo callsites
+  const { runPromise } = makeRuntime(Service, defaultLayer)
+  export const diff = (input: { sessionID: SessionID; messageID?: MessageID }) =>
+    runPromise((svc) => svc.diff(input))
+  // kilocode_change end
 }

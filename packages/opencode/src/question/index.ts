@@ -7,6 +7,7 @@ import { zod } from "@/util/effect-zod"
 import { Log } from "@/util/log"
 import { withStatics } from "@/util/schema"
 import { QuestionID } from "./schema"
+import { makeRuntime } from "@/effect/run-service" // kilocode_change
 
 export namespace Question {
   const log = Log.create({ service: "question" })
@@ -226,4 +227,12 @@ export namespace Question {
   )
 
   export const defaultLayer = layer.pipe(Layer.provide(Bus.layer))
+
+  // kilocode_change start - legacy promise helpers for Kilo callsites
+  const { runPromise } = makeRuntime(Service, defaultLayer)
+  export const list = () => runPromise((svc) => svc.list())
+  export const ask = (input: Parameters<Interface["ask"]>[0]) => runPromise((svc) => svc.ask(input))
+  export const reply = (input: Parameters<Interface["reply"]>[0]) => runPromise((svc) => svc.reply(input))
+  export const reject = (requestID: QuestionID) => runPromise((svc) => svc.reject(requestID))
+  // kilocode_change end
 }

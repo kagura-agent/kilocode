@@ -1,6 +1,7 @@
 import * as CrossSpawnSpawner from "@/effect/cross-spawn-spawner"
 import { Effect, Layer, Context, Stream } from "effect"
 import { ChildProcess, ChildProcessSpawner } from "effect/unstable/process"
+import { makeRuntime } from "@/effect/run-service" // kilocode_change
 
 export namespace Git {
   const cfg = [
@@ -257,4 +258,9 @@ export namespace Git {
   )
 
   export const defaultLayer = layer.pipe(Layer.provide(CrossSpawnSpawner.defaultLayer))
+
+  // kilocode_change start - legacy promise helpers for Kilo callsites
+  const { runPromise } = makeRuntime(Service, defaultLayer)
+  export const run = (args: string[], opts: Options) => runPromise((svc) => svc.run(args, opts))
+  // kilocode_change end
 }

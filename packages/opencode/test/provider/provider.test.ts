@@ -1,6 +1,8 @@
 import { test, expect } from "bun:test"
-import { mkdir } from "fs/promises"
+import { mkdir, unlink } from "fs/promises"
 import path from "path"
+import { Global } from "../../src/global"
+import { Filesystem } from "../../src/util/filesystem"
 
 import { tmpdir } from "../fixture/fixture"
 import { Instance } from "../../src/project/instance"

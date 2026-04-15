@@ -236,6 +236,7 @@ function llm() {
           const stream = typeof item === "function" ? item(input) : item
           return stream.pipe(Stream.mapEffect((event) => Effect.succeed(event)))
         },
+        raw: () => Effect.die("raw not implemented in test LLM"),
       }),
     ),
   }
@@ -1469,12 +1470,14 @@ describe("SessionNs.getUsage", () => {
         cache: { read: 0.3, write: 3.75 },
       },
     })
-    const result = Session.getUsage({
+    const result = SessionNs.getUsage({
       model,
       usage: {
         inputTokens: 1_000_000,
         outputTokens: 100_000,
         totalTokens: 1_100_000,
+        inputTokenDetails: { noCacheTokens: undefined, cacheReadTokens: undefined, cacheWriteTokens: undefined },
+        outputTokenDetails: { textTokens: undefined, reasoningTokens: undefined },
       },
       metadata: {
         openrouter: {
@@ -1499,12 +1502,14 @@ describe("SessionNs.getUsage", () => {
         cache: { read: 0.3, write: 3.75 },
       },
     })
-    const result = Session.getUsage({
+    const result = SessionNs.getUsage({
       model,
       usage: {
         inputTokens: 1_000_000,
         outputTokens: 100_000,
         totalTokens: 1_100_000,
+        inputTokenDetails: { noCacheTokens: undefined, cacheReadTokens: undefined, cacheWriteTokens: undefined },
+        outputTokenDetails: { textTokens: undefined, reasoningTokens: undefined },
       },
       metadata: {
         openrouter: {
@@ -1529,12 +1534,14 @@ describe("SessionNs.getUsage", () => {
         cache: { read: 0.3, write: 3.75 },
       },
     })
-    const result = Session.getUsage({
+    const result = SessionNs.getUsage({
       model,
       usage: {
         inputTokens: 1_000_000,
         outputTokens: 100_000,
         totalTokens: 1_100_000,
+        inputTokenDetails: { noCacheTokens: undefined, cacheReadTokens: undefined, cacheWriteTokens: undefined },
+        outputTokenDetails: { textTokens: undefined, reasoningTokens: undefined },
       },
       metadata: {
         openrouter: {},
@@ -1556,13 +1563,15 @@ describe("SessionNs.getUsage", () => {
       },
     })
     const provider = { id: "kilo" } as Provider.Info
-    const result = Session.getUsage({
+    const result = SessionNs.getUsage({
       model,
       provider,
       usage: {
         inputTokens: 1_000_000,
         outputTokens: 100_000,
         totalTokens: 1_100_000,
+        inputTokenDetails: { noCacheTokens: undefined, cacheReadTokens: undefined, cacheWriteTokens: undefined },
+        outputTokenDetails: { textTokens: undefined, reasoningTokens: undefined },
       },
       metadata: {
         openrouter: {
@@ -1591,13 +1600,15 @@ describe("SessionNs.getUsage", () => {
       },
     })
     const provider = { id: "openrouter" } as Provider.Info
-    const result = Session.getUsage({
+    const result = SessionNs.getUsage({
       model,
       provider,
       usage: {
         inputTokens: 1_000_000,
         outputTokens: 100_000,
         totalTokens: 1_100_000,
+        inputTokenDetails: { noCacheTokens: undefined, cacheReadTokens: undefined, cacheWriteTokens: undefined },
+        outputTokenDetails: { textTokens: undefined, reasoningTokens: undefined },
       },
       metadata: {
         openrouter: {
@@ -1625,12 +1636,14 @@ describe("SessionNs.getUsage", () => {
         cache: { read: 0.3, write: 3.75 },
       },
     })
-    const result = Session.getUsage({
+    const result = SessionNs.getUsage({
       model,
       usage: {
         inputTokens: 1_000_000,
         outputTokens: 100_000,
         totalTokens: 1_100_000,
+        inputTokenDetails: { noCacheTokens: undefined, cacheReadTokens: undefined, cacheWriteTokens: undefined },
+        outputTokenDetails: { textTokens: undefined, reasoningTokens: undefined },
       },
       metadata: {
         openrouter: {
@@ -1659,13 +1672,15 @@ describe("SessionNs.getUsage", () => {
       },
     })
     const provider = { id: "kilo" } as Provider.Info
-    const result = Session.getUsage({
+    const result = SessionNs.getUsage({
       model,
       provider,
       usage: {
         inputTokens: 1_000_000,
         outputTokens: 100_000,
         totalTokens: 1_100_000,
+        inputTokenDetails: { noCacheTokens: undefined, cacheReadTokens: undefined, cacheWriteTokens: undefined },
+        outputTokenDetails: { textTokens: undefined, reasoningTokens: undefined },
       },
       metadata: {
         openrouter: {

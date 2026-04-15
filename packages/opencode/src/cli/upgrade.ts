@@ -28,7 +28,6 @@ export async function upgrade() {
     return
   }
 
-  if (method === "unknown") return
   await AppRuntime.runPromise(Installation.Service.use((svc) => svc.upgrade(method, latest)))
     .then(() => Bus.publish(Installation.Event.Updated, { version: latest }))
     .catch(() => {})

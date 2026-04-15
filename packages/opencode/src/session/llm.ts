@@ -440,7 +440,8 @@ export namespace LLM {
             ),
           )
 
-        return Service.of({ stream, raw: run }) // kilocode_change - expose raw streamText result for Kilo helpers
+        // kilocode_change - expose raw streamText result for Kilo helpers; Effect.orDie collapses AuthError into a defect
+        return Service.of({ stream, raw: (input) => run(input).pipe(Effect.orDie) })
       }),
     )
 

@@ -8,6 +8,7 @@ import { SessionID, MessageID, PartID } from "./schema"
 import { MessageV2 } from "./message-v2"
 import { Log } from "../util/log"
 import { SessionRevert } from "./revert"
+import { makeRuntime } from "@/effect/run-service" // kilocode_change
 import { Session } from "."
 import { Agent } from "../agent/agent"
 import { Provider } from "../provider/provider"
@@ -1908,4 +1909,11 @@ NOTE: At any point in time through this workflow you should feel free to ask the
   const argsRegex = /(?:\[Image\s+\d+\]|"[^"]*"|'[^']*'|[^\s"']+)/gi
   const placeholderRegex = /\$(\d+)/g
   const quoteTrimRegex = /^["']|["']$/g
+
+  // kilocode_change start - legacy promise helpers for Kilo callsites
+  const { runPromise } = makeRuntime(Service, defaultLayer)
+  export const prompt = (input: PromptInput) => runPromise((svc) => svc.prompt(input))
+  export const loop = (input: z.infer<typeof LoopInput>) => runPromise((svc) => svc.loop(input))
+  export const cancel = (sessionID: SessionID) => runPromise((svc) => svc.cancel(sessionID))
+  // kilocode_change end
 }

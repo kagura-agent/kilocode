@@ -11,18 +11,18 @@ export const ProviderID = providerIdSchema.pipe(
   withStatics((schema: typeof providerIdSchema) => ({
     zod: z.string().pipe(z.custom<ProviderID>()),
     // Well-known providers
-    kilo: schema.makeUnsafe("kilo"), // kilocode_change
-    opencode: schema.makeUnsafe("opencode"),
-    anthropic: schema.makeUnsafe("anthropic"),
-    openai: schema.makeUnsafe("openai"),
-    google: schema.makeUnsafe("google"),
-    googleVertex: schema.makeUnsafe("google-vertex"),
-    githubCopilot: schema.makeUnsafe("github-copilot"),
-    amazonBedrock: schema.makeUnsafe("amazon-bedrock"),
-    azure: schema.makeUnsafe("azure"),
-    openrouter: schema.makeUnsafe("openrouter"),
-    mistral: schema.makeUnsafe("mistral"),
-    gitlab: schema.makeUnsafe("gitlab"),
+    kilo: schema.make("kilo"), // kilocode_change
+    opencode: schema.make("opencode"),
+    anthropic: schema.make("anthropic"),
+    openai: schema.make("openai"),
+    google: schema.make("google"),
+    googleVertex: schema.make("google-vertex"),
+    githubCopilot: schema.make("github-copilot"),
+    amazonBedrock: schema.make("amazon-bedrock"),
+    azure: schema.make("azure"),
+    openrouter: schema.make("openrouter"),
+    mistral: schema.make("mistral"),
+    gitlab: schema.make("gitlab"),
   })),
 )
 

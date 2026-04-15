@@ -56,7 +56,7 @@ export function DialogSessionList() {
   const sessions = createMemo(() => {
     const all = searchResults() ?? []
     if (global()) return all
-    const root = sync.data.path.worktree
+    const root = project.instance.path().worktree
     if (!root || root === "/") return all
     return all.filter((s) => s.directory === root || s.directory.startsWith(root + path.sep))
   })

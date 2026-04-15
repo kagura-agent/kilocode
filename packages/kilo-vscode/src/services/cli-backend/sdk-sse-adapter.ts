@@ -173,13 +173,16 @@ export class SdkSSEAdapter {
 
           this.resetHeartbeat(attempt)
 
-          // The SDK yields GlobalEvent = { directory, payload: Event }.
+          // The SDK yields GlobalEvent = { directory, payload: Event | SyncEvent* }.
+          // We only forward the non-sync Event union; sync replay events are handled elsewhere.
           const globalEvent = event as GlobalEvent
-          const type = (globalEvent.payload as { type: string }).type
+          const payload = globalEvent.payload
+          const type = (payload as { type: string }).type
           if (type !== "server.heartbeat") {
             console.log("[Kilo New] SSE: 📨 Event:", type)
           }
-          this.notifyEvent(globalEvent.payload)
+          if (type === "sync") continue
+          this.notifyEvent(payload as Event)
         }
 
         console.log("[Kilo New] SSE: 📭 Stream ended normally")

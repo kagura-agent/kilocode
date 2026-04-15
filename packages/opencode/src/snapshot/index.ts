@@ -3,6 +3,7 @@ import { ChildProcess, ChildProcessSpawner } from "effect/unstable/process"
 import { formatPatch, structuredPatch } from "diff"
 import path from "path"
 import z from "zod"
+import { makeRuntime } from "@/effect/run-service" // kilocode_change
 import * as CrossSpawnSpawner from "@/effect/cross-spawn-spawner"
 import { InstanceState } from "@/effect/instance-state"
 import { AppFileSystem } from "@/filesystem"
@@ -789,4 +790,16 @@ export namespace Snapshot {
     Layer.provide(AppFileSystem.defaultLayer),
     Layer.provide(Config.defaultLayer),
   )
+
+  // kilocode_change start - legacy promise helpers for Kilo callsites
+  const { runPromise } = makeRuntime(Service, defaultLayer)
+  export const track = () => runPromise((svc) => svc.track())
+  export const patch = (hash: string) => runPromise((svc) => svc.patch(hash))
+  export const restore = (snapshot: string) => runPromise((svc) => svc.restore(snapshot))
+  export const revert = (patches: Patch[]) => runPromise((svc) => svc.revert(patches))
+  export const diff = (hash: string) => runPromise((svc) => svc.diff(hash))
+  export const diffFull = (from: string, to: string) => runPromise((svc) => svc.diffFull(from, to))
+  export const cleanup = () => runPromise((svc) => svc.cleanup())
+  export const init = () => runPromise((svc) => svc.init())
+  // kilocode_change end
 }

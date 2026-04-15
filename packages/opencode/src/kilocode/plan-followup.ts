@@ -20,10 +20,41 @@ import path from "path"
 import z from "zod"
 
 const agents = makeRuntime(Agent.Service, Agent.defaultLayer)
+const providers = makeRuntime(Provider.Service, Provider.defaultLayer)
+const questions = makeRuntime(Question.Service, Question.defaultLayer)
 const todo = makeRuntime(Todo.Service, Todo.defaultLayer)
 
-async function agent(name: string) {
-  return agents.runPromise((svc) => svc.get(name))
+export const PlanFollowupRuntime = {
+  agent(name: string): Promise<Agent.Info | undefined> {
+    return agents.runPromise((svc) => svc.get(name))
+  },
+  model(providerID: ProviderID, modelID: ModelID): Promise<Provider.Model> {
+    return providers.runPromise((svc) => svc.getModel(providerID, modelID))
+  },
+  question: {
+    ask(input: Parameters<Question.Interface["ask"]>[0]) {
+      return questions.runPromise((svc) => svc.ask(input))
+    },
+    list() {
+      return questions.runPromise((svc) => svc.list())
+    },
+    reject(requestID: Parameters<Question.Interface["reject"]>[0]) {
+      return questions.runPromise((svc) => svc.reject(requestID))
+    },
+  },
+  todo: {
+    get(sessionID: SessionID) {
+      return todo.runPromise((svc) => svc.get(sessionID))
+    },
+    update(input: Parameters<Todo.Interface["update"]>[0]) {
+      return todo.runPromise((svc) => svc.update(input))
+    },
+  },
+  async loop(sessionID: SessionID) {
+    const item = await import("@/session/prompt")
+    const prompt = makeRuntime(item.SessionPrompt.Service, item.SessionPrompt.defaultLayer)
+    return prompt.runPromise((svc) => svc.loop({ sessionID }))
+  },
 }
 
 function toText(item: MessageV2.WithParts): string {
@@ -73,10 +104,10 @@ export async function generateHandover(input: {
 }): Promise<string> {
   const log = Log.create({ service: "plan.followup" })
   try {
-    const entry = await agent("compaction")
+    const entry = await PlanFollowupRuntime.agent("compaction")
     const model = entry?.model
-      ? await Provider.getModel(entry.model.providerID, entry.model.modelID)
-      : await Provider.getModel(input.model.providerID, input.model.modelID)
+      ? await PlanFollowupRuntime.model(entry.model.providerID, entry.model.modelID)
+      : await PlanFollowupRuntime.model(input.model.providerID, input.model.modelID)
 
     const sessionID = SessionID.make(Identifier.ascending("session"))
     const userMsg: MessageV2.User = {
@@ -150,7 +181,7 @@ export namespace PlanFollowup {
         : undefined
     const saved = state?.model?.code
     if (saved) {
-      const full = await Provider.getModel(saved.providerID, saved.modelID).catch(() => undefined)
+      const full = await PlanFollowupRuntime.model(saved.providerID, saved.modelID).catch(() => undefined)
       if (full) {
         const key = `${saved.providerID}/${saved.modelID}`
         return {
@@ -159,9 +190,9 @@ export namespace PlanFollowup {
       }
     }
 
-    const entry = await agent("code")
+    const entry = await PlanFollowupRuntime.agent("code")
     if (entry?.model) {
-      const full = await Provider.getModel(entry.model.providerID, entry.model.modelID).catch(() => undefined)
+      const full = await PlanFollowupRuntime.model(entry.model.providerID, entry.model.modelID).catch(() => undefined)
       if (full) {
         return {
           model: { ...entry.model, variant: resolveVariant(entry.variant, full) },
@@ -226,7 +257,7 @@ export namespace PlanFollowup {
   }
 
   function prompt(input: { sessionID: SessionID; abort: AbortSignal }) {
-    const promise = Question.ask({
+    const promise = PlanFollowupRuntime.question.ask({
       sessionID: input.sessionID,
       questions: [
         {
@@ -248,9 +279,9 @@ export namespace PlanFollowup {
     })
 
     const listener = () =>
-      Question.list().then((qs) => {
+      PlanFollowupRuntime.question.list().then((qs) => {
         const match = qs.find((q) => q.sessionID === input.sessionID)
-        if (match) Question.reject(match.id)
+        if (match) PlanFollowupRuntime.question.reject(match.id)
       })
     input.abort.addEventListener("abort", listener, { once: true })
 
@@ -277,7 +308,7 @@ export namespace PlanFollowup {
     const session = await Session.get(input.sessionID)
     const [handover, todos] = await Promise.all([
       generateHandover({ messages: input.messages, model: input.model, abort: input.abort }),
-      todo.runPromise((svc) => svc.get(input.sessionID)),
+      PlanFollowupRuntime.todo.get(input.sessionID),
     ])
 
     await Instance.provide({
@@ -307,19 +338,15 @@ export namespace PlanFollowup {
           synthetic: false,
         })
         if (todos.length) {
-          await todo.runPromise((svc) => svc.update({ sessionID: next.id, todos }))
+          await PlanFollowupRuntime.todo.update({ sessionID: next.id, todos })
         }
         await Bus.publish(TuiEvent.SessionSelect, { sessionID: next.id })
-        void import("@/session/prompt")
-          .then((item) =>
-            Instance.provide({
-              directory: next.directory,
-              fn: () => item.SessionPrompt.loop({ sessionID: next.id }),
-            }),
-          )
-          .catch((error) => {
-            log.error("failed to start follow-up session", { sessionID: next.id, error })
-          })
+        void Instance.provide({
+          directory: next.directory,
+          fn: () => PlanFollowupRuntime.loop(next.id),
+        }).catch((error) => {
+          log.error("failed to start follow-up session", { sessionID: next.id, error })
+        })
       },
     })
   }

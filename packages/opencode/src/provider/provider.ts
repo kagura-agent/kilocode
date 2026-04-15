@@ -8,6 +8,7 @@ import { Log } from "../util/log"
 import { Npm } from "../npm"
 import { Hash } from "../util/hash"
 import { Plugin } from "../plugin"
+import { makeRuntime } from "@/effect/run-service" // kilocode_change
 import { NamedError } from "@opencode-ai/util/error"
 import { type LanguageModelV3 } from "@ai-sdk/provider"
 import { ModelsDev } from "./models"
@@ -1760,4 +1761,15 @@ export namespace Provider {
       providerID: ProviderID.zod,
     }),
   )
+
+  // kilocode_change start - legacy promise helpers for Kilo callsites
+  const { runPromise } = makeRuntime(Service, defaultLayer)
+  export const list = () => runPromise((svc) => svc.list())
+  export const getModel = (providerID: ProviderID, modelID: ModelID) =>
+    runPromise((svc) => svc.getModel(providerID, modelID))
+  export const getProvider = (providerID: ProviderID) => runPromise((svc) => svc.getProvider(providerID))
+  export const getLanguage = (model: Model) => runPromise((svc) => svc.getLanguage(model))
+  export const getSmallModel = (providerID: ProviderID) => runPromise((svc) => svc.getSmallModel(providerID))
+  export const defaultModel = () => runPromise((svc) => svc.defaultModel())
+  // kilocode_change end
 }

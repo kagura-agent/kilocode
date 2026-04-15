@@ -9,6 +9,7 @@ import { FileWatcher } from "@/file/watcher"
 import { Git } from "@/git"
 import { Log } from "@/util/log"
 import { Instance } from "./instance"
+import { makeRuntime } from "@/effect/run-service" // kilocode_change
 import z from "zod"
 
 export namespace Vcs {
@@ -230,4 +231,10 @@ export namespace Vcs {
     Layer.provide(AppFileSystem.defaultLayer),
     Layer.provide(Bus.layer),
   )
+
+  // kilocode_change start - legacy promise helpers for Kilo callsites
+  const { runPromise } = makeRuntime(Service, defaultLayer)
+  export const branch = () => runPromise((svc) => svc.branch())
+  export const defaultBranch = () => runPromise((svc) => svc.defaultBranch())
+  // kilocode_change end
 }

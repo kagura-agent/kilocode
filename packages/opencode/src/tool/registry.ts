@@ -125,6 +125,7 @@ export namespace ToolRegistry {
       const patchtool = yield* ApplyPatchTool
       const skilltool = yield* SkillTool
       const agent = yield* Agent.Service
+      const kiloToolInfos = yield* KiloToolRegistry.infos() // kilocode_change
 
       const state = yield* InstanceState.make<State>(
         Effect.fn("ToolRegistry.state")(function* (ctx) {
@@ -203,7 +204,7 @@ export namespace ToolRegistry {
             plan: Tool.init(plan),
           })
 
-          const kilo = yield* KiloToolRegistry.build() // kilocode_change
+          const kilo = yield* KiloToolRegistry.build(kiloToolInfos) // kilocode_change
 
           return {
             custom,

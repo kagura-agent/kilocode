@@ -68,6 +68,13 @@ export type EventGlobalDisposed = {
   }
 }
 
+export type EventGlobalConfigUpdated = {
+  type: "global.config.updated"
+  properties: {
+    [key: string]: unknown
+  }
+}
+
 export type EventFileEdited = {
   type: "file.edited"
   properties: {
@@ -466,6 +473,11 @@ export type SessionStatus =
   | {
       type: "busy"
     }
+  | {
+      type: "offline"
+      requestID: string
+      message: string
+    }
 
 export type EventSessionStatus = {
   type: "session.status"
@@ -503,6 +515,14 @@ export type EventVcsBranchUpdated = {
   type: "vcs.branch.updated"
   properties: {
     branch?: string
+  }
+}
+
+export type EventKiloSessionsRemoteStatusChanged = {
+  type: "kilo-sessions.remote-status-changed"
+  properties: {
+    enabled: boolean
+    connected: boolean
   }
 }
 
@@ -1175,11 +1195,24 @@ export type GlobalEvent = {
     | EventInstallationUpdateAvailable
     | EventServerConnected
     | EventGlobalDisposed
+    | EventGlobalConfigUpdated
     | EventFileEdited
     | EventFileWatcherUpdated
     | EventLspClientDiagnostics
     | EventLspUpdated
+    | EventTuiPromptAppend
+    | EventTuiCommandExecute
+    | EventTuiToastShow
+    | EventTuiSessionSelect
+    | EventMcpToolsChanged
+    | EventMcpBrowserOpenFailed
+    | EventSessionNetworkAsked
+    | EventSessionNetworkReplied
+    | EventSessionNetworkRejected
+    | EventSessionNetworkRestored
     | EventMessagePartDelta
+    | EventSessionTurnOpen
+    | EventSessionTurnClose
     | EventPermissionAsked
     | EventPermissionReplied
     | EventSessionDiff
@@ -1191,14 +1224,9 @@ export type GlobalEvent = {
     | EventSessionStatus
     | EventSessionIdle
     | EventSessionCompacted
-    | EventTuiPromptAppend
-    | EventTuiCommandExecute
-    | EventTuiToastShow
-    | EventTuiSessionSelect
-    | EventMcpToolsChanged
-    | EventMcpBrowserOpenFailed
     | EventCommandExecuted
     | EventVcsBranchUpdated
+    | EventKiloSessionsRemoteStatusChanged
     | EventWorktreeReady
     | EventWorktreeFailed
     | EventPtyCreated
@@ -2133,11 +2161,24 @@ export type Event =
   | EventInstallationUpdateAvailable
   | EventServerConnected
   | EventGlobalDisposed
+  | EventGlobalConfigUpdated
   | EventFileEdited
   | EventFileWatcherUpdated
   | EventLspClientDiagnostics
   | EventLspUpdated
+  | EventTuiPromptAppend
+  | EventTuiCommandExecute
+  | EventTuiToastShow
+  | EventTuiSessionSelect
+  | EventMcpToolsChanged
+  | EventMcpBrowserOpenFailed
+  | EventSessionNetworkAsked
+  | EventSessionNetworkReplied
+  | EventSessionNetworkRejected
+  | EventSessionNetworkRestored
   | EventMessagePartDelta
+  | EventSessionTurnOpen
+  | EventSessionTurnClose
   | EventPermissionAsked
   | EventPermissionReplied
   | EventSessionDiff
@@ -2149,14 +2190,9 @@ export type Event =
   | EventSessionStatus
   | EventSessionIdle
   | EventSessionCompacted
-  | EventTuiPromptAppend
-  | EventTuiCommandExecute
-  | EventTuiToastShow
-  | EventTuiSessionSelect
-  | EventMcpToolsChanged
-  | EventMcpBrowserOpenFailed
   | EventCommandExecuted
   | EventVcsBranchUpdated
+  | EventKiloSessionsRemoteStatusChanged
   | EventWorktreeReady
   | EventWorktreeFailed
   | EventPtyCreated

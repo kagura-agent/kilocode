@@ -259,6 +259,12 @@ export const ApplyPatchTool = Tool.define(
       })
       let output = `Success. Updated the following files:\n${summaryLines.join("\n")}`
 
+      // kilocode_change start
+      const changedPaths = fileChanges
+        .filter((c) => c.type !== "delete")
+        .map((c) => AppFileSystem.normalizePath(c.movePath ?? c.filePath))
+      // kilocode_change end
+
       for (const change of fileChanges) {
         if (change.type === "delete") continue
         const target = change.movePath ?? change.filePath
@@ -267,6 +273,13 @@ export const ApplyPatchTool = Tool.define(
         const rel = path.relative(Instance.worktree, target).replaceAll("\\", "/")
         output += `\n\nLSP errors detected in ${rel}, please fix:\n${block}`
       }
+
+      // kilocode_change start - append Kilo config validation warnings
+      for (const changed of fileChanges) {
+        if (changed.type === "delete") continue
+        output += yield* Effect.promise(() => ConfigValidation.check(changed.movePath ?? changed.filePath))
+      }
+      // kilocode_change end
 
       return {
         title: output,
@@ -278,16 +291,6 @@ export const ApplyPatchTool = Tool.define(
         output,
       }
     })
-
-    // kilocode_change start
-    const changedPaths = fileChanges
-      .filter((c) => c.type !== "delete")
-      .map((c) => Filesystem.normalizePath(c.movePath ?? c.filePath))
-    for (const changed of fileChanges) {
-      if (changed.type === "delete") continue
-      output += await ConfigValidation.check(changed.movePath ?? changed.filePath)
-    }
-    // kilocode_change end
 
     return {
       description: DESCRIPTION,

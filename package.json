@@ -120,7 +120,7 @@
     "@types/bun": "catalog:",
     "@types/node": "catalog:",
     "effect": "catalog:",
-    "@effect/platform-node-shared": "4.0.0-beta.35",
+    "@effect/platform-node-shared": "4.0.0-beta.46",
     "path-to-regexp": ">=8.4.0",
     "picomatch": ">=2.3.2",
     "defu": "6.1.6",

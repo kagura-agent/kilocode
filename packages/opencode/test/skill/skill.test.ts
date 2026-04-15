@@ -363,6 +363,7 @@ description: A skill in the .agents/skills directory.
 # Agent Skill
 `,
       )
+      // kilocode_change start
       await Bun.write(
         path.join(kiloSkillDir, "SKILL.md"),
         `---
@@ -383,6 +384,7 @@ description: A skill in the .kilocode/skills directory.
 # Kilocode Skill
 `,
       )
+      // kilocode_change end
     },
   })
 

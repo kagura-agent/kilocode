@@ -108,6 +108,7 @@ async function read(file: string) {
   }>(file)
 }
 
+// kilocode_change start
 describe("plugin.install.task", () => {
   test("writes both server and tui config entries", async () => {
     await using tmp = await tmpdir()
@@ -568,3 +569,4 @@ describe("plugin.install.task", () => {
     expect(await Filesystem.exists(path.join(tmp.path, ".kilo", "kilo.jsonc"))).toBe(false)
   })
 })
+// kilocode_change end

@@ -1264,11 +1264,12 @@ test("deduplicates duplicate plugins from global and local configs", async () =>
   })
 })
 
+// kilocode_change start
 test("keeps plugin origins aligned with merged plugin list", async () => {
   await using tmp = await tmpdir({
     init: async (dir) => {
       const project = path.join(dir, "project")
-      const local = path.join(project, ".kilo")
+      const local = path.join(project, ".kilo") // kilocode_change
       await fs.mkdir(local, { recursive: true })
 
       await Filesystem.write(
@@ -1308,6 +1309,7 @@ test("keeps plugin origins aligned with merged plugin list", async () => {
     },
   })
 })
+// kilocode_change end
 
 // kilocode_change start
 

@@ -15,7 +15,7 @@ describe("session.system", () => {
           ["alpha-skill", "Alpha skill."],
           ["middle-skill", "Middle skill."],
         ]) {
-          const skillDir = path.join(dir, ".kilo", "skill", name)
+          const skillDir = path.join(dir, ".kilo", "skill", name) // kilocode_change
           await Bun.write(
             path.join(skillDir, "SKILL.md"),
             `---

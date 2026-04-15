@@ -62,6 +62,7 @@ function expectPlugins(list: unknown[] | undefined, expectMods: string[]) {
   expect(new Set(hit)).toEqual(new Set(expectMods))
 }
 
+// kilocode_change start
 describe("plugin.install.concurrent", () => {
   test("serializes concurrent server config updates across processes", async () => {
     await using tmp = await tmpdir()
@@ -138,3 +139,4 @@ describe("plugin.install.concurrent", () => {
     expect(await Filesystem.exists(path.join(tmp.path, ".kilo", "kilo.jsonc"))).toBe(false)
   }, 25_000)
 })
+// kilocode_change end

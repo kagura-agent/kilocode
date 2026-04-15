@@ -23,6 +23,7 @@ afterEach(async () => {
   await Instance.disposeAll()
 })
 
+// kilocode_change start
 describe("tool.skill", () => {
   test("description lists skill location URL", async () => {
     await using tmp = await tmpdir({
@@ -168,3 +169,4 @@ Use this skill.
     }
   })
 })
+// kilocode_change end

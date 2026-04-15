@@ -9,8 +9,9 @@ afterEach(async () => {
   await Instance.disposeAll()
 })
 
+// kilocode_change start
 describe("tool.registry", () => {
-  // kilocode_change start - plan_exit is always registered
+  // plan_exit is always registered
   test("plan_exit is always registered regardless of client", async () => {
     const original = process.env["KILO_CLIENT"]
     try {
@@ -30,7 +31,6 @@ describe("tool.registry", () => {
       else process.env["KILO_CLIENT"] = original
     }
   })
-  // kilocode_change end
 
   test("loads tools from .kilo/tool (singular)", async () => {
     await using tmp = await tmpdir({
@@ -121,7 +121,7 @@ describe("tool.registry", () => {
         )
 
         await Bun.write(
-          path.join(opencodeDir, "package-lock.json"),
+          path.join(kiloDir, "package-lock.json"),
           JSON.stringify({
             name: "custom-tools",
             lockfileVersion: 3,
@@ -136,7 +136,7 @@ describe("tool.registry", () => {
           }),
         )
 
-        const cowsayDir = path.join(opencodeDir, "node_modules", "cowsay")
+        const cowsayDir = path.join(kiloDir, "node_modules", "cowsay")
         await fs.mkdir(cowsayDir, { recursive: true })
         await Bun.write(
           path.join(cowsayDir, "package.json"),
@@ -177,3 +177,4 @@ describe("tool.registry", () => {
     })
   })
 })
+// kilocode_change end

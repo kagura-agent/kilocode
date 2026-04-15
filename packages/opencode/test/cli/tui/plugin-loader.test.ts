@@ -62,9 +62,9 @@ async function load(): Promise<Data> {
       const invalidThemePath = path.join(dir, invalidThemeFile)
       const globalThemePath = path.join(dir, globalThemeFile)
       const preloadedThemePath = path.join(dir, preloadedThemeFile)
-      const localDest = path.join(dir, ".kilo", "themes", localThemeFile)
+      const localDest = path.join(dir, ".kilo", "themes", localThemeFile) // kilocode_change
       const globalDest = path.join(Global.Path.config, "themes", globalThemeFile)
-      const preloadedDest = path.join(dir, ".kilo", "themes", preloadedThemeFile)
+      const preloadedDest = path.join(dir, ".kilo", "themes", preloadedThemeFile) // kilocode_change
       const fnMarker = path.join(dir, "function-called.txt")
       const localMarker = path.join(dir, "local-called.json")
       const invalidMarker = path.join(dir, "invalid-called.json")
@@ -385,7 +385,7 @@ export default {
       .then(() => true)
       .catch(() => false)
     const leaked_global_to_local = await fs
-      .stat(path.join(tmp.path, ".kilo", "themes", tmp.extra.globalThemeFile))
+      .stat(path.join(tmp.path, ".kilo", "themes", tmp.extra.globalThemeFile)) // kilocode_change
       .then(() => true)
       .catch(() => false)
 
@@ -661,7 +661,7 @@ test("updates installed theme when plugin metadata changes", async () => {
       const spec = pathToFileURL(pluginPath).href
       const themeFile = "theme-update.json"
       const themePath = path.join(dir, themeFile)
-      const dest = path.join(dir, ".kilo", "themes", themeFile)
+      const dest = path.join(dir, ".kilo", "themes", themeFile) // kilocode_change
       const themeName = themeFile.replace(/\.json$/, "")
       const configPath = path.join(dir, "tui.json")
 

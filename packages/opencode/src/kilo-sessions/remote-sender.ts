@@ -319,7 +319,8 @@ export namespace RemoteSender {
         }
         const dir = msg.sessionId ? directoryFor(msg.sessionId) : Promise.resolve(options.directory)
         dispatchQuick(msg, dir, async () => {
-          await Suggestion.accept(parsed.data)
+          const ok = await Suggestion.accept(parsed.data)
+          if (!ok) throw new Error("suggestion not found or invalid action index")
         })
         return
       }

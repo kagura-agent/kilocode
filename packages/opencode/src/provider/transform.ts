@@ -244,6 +244,56 @@ export namespace ProviderTransform {
     return msgs
   }
 
+  // kilocode_change start
+  // Anthropic (direct or via OpenRouter/Kilo Gateway/Bedrock/Vertex) rejects
+  // assistant prefills that contain thinking/redacted-thinking blocks with an
+  // "assistant prefill" error. When a partial assistant message with signed
+  // reasoning becomes the trailing message — e.g. because the previous turn
+  // was aborted mid-stream and retried — we must strip reasoning from that
+  // final message so the API call succeeds. We do not strip when a tool-call
+  // is present, since that represents a pending execution rather than a
+  // genuine prefill scenario.
+  function isAnthropicLike(model: Provider.Model): boolean {
+    if (model.api.npm === "@ai-sdk/anthropic") return true
+    if (model.api.npm === "@ai-sdk/google-vertex/anthropic") return true
+    if (model.api.npm === "@ai-sdk/amazon-bedrock" && model.api.id.includes("anthropic")) return true
+    const ids = [model.api.id, model.id]
+    return ids.some((id) => id.includes("claude") || id.includes("anthropic"))
+  }
+
+  function stripPrefillReasoning(msgs: ModelMessage[], model: Provider.Model): ModelMessage[] {
+    if (msgs.length === 0) return msgs
+    if (!isAnthropicLike(model)) return msgs
+
+    const last = msgs[msgs.length - 1]
+    if (last.role !== "assistant") return msgs
+    if (Array.isArray(last.content) && last.content.some((part) => part.type === "tool-call")) return msgs
+
+    let changed = false
+    let content = last.content
+    if (Array.isArray(content)) {
+      const filtered = content.filter((part) => part.type !== "reasoning")
+      if (filtered.length !== content.length) {
+        content = filtered
+        changed = true
+      }
+    }
+
+    let providerOptions = last.providerOptions
+    if (providerOptions && typeof providerOptions === "object") {
+      const compat = (providerOptions as any).openaiCompatible
+      if (compat && typeof compat === "object" && ("reasoning_content" in compat || "reasoning_details" in compat)) {
+        const { reasoning_content: _rc, reasoning_details: _rd, ...rest } = compat
+        providerOptions = { ...providerOptions, openaiCompatible: rest }
+        changed = true
+      }
+    }
+
+    if (!changed) return msgs
+    return [...msgs.slice(0, -1), { ...last, content, providerOptions } as ModelMessage]
+  }
+  // kilocode_change end
+
   function unsupportedParts(msgs: ModelMessage[], model: Provider.Model): ModelMessage[] {
     return msgs.map((msg) => {
       if (msg.role !== "user" || !Array.isArray(msg.content)) return msg
@@ -285,6 +335,7 @@ export namespace ProviderTransform {
   export function message(msgs: ModelMessage[], model: Provider.Model, options: Record<string, unknown>) {
     msgs = unsupportedParts(msgs, model)
     msgs = normalizeMessages(msgs, model, options)
+    msgs = stripPrefillReasoning(msgs, model) // kilocode_change — prevent Anthropic "assistant prefill" error
 
     if (
       (model.providerID === "anthropic" ||

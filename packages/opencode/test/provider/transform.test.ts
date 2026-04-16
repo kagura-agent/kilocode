@@ -1144,6 +1144,7 @@ describe("ProviderTransform.message - anthropic empty content filtering", () => 
 
   test("keeps messages with valid text alongside empty parts", () => {
     const msgs = [
+      { role: "user", content: "Prompt" },
       {
         role: "assistant",
         content: [
@@ -1152,14 +1153,34 @@ describe("ProviderTransform.message - anthropic empty content filtering", () => 
           { type: "text", text: "Result" },
         ],
       },
+      { role: "user", content: "Next" },
     ] as any[]
 
     const result = ProviderTransform.message(msgs, anthropicModel, {})
 
-    expect(result).toHaveLength(1)
-    expect(result[0].content).toHaveLength(2)
-    expect(result[0].content[0]).toEqual({ type: "reasoning", text: "Thinking..." })
-    expect(result[0].content[1]).toEqual({ type: "text", text: "Result" })
+    expect(result).toHaveLength(3)
+    expect(result[1].content).toHaveLength(2)
+    expect(result[1].content[0]).toEqual({ type: "reasoning", text: "Thinking..." })
+    expect(result[1].content[1]).toEqual({ type: "text", text: "Result" })
+  })
+
+  test("strips reasoning from trailing assistant to avoid prefill error", () => {
+    const msgs = [
+      { role: "user", content: "Prompt" },
+      {
+        role: "assistant",
+        content: [
+          { type: "reasoning", text: "Thinking..." },
+          { type: "text", text: "Result" },
+        ],
+      },
+    ] as any[]
+
+    const result = ProviderTransform.message(msgs, anthropicModel, {}) as any[]
+
+    expect(result).toHaveLength(2)
+    expect(result[1].content).toHaveLength(1)
+    expect(result[1].content[0]).toEqual({ type: "text", text: "Result" })
   })
 
   test("filters empty content for bedrock provider", () => {
@@ -1843,6 +1864,210 @@ describe("ProviderTransform.message - cache control on gateway", () => {
         },
       },
     })
+  })
+})
+
+describe("ProviderTransform.message - strip prefill reasoning", () => {
+  const anthropic = {
+    id: "anthropic/claude-opus-4-7",
+    providerID: "anthropic",
+    api: {
+      id: "claude-opus-4-7",
+      url: "https://api.anthropic.com",
+      npm: "@ai-sdk/anthropic",
+    },
+    name: "Claude Opus 4.7",
+    capabilities: {
+      temperature: true,
+      reasoning: true,
+      attachment: true,
+      toolcall: true,
+      input: { text: true, audio: false, image: true, video: false, pdf: true },
+      output: { text: true, audio: false, image: false, video: false, pdf: false },
+      interleaved: false,
+    },
+    cost: { input: 0.003, output: 0.015, cache: { read: 0.0003, write: 0.00375 } },
+    limit: { context: 200000, output: 8192 },
+    status: "active",
+    options: {},
+    headers: {},
+  } as any
+
+  const openrouterClaude = {
+    id: "openrouter/anthropic/claude-opus-4.7",
+    providerID: "openrouter",
+    api: {
+      id: "anthropic/claude-opus-4.7",
+      url: "https://openrouter.ai/api/v1",
+      npm: "@openrouter/ai-sdk-provider",
+    },
+    name: "Claude Opus 4.7 (OpenRouter)",
+    capabilities: {
+      temperature: true,
+      reasoning: true,
+      attachment: true,
+      toolcall: true,
+      input: { text: true, audio: false, image: true, video: false, pdf: true },
+      output: { text: true, audio: false, image: false, video: false, pdf: false },
+      interleaved: { field: "reasoning_details" },
+    },
+    cost: { input: 0.003, output: 0.015, cache: { read: 0.0003, write: 0.00375 } },
+    limit: { context: 200000, output: 8192 },
+    status: "active",
+    options: {},
+    headers: {},
+  } as any
+
+  test("strips reasoning parts from trailing assistant (prefill) for anthropic", () => {
+    const msgs = [
+      { role: "user", content: "Hi" },
+      {
+        role: "assistant",
+        content: [
+          { type: "reasoning", text: "redacted", providerOptions: { anthropic: { signature: "sig" } } },
+          { type: "text", text: "Hello" },
+        ],
+      },
+    ] as any[]
+
+    const result = ProviderTransform.message(msgs, anthropic, {}) as any[]
+
+    expect(result).toHaveLength(2)
+    const last = result[1]
+    expect(Array.isArray(last.content)).toBe(true)
+    expect(last.content.every((part: any) => part.type !== "reasoning")).toBe(true)
+    expect(last.content).toContainEqual(expect.objectContaining({ type: "text", text: "Hello" }))
+  })
+
+  test("strips reasoning parts from trailing assistant for claude via openrouter", () => {
+    const msgs = [
+      { role: "user", content: "Hi" },
+      {
+        role: "assistant",
+        content: [
+          { type: "reasoning", text: "", providerOptions: { openrouter: { signature: "sig" } } },
+          { type: "text", text: "Confirmed" },
+        ],
+      },
+    ] as any[]
+
+    const result = ProviderTransform.message(msgs, openrouterClaude, {}) as any[]
+
+    expect(result).toHaveLength(2)
+    const last = result[1]
+    expect(Array.isArray(last.content)).toBe(true)
+    expect(last.content.every((part: any) => part.type !== "reasoning")).toBe(true)
+    expect(last.content).toContainEqual(expect.objectContaining({ type: "text", text: "Confirmed" }))
+  })
+
+  test("does not strip reasoning for non-anthropic interleaved models", () => {
+    const deepseek = {
+      id: "deepseek/deepseek-chat",
+      providerID: "deepseek",
+      api: { id: "deepseek-chat", url: "https://api.deepseek.com", npm: "@ai-sdk/openai-compatible" },
+      name: "DeepSeek Chat",
+      capabilities: {
+        temperature: true,
+        reasoning: true,
+        attachment: false,
+        toolcall: true,
+        input: { text: true, audio: false, image: false, video: false, pdf: false },
+        output: { text: true, audio: false, image: false, video: false, pdf: false },
+        interleaved: { field: "reasoning_content" },
+      },
+      cost: { input: 0.001, output: 0.002, cache: { read: 0.0001, write: 0.0002 } },
+      limit: { context: 128000, output: 8192 },
+      status: "active",
+      options: {},
+      headers: {},
+    } as any
+
+    const msgs = [
+      { role: "user", content: "Hi" },
+      {
+        role: "assistant",
+        content: [
+          { type: "reasoning", text: "thinking..." },
+          { type: "text", text: "Hello" },
+        ],
+      },
+    ] as any[]
+
+    const result = ProviderTransform.message(msgs, deepseek, {}) as any[]
+
+    expect(result).toHaveLength(2)
+    const last = result[1]
+    expect(last.providerOptions?.openaiCompatible?.reasoning_content).toBe("thinking...")
+  })
+
+  test("preserves reasoning when trailing assistant has a pending tool-call", () => {
+    const msgs = [
+      { role: "user", content: "Hi" },
+      {
+        role: "assistant",
+        content: [
+          { type: "reasoning", text: "Deliberating" },
+          { type: "tool-call", toolCallId: "c1", toolName: "bash", input: { command: "ls" } },
+        ],
+      },
+    ] as any[]
+
+    const result = ProviderTransform.message(msgs, anthropic, {}) as any[]
+
+    expect(result).toHaveLength(2)
+    const last = result[1]
+    expect(last.content.some((part: any) => part.type === "reasoning")).toBe(true)
+    expect(last.content.some((part: any) => part.type === "tool-call")).toBe(true)
+  })
+
+  test("does not modify trailing assistant when no reasoning is present", () => {
+    const msgs = [
+      { role: "user", content: "Hi" },
+      { role: "assistant", content: [{ type: "text", text: "Hello" }] },
+    ] as any[]
+
+    const result = ProviderTransform.message(msgs, anthropic, {}) as any[]
+
+    expect(result).toHaveLength(2)
+    expect(result[1].content).toEqual([{ type: "text", text: "Hello" }])
+  })
+
+  test("does not modify middle assistant messages that contain reasoning", () => {
+    const msgs = [
+      { role: "user", content: "Hi" },
+      {
+        role: "assistant",
+        content: [
+          { type: "reasoning", text: "thinking" },
+          { type: "text", text: "Hello" },
+        ],
+      },
+      { role: "user", content: "Go on" },
+    ] as any[]
+
+    const result = ProviderTransform.message(msgs, anthropic, {}) as any[]
+
+    expect(result).toHaveLength(3)
+    const middle = result[1]
+    expect(middle.content.some((part: any) => part.type === "reasoning")).toBe(true)
+  })
+
+  test("does not modify trailing user messages", () => {
+    const msgs = [
+      {
+        role: "assistant",
+        content: [
+          { type: "reasoning", text: "thinking" },
+          { type: "text", text: "Hi" },
+        ],
+      },
+      { role: "user", content: "Hello" },
+    ] as any[]
+
+    const result = ProviderTransform.message(msgs, anthropic, {}) as any[]
+
+    // The middle assistant with empty reasoning filtered for anthropic (has reasoning + text)
+    expect(result[result.length - 1].role).toBe("user")
   })
 })
 

@@ -1163,8 +1163,7 @@ describe("ProviderTransform.message - anthropic empty content filtering", () => 
     expect(result[1].content).toHaveLength(2)
     expect(result[1].content[0]).toEqual({ type: "reasoning", text: "Thinking..." })
     expect(result[1].content[1]).toEqual({ type: "text", text: "Result" })
-    // kilocode_change end
-  })
+  }) // kilocode_change end
 
   // kilocode_change start - strip reasoning from trailing assistant prefill
   test("strips reasoning from trailing assistant to avoid prefill error", () => {
@@ -2091,8 +2090,8 @@ describe("ProviderTransform.message - strip prefill reasoning", () => {
   })
 })
 // kilocode_change end
-
 describe("ProviderTransform.variants", () => {
+  // kilocode_change
   const createMockModel = (overrides: Partial<any> = {}): any => ({
     id: "test/test-model",
     providerID: "test",

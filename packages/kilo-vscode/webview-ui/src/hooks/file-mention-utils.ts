@@ -1,4 +1,4 @@
-import type { FileAttachment, FileSearchItem } from "../types/messages"
+import type { FileAttachment } from "../types/messages"
 import { GIT_CHANGES_MENTION } from "./git-changes-context-utils"
 import { TERMINAL_MENTION } from "./terminal-context-utils"
 
@@ -8,7 +8,6 @@ export type MentionResult =
   | { type: "terminal"; value: typeof TERMINAL_MENTION; label: string; description: string }
   | { type: "git-changes"; value: typeof GIT_CHANGES_MENTION; label: string; description: string }
   | { type: "file"; value: string }
-  | { type: "folder"; value: string }
 
 export const TERMINAL_RESULT: MentionResult = {
   type: "terminal",
@@ -43,11 +42,8 @@ export function getGitChangesMentionResult(query: string): MentionResult[] {
   return [GIT_CHANGES_RESULT]
 }
 
-export function buildMentionResults(query: string, items: FileSearchItem[] | string[], git = true): MentionResult[] {
-  const results = items.map((item) => {
-    if (typeof item === "string") return { type: "file" as const, value: item }
-    return { type: item.type, value: item.path }
-  })
+export function buildMentionResults(query: string, paths: string[], git = true): MentionResult[] {
+  const results = paths.map((path) => ({ type: "file" as const, value: path }))
   return [...getTerminalMentionResult(query), ...(git ? getGitChangesMentionResult(query) : []), ...results]
 }
 

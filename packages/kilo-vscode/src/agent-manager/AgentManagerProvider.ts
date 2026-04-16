@@ -288,14 +288,13 @@ export class AgentManagerProvider implements Disposable {
   }
 
   private async contextMessage(msg: Record<string, unknown>): Promise<Record<string, unknown>> {
-    if (msg.type !== "requestFileSearch" && msg.type !== "requestGitChangesContext") return msg
+    if (msg.type !== "requestGitChangesContext") return msg
     const ctx = typeof msg.agentManagerContext === "string" ? msg.agentManagerContext : undefined
-    const target = ctx ? await this.contextTarget(ctx, msg.type === "requestGitChangesContext") : undefined
+    const target = ctx ? await this.contextTarget(ctx) : undefined
     const sid = typeof msg.sessionID === "string" ? msg.sessionID : this.activeSessionId
     const next = sid && typeof msg.sessionID !== "string" ? { ...msg, sessionID: sid } : msg
     if (target) return { ...next, ...target }
     if (!sid) return next
-    if (msg.type !== "requestGitChangesContext") return next
 
     const state = this.getStateManager()
     const session = state?.getSession(sid)
@@ -304,11 +303,10 @@ export class AgentManagerProvider implements Disposable {
     return { ...next, contextDirectory: worktree.path, gitChangesBase: remoteRef(worktree) }
   }
 
-  private async contextTarget(ctx: string, diff: boolean): Promise<Record<string, unknown> | undefined> {
+  private async contextTarget(ctx: string): Promise<Record<string, unknown> | undefined> {
     if (ctx === "local") {
       const root = this.getRoot()
       if (!root) return undefined
-      if (!diff) return { contextDirectory: root }
       const target = await resolveLocalDiffTarget(this.gitOps, (...args) => this.log(...args), root)
       if (!target) return { contextDirectory: root }
       return { contextDirectory: target.directory, gitChangesBase: target.baseBranch }
@@ -316,7 +314,6 @@ export class AgentManagerProvider implements Disposable {
 
     const worktree = this.getStateManager()?.getWorktree(ctx)
     if (!worktree) return undefined
-    if (!diff) return { contextDirectory: worktree.path }
     return { contextDirectory: worktree.path, gitChangesBase: remoteRef(worktree) }
   }
 

@@ -67,7 +67,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
   const sid = () => session.currentSessionID() ?? props.pendingSessionID ?? session.draftSessionID() ?? undefined
   const ctx = () => props.agentManagerContext
   const hasGit = () => server.gitInstalled()
-  const mention = useFileMention(vscode, sid, ctx, hasGit)
+  const mention = useFileMention(vscode, hasGit)
   const terminal = useTerminalContext(vscode)
   const git = useGitChangesContext(vscode, ctx, hasGit)
   const excluded = worktree ? new Set(["sessions"]) : undefined
@@ -758,10 +758,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
                     </>
                   ) : (
                     <>
-                      <FileIcon
-                        node={{ path: item.value, type: item.type === "folder" ? "directory" : "file" }}
-                        class="file-mention-icon"
-                      />
+                      <FileIcon node={{ path: item.value, type: "file" }} class="file-mention-icon" />
                       <span class="file-mention-name">{fileName(item.value)}</span>
                       <span class="file-mention-dir">{dirName(item.value)}</span>
                     </>

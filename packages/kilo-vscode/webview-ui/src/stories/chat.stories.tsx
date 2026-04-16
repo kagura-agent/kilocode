@@ -272,6 +272,7 @@ const mockServer = {
   vscodeLanguage: () => "en",
   languageOverride: () => undefined,
   workspaceDirectory: () => "/project",
+  gitInstalled: () => true,
 }
 
 export const WelcomeWithSwitcherAndNotification: Story = {

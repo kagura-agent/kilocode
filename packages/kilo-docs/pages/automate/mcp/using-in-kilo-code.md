@@ -260,13 +260,14 @@ In the VS Code extension, open **Settings → MCP**, click **Add Server**, and c
 
 #### Remote Server Options
 
-| Option    | Type    | Required | Description                                                           |
-| --------- | ------- | -------- | --------------------------------------------------------------------- |
-| `type`    | String  | Yes      | Must be `"remote"`.                                                   |
-| `url`     | String  | Yes      | URL of the remote MCP server.                                         |
-| `enabled` | Boolean | No       | Enable or disable the MCP server on startup.                          |
-| `headers` | Object  | No       | HTTP headers to send with requests.                                   |
-| `timeout` | Number  | No       | Timeout in ms for fetching tools from the MCP server. Default: 30000. |
+| Option    | Type           | Required | Description                                                                                                     |
+| --------- | -------------- | -------- | --------------------------------------------------------------------------------------------------------------- |
+| `type`    | String         | Yes      | Must be `"remote"`.                                                                                             |
+| `url`     | String         | Yes      | URL of the remote MCP server.                                                                                   |
+| `enabled` | Boolean        | No       | Enable or disable the MCP server on startup.                                                                    |
+| `headers` | Object         | No       | HTTP headers to send with requests.                                                                             |
+| `oauth`   | Object / false | No       | OAuth authentication config. Set to `false` to disable OAuth auto-detection. Omit to allow automatic detection. |
+| `timeout` | Number         | No       | Timeout in ms for fetching tools from the MCP server. Default: 30000.                                           |
 
 {% /tab %}
 {% tab label="VSCode (Legacy)" %}

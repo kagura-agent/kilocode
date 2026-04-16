@@ -1,5 +1,12 @@
 import { describe, it, expect } from "bun:test"
-import { parseServerPort } from "../../src/services/cli-backend/server-utils"
+import {
+  isValidRegistryEntry,
+  parseRegistry,
+  parseServerPort,
+  partitionRegistryEntries,
+  serializeRegistry,
+  type RegistryEntry,
+} from "../../src/services/cli-backend/server-utils"
 import { toErrorMessage } from "../../src/services/cli-backend/server-manager"
 
 describe("parseServerPort", () => {
@@ -101,5 +108,166 @@ describe("toErrorMessage", () => {
   it("returns original error string as error field", () => {
     const result = toErrorMessage("startup failed", ["some output"])
     expect(result.error).toBe("startup failed")
+  })
+})
+
+describe("isValidRegistryEntry", () => {
+  it("accepts a well-formed entry", () => {
+    expect(isValidRegistryEntry({ pid: 1, ownerPid: 2, startedAt: "2026-01-01T00:00:00Z" })).toBe(true)
+  })
+
+  it("rejects null", () => {
+    expect(isValidRegistryEntry(null)).toBe(false)
+  })
+
+  it("rejects non-object primitives", () => {
+    expect(isValidRegistryEntry(42)).toBe(false)
+    expect(isValidRegistryEntry("string")).toBe(false)
+    expect(isValidRegistryEntry(undefined)).toBe(false)
+  })
+
+  it("rejects entry missing pid", () => {
+    expect(isValidRegistryEntry({ ownerPid: 2, startedAt: "now" })).toBe(false)
+  })
+
+  it("rejects entry with wrong pid type", () => {
+    expect(isValidRegistryEntry({ pid: "1", ownerPid: 2, startedAt: "now" })).toBe(false)
+  })
+
+  it("rejects entry with wrong startedAt type", () => {
+    expect(isValidRegistryEntry({ pid: 1, ownerPid: 2, startedAt: 12345 })).toBe(false)
+  })
+
+  it("accepts entry with extra fields (forward-compatible)", () => {
+    expect(isValidRegistryEntry({ pid: 1, ownerPid: 2, startedAt: "now", extra: "ok" })).toBe(true)
+  })
+})
+
+describe("parseRegistry", () => {
+  it("parses a valid array of entries", () => {
+    const raw = JSON.stringify([
+      { pid: 1, ownerPid: 2, startedAt: "a" },
+      { pid: 3, ownerPid: 4, startedAt: "b" },
+    ])
+    expect(parseRegistry(raw)).toEqual([
+      { pid: 1, ownerPid: 2, startedAt: "a" },
+      { pid: 3, ownerPid: 4, startedAt: "b" },
+    ])
+  })
+
+  it("returns empty array for malformed JSON", () => {
+    expect(parseRegistry("not json")).toEqual([])
+  })
+
+  it("returns empty array for JSON that is not an array", () => {
+    expect(parseRegistry(JSON.stringify({ pid: 1 }))).toEqual([])
+  })
+
+  it("returns empty array for empty string", () => {
+    expect(parseRegistry("")).toEqual([])
+  })
+
+  it("filters out invalid entries while keeping valid ones", () => {
+    const raw = JSON.stringify([
+      { pid: 1, ownerPid: 2, startedAt: "a" },
+      { pid: "bad", ownerPid: 2, startedAt: "b" },
+      null,
+      { pid: 3, ownerPid: 4, startedAt: "c" },
+    ])
+    expect(parseRegistry(raw)).toEqual([
+      { pid: 1, ownerPid: 2, startedAt: "a" },
+      { pid: 3, ownerPid: 4, startedAt: "c" },
+    ])
+  })
+})
+
+describe("serializeRegistry", () => {
+  it("roundtrips through parseRegistry", () => {
+    const entries: RegistryEntry[] = [
+      { pid: 123, ownerPid: 456, startedAt: "2026-01-01T00:00:00Z" },
+      { pid: 789, ownerPid: 456, startedAt: "2026-01-02T00:00:00Z" },
+    ]
+    expect(parseRegistry(serializeRegistry(entries))).toEqual(entries)
+  })
+
+  it("serializes an empty array", () => {
+    expect(serializeRegistry([])).toBe("[]")
+  })
+})
+
+describe("partitionRegistryEntries", () => {
+  const makeEntry = (pid: number, ownerPid: number): RegistryEntry => ({
+    pid,
+    ownerPid,
+    startedAt: "2026-01-01T00:00:00Z",
+  })
+
+  it("drops entries whose pid is already dead", () => {
+    const entries = [makeEntry(100, 200)]
+    const isAlive = (pid: number) => pid === 200 // only owner alive, child dead
+    const isKiloServe = () => true
+    const result = partitionRegistryEntries(entries, isAlive, isKiloServe)
+    expect(result.toKill).toEqual([])
+    expect(result.survivors).toEqual([])
+  })
+
+  it("keeps entries where owner is still alive (another window owns it)", () => {
+    const entries = [makeEntry(100, 200)]
+    const isAlive = () => true
+    const isKiloServe = () => true
+    const result = partitionRegistryEntries(entries, isAlive, isKiloServe)
+    expect(result.toKill).toEqual([])
+    expect(result.survivors).toEqual(entries)
+  })
+
+  it("kills orphans: pid alive but owner dead and identity verified", () => {
+    const entries = [makeEntry(100, 200)]
+    const isAlive = (pid: number) => pid === 100
+    const isKiloServe = () => true
+    const result = partitionRegistryEntries(entries, isAlive, isKiloServe)
+    expect(result.toKill).toEqual([100])
+    expect(result.survivors).toEqual([])
+  })
+
+  it("drops entries whose pid was reused (pid alive, owner dead, but not kilo)", () => {
+    const entries = [makeEntry(100, 200)]
+    const isAlive = (pid: number) => pid === 100
+    const isKiloServe = () => false
+    const result = partitionRegistryEntries(entries, isAlive, isKiloServe)
+    expect(result.toKill).toEqual([])
+    expect(result.survivors).toEqual([])
+  })
+
+  it("partitions a mixed registry correctly", () => {
+    const entries = [
+      makeEntry(10, 11), // dead child → drop
+      makeEntry(20, 21), // live child, live owner → survivor
+      makeEntry(30, 31), // live child, dead owner, kilo → kill
+      makeEntry(40, 41), // live child, dead owner, NOT kilo → drop
+    ]
+    const aliveSet = new Set([20, 21, 30, 40])
+    const isAlive = (pid: number) => aliveSet.has(pid)
+    const isKiloServe = (pid: number) => pid === 30
+    const result = partitionRegistryEntries(entries, isAlive, isKiloServe)
+    expect(result.toKill).toEqual([30])
+    expect(result.survivors).toEqual([makeEntry(20, 21)])
+  })
+
+  it("handles an empty registry", () => {
+    const result = partitionRegistryEntries([], () => true, () => true)
+    expect(result.toKill).toEqual([])
+    expect(result.survivors).toEqual([])
+  })
+
+  it("does not call isKiloServe when owner is alive (short-circuit)", () => {
+    const entries = [makeEntry(100, 200)]
+    const isAlive = () => true
+    let kiloCheckCalls = 0
+    const isKiloServe = () => {
+      kiloCheckCalls++
+      return true
+    }
+    partitionRegistryEntries(entries, isAlive, isKiloServe)
+    expect(kiloCheckCalls).toBe(0)
   })
 })

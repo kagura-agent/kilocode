@@ -1,11 +1,18 @@
-import { type ChildProcess } from "child_process"
+import { execFileSync, type ChildProcess } from "child_process"
 import { spawn } from "../../util/process"
 import * as crypto from "crypto"
 import * as fs from "fs"
+import * as os from "os"
 import * as path from "path"
 import * as vscode from "vscode"
 import { t } from "./i18n"
-import { parseServerPort } from "./server-utils"
+import {
+  parseRegistry,
+  parseServerPort,
+  partitionRegistryEntries,
+  serializeRegistry,
+  type RegistryEntry,
+} from "./server-utils"
 
 export interface ServerInstance {
   port: number
@@ -14,12 +21,15 @@ export interface ServerInstance {
 }
 
 const STARTUP_TIMEOUT_SECONDS = 30
+const REGISTRY_FILE = path.join(os.tmpdir(), "kilo-serve-registry.json")
 
 export class ServerManager {
   private instance: ServerInstance | null = null
   private startupPromise: Promise<ServerInstance> | null = null
 
-  constructor(private readonly context: vscode.ExtensionContext) {}
+  constructor(private readonly context: vscode.ExtensionContext) {
+    ServerManager.cleanupOrphans()
+  }
 
   /**
    * Get or start the server instance
@@ -88,6 +98,9 @@ export class ServerManager {
         detached: true,
       })
       console.log("[Kilo New] ServerManager: 📦 Process spawned with PID:", serverProcess.pid)
+      if (serverProcess.pid !== undefined) {
+        ServerManager.trackSpawn(serverProcess.pid)
+      }
 
       let resolved = false
       const stderrLines: string[] = []
@@ -119,6 +132,9 @@ export class ServerManager {
 
       serverProcess.on("exit", (code) => {
         console.log("[Kilo New] ServerManager: 🛑 Process exited with code:", code)
+        if (serverProcess.pid !== undefined) {
+          ServerManager.untrackSpawn(serverProcess.pid)
+        }
         if (this.instance?.process === serverProcess) {
           this.instance = null
         }
@@ -156,24 +172,118 @@ export class ServerManager {
   }
 
   /**
-   * Kill a process and its entire process group.
-   * On Unix, we send the signal to -pid (negative) to reach the whole group,
-   * mirroring the desktop app's ProcessGroup::leader() + start_kill() pattern.
-   * On Windows, process.kill() on the child handle is sufficient.
+   * Kill a process and its entire process tree.
+   * POSIX: signal the process group via -pid.
+   * Windows: taskkill /T traverses the tree; /F forces termination. Required
+   * because proc.kill() on Windows only kills the direct child, so any workers
+   * spawned by `kilo serve` (LSPs, shells, git, etc.) would orphan.
    */
   private static killProcess(proc: ChildProcess, signal: NodeJS.Signals = "SIGTERM"): void {
     if (proc.pid === undefined) {
       return
     }
+    ServerManager.killPid(proc.pid, signal)
+  }
+
+  private static killPid(pid: number, signal: NodeJS.Signals): void {
     try {
-      if (process.platform !== "win32") {
-        // Negative PID targets the entire process group
-        process.kill(-proc.pid, signal)
+      if (process.platform === "win32") {
+        execFileSync("taskkill", ["/F", "/T", "/PID", String(pid)], {
+          windowsHide: true,
+          timeout: 5000,
+          stdio: "ignore",
+        })
       } else {
-        proc.kill(signal)
+        process.kill(-pid, signal)
       }
     } catch {
-      // Process already gone — ignore
+      // Process already gone — ignore.
+    }
+  }
+
+  /**
+   * On activation, kill any `kilo serve` processes left behind by previous
+   * extension-host sessions that died before dispose() could run (VSCode force
+   * quit, host crash, OOM, etc.). Registry entries are cross-window safe: we
+   * only kill when the owning extension host is dead AND the target PID still
+   * resolves to a `kilo` process.
+   */
+  private static cleanupOrphans(): void {
+    const entries = ServerManager.readRegistry()
+    if (entries.length === 0) return
+
+    const { toKill, survivors } = partitionRegistryEntries(
+      entries,
+      ServerManager.isAlive,
+      ServerManager.isKiloServe,
+    )
+    for (const pid of toKill) {
+      console.log("[Kilo New] ServerManager: 🧹 Killing orphan kilo serve, PID:", pid)
+      ServerManager.killPid(pid, "SIGKILL")
+    }
+    ServerManager.writeRegistry(survivors)
+  }
+
+  private static trackSpawn(pid: number): void {
+    const entries = ServerManager.readRegistry()
+    entries.push({ pid, ownerPid: process.pid, startedAt: new Date().toISOString() })
+    ServerManager.writeRegistry(entries)
+  }
+
+  private static untrackSpawn(pid: number): void {
+    const entries = ServerManager.readRegistry().filter((e) => e.pid !== pid)
+    ServerManager.writeRegistry(entries)
+  }
+
+  private static readRegistry(): RegistryEntry[] {
+    try {
+      return parseRegistry(fs.readFileSync(REGISTRY_FILE, "utf8"))
+    } catch {
+      return []
+    }
+  }
+
+  private static writeRegistry(entries: RegistryEntry[]): void {
+    try {
+      const tmpFile = `${REGISTRY_FILE}.${process.pid}.tmp`
+      fs.writeFileSync(tmpFile, serializeRegistry(entries))
+      fs.renameSync(tmpFile, REGISTRY_FILE)
+    } catch (err) {
+      console.warn("[Kilo New] ServerManager: registry write failed:", err)
+    }
+  }
+
+  private static isAlive(pid: number): boolean {
+    try {
+      process.kill(pid, 0)
+      return true
+    } catch (err) {
+      // EPERM means the process exists but we lack permission — still alive.
+      return (err as NodeJS.ErrnoException).code === "EPERM"
+    }
+  }
+
+  /**
+   * Verify a PID is actually a `kilo` process before killing it, to guard
+   * against PID reuse. Uses `ps` / `tasklist` with a short timeout.
+   */
+  private static isKiloServe(pid: number): boolean {
+    try {
+      if (process.platform === "win32") {
+        const out = execFileSync("tasklist", ["/FI", `PID eq ${pid}`, "/NH", "/FO", "CSV"], {
+          encoding: "utf8",
+          windowsHide: true,
+          timeout: 2000,
+        })
+        return /kilo\.exe/i.test(out)
+      }
+      const out = execFileSync("ps", ["-p", String(pid), "-o", "command="], {
+        encoding: "utf8",
+        timeout: 2000,
+      })
+      return /\bkilo\b.*\bserve\b/.test(out)
+    } catch {
+      return false
     }
   }
 

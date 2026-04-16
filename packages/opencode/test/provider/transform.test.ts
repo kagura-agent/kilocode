@@ -1143,6 +1143,7 @@ describe("ProviderTransform.message - anthropic empty content filtering", () => 
   })
 
   test("keeps messages with valid text alongside empty parts", () => {
+    // kilocode_change start - wrap assistant between user messages so strip-prefill-reasoning does not fire
     const msgs = [
       { role: "user", content: "Prompt" },
       {
@@ -1162,8 +1163,10 @@ describe("ProviderTransform.message - anthropic empty content filtering", () => 
     expect(result[1].content).toHaveLength(2)
     expect(result[1].content[0]).toEqual({ type: "reasoning", text: "Thinking..." })
     expect(result[1].content[1]).toEqual({ type: "text", text: "Result" })
+    // kilocode_change end
   })
 
+  // kilocode_change start - strip reasoning from trailing assistant prefill
   test("strips reasoning from trailing assistant to avoid prefill error", () => {
     const msgs = [
       { role: "user", content: "Prompt" },
@@ -1182,6 +1185,7 @@ describe("ProviderTransform.message - anthropic empty content filtering", () => 
     expect(result[1].content).toHaveLength(1)
     expect(result[1].content[0]).toEqual({ type: "text", text: "Result" })
   })
+  // kilocode_change end
 
   test("filters empty content for bedrock provider", () => {
     const bedrockModel = {
@@ -1867,6 +1871,7 @@ describe("ProviderTransform.message - cache control on gateway", () => {
   })
 })
 
+// kilocode_change start - strip prefill reasoning suite
 describe("ProviderTransform.message - strip prefill reasoning", () => {
   const anthropic = {
     id: "anthropic/claude-opus-4-7",
@@ -2070,6 +2075,7 @@ describe("ProviderTransform.message - strip prefill reasoning", () => {
     expect(result[result.length - 1].role).toBe("user")
   })
 })
+// kilocode_change end
 
 describe("ProviderTransform.variants", () => {
   const createMockModel = (overrides: Partial<any> = {}): any => ({

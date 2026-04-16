@@ -1,4 +1,3 @@
-
 /*
 Swift Tree-Sitter Query Patterns
 

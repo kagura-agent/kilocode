@@ -1,4 +1,3 @@
-
 /*
 Query patterns for Java language structures
 */

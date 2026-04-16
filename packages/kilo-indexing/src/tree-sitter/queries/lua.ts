@@ -1,4 +1,3 @@
-
 /*
 Supported Lua structures:
 - function definitions (global, local, and method)

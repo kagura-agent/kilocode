@@ -19,6 +19,7 @@ import AutocompleteTab from "./AutocompleteTab"
 import NotificationsTab from "./NotificationsTab"
 import ContextTab from "./ContextTab"
 
+import CommitMessageTab from "./CommitMessageTab"
 import ExperimentalTab from "./ExperimentalTab"
 import LanguageTab from "./LanguageTab"
 import AboutKiloCodeTab from "./AboutKiloCodeTab"
@@ -150,6 +151,11 @@ const Settings: Component<SettingsProps> = (props) => {
               <span class="label">{language.t("settings.indexing.title")}</span>
             </Tabs.Trigger>
           </Show>
+
+          <Tabs.Trigger value="commitMessage">
+            <Icon name="edit" />
+            <span class="label">{language.t("settings.commitMessage.title")}</span>
+          </Tabs.Trigger>
           <Tabs.Trigger value="experimental">
             <Icon name="settings-gear" />
             <span class="label">{language.t("settings.experimental.title")}</span>
@@ -210,6 +216,11 @@ const Settings: Component<SettingsProps> = (props) => {
             <IndexingTab />
           </Tabs.Content>
         </Show>
+
+        <Tabs.Content value="commitMessage">
+          <h3>{language.t("settings.commitMessage.title")}</h3>
+          <CommitMessageTab />
+        </Tabs.Content>
         <Tabs.Content value="experimental">
           <h3>{language.t("settings.experimental.title")}</h3>
           <ExperimentalTab />

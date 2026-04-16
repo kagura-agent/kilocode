@@ -4,183 +4,292 @@ import { BashTool } from "./bash"
 import { EditTool } from "./edit"
 import { GlobTool } from "./glob"
 import { GrepTool } from "./grep"
-import { SemanticSearchTool } from "./semantic_search"
-import { BatchTool } from "./batch"
+import { SemanticSearchTool } from "./semantic_search" // kilocode_change
 import { ReadTool } from "./read"
-import { TaskTool } from "./task"
-import { TodoWriteTool, TodoReadTool } from "./todo"
+import { TaskDescription, TaskTool } from "./task"
+import { TodoWriteTool } from "./todo"
 import { WebFetchTool } from "./webfetch"
 import { WriteTool } from "./write"
 import { InvalidTool } from "./invalid"
-import { SkillTool } from "./skill"
-import type { Agent } from "../agent/agent"
+import { SkillDescription, SkillTool } from "./skill"
 import { Tool } from "./tool"
-import { Instance } from "../project/instance"
 import { Config } from "../config/config"
-import path from "path"
-import { type ToolContext as PluginToolContext, type ToolDefinition } from "@kilocode/plugin"
+import { type ToolContext as PluginToolContext, type ToolDefinition } from "@kilocode/plugin" // kilocode_change
 import z from "zod"
 import { Plugin } from "../plugin"
+import { ProviderID, type ModelID } from "../provider/schema"
 import { WebSearchTool } from "./websearch"
 import { CodeSearchTool } from "./codesearch"
-import { CodebaseSearchTool } from "./warpgrep" // kilocode_change
+import { KiloToolRegistry } from "../kilocode/tool/registry" // kilocode_change
 import { Flag } from "@/flag/flag"
 import { Log } from "@/util/log"
-import { KiloIndexing } from "@/kilocode/indexing" // kilocode_change
 import { LspTool } from "./lsp"
-import { Truncate } from "./truncation"
-
+import { Truncate } from "./truncate"
 import { ApplyPatchTool } from "./apply_patch"
 import { Glob } from "../util/glob"
+import path from "path"
 import { pathToFileURL } from "url"
+import { Effect, Layer, ServiceMap } from "effect"
+import { InstanceState } from "@/effect/instance-state"
+import { makeRuntime } from "@/effect/run-service"
+import { Env } from "../env"
+import { Question } from "../question"
+import { Todo } from "../session/todo"
+import { LSP } from "../lsp"
+import { FileTime } from "../file/time"
+import { Instruction } from "../session/instruction"
+import { AppFileSystem } from "../filesystem"
+import { Agent } from "../agent/agent"
+import { KiloIndexing } from "@/kilocode/indexing" // kilocode_change
 
 export namespace ToolRegistry {
   const log = Log.create({ service: "tool.registry" })
 
-  export const state = Instance.state(async () => {
-    const custom = [] as Tool.Info[]
+  type TaskDef = Tool.InferDef<typeof TaskTool>
+  type ReadDef = Tool.InferDef<typeof ReadTool>
 
-    const matches = await Config.directories().then((dirs) =>
-      dirs.flatMap((dir) =>
-        Glob.scanSync("{tool,tools}/*.{js,ts}", { cwd: dir, absolute: true, dot: true, symlink: true }),
-      ),
-    )
-    if (matches.length) await Config.waitForDependencies()
-    for (const match of matches) {
-      const namespace = path.basename(match, path.extname(match))
-      const mod = await import(pathToFileURL(match).href)
-      for (const [id, def] of Object.entries<ToolDefinition>(mod)) {
-        custom.push(fromPlugin(id === "default" ? namespace : `${namespace}_${id}`, def))
-      }
-    }
+  type State = {
+    custom: Tool.Def[]
+    builtin: Tool.Def[]
+    task: TaskDef
+    read: ReadDef
+  }
 
-    const plugins = await Plugin.list()
-    for (const plugin of plugins) {
-      for (const [id, def] of Object.entries(plugin.tool ?? {})) {
-        custom.push(fromPlugin(id, def))
-      }
-    }
+  export interface Interface {
+    readonly ids: () => Effect.Effect<string[]>
+    readonly all: () => Effect.Effect<Tool.Def[]>
+    readonly named: () => Effect.Effect<{ task: TaskDef; read: ReadDef }>
+    readonly tools: (model: {
+      providerID: ProviderID
+      modelID: ModelID
+      agent: Agent.Info
+    }) => Effect.Effect<Tool.Def[]>
+  }
 
-    return { custom }
-  })
+  export class Service extends ServiceMap.Service<Service, Interface>()("@opencode/ToolRegistry") {}
 
-  function fromPlugin(id: string, def: ToolDefinition): Tool.Info {
-    return {
-      id,
-      init: async (initCtx) => ({
-        parameters: z.object(def.args),
-        description: def.description,
-        execute: async (args, ctx) => {
-          const pluginCtx = {
-            ...ctx,
-            directory: Instance.directory,
-            worktree: Instance.worktree,
-          } as unknown as PluginToolContext
-          const result = await def.execute(args as any, pluginCtx)
-          const out = await Truncate.output(result, {}, initCtx?.agent)
+  export const layer: Layer.Layer<
+    Service,
+    never,
+    | Config.Service
+    | Plugin.Service
+    | Question.Service
+    | Todo.Service
+    | Agent.Service
+    | LSP.Service
+    | FileTime.Service
+    | Instruction.Service
+    | AppFileSystem.Service
+  > = Layer.effect(
+    Service,
+    Effect.gen(function* () {
+      const config = yield* Config.Service
+      const plugin = yield* Plugin.Service
+
+      const task = yield* TaskTool
+      const read = yield* ReadTool
+      const question = yield* QuestionTool
+      const todo = yield* TodoWriteTool
+
+      const state = yield* InstanceState.make<State>(
+        Effect.fn("ToolRegistry.state")(function* (ctx) {
+          const custom: Tool.Def[] = []
+
+          function fromPlugin(id: string, def: ToolDefinition): Tool.Def {
+            return {
+              id,
+              parameters: z.object(def.args),
+              description: def.description,
+              execute: async (args, toolCtx) => {
+                const pluginCtx: PluginToolContext = {
+                  ...toolCtx,
+                  directory: ctx.directory,
+                  worktree: ctx.worktree,
+                }
+                const result = await def.execute(args as any, pluginCtx)
+                const out = await Truncate.output(result, {}, await Agent.get(toolCtx.agent))
+                return {
+                  title: "",
+                  output: out.truncated ? out.content : result,
+                  metadata: {
+                    truncated: out.truncated,
+                    outputPath: out.truncated ? out.outputPath : undefined,
+                  },
+                }
+              },
+            }
+          }
+
+          const dirs = yield* config.directories()
+          const matches = dirs.flatMap((dir) =>
+            Glob.scanSync("{tool,tools}/*.{js,ts}", { cwd: dir, absolute: true, dot: true, symlink: true }),
+          )
+          if (matches.length) yield* config.waitForDependencies()
+          for (const match of matches) {
+            const namespace = path.basename(match, path.extname(match))
+            const mod = yield* Effect.promise(
+              () => import(process.platform === "win32" ? match : pathToFileURL(match).href),
+            )
+            for (const [id, def] of Object.entries<ToolDefinition>(mod)) {
+              custom.push(fromPlugin(id === "default" ? namespace : `${namespace}_${id}`, def))
+            }
+          }
+
+          const plugins = yield* plugin.list()
+          for (const p of plugins) {
+            for (const [id, def] of Object.entries(p.tool ?? {})) {
+              custom.push(fromPlugin(id, def))
+            }
+          }
+
+          const cfg = yield* config.get()
+          const questionEnabled = KiloToolRegistry.question() // kilocode_change
+
+          const tool = yield* Effect.all({
+            invalid: Tool.init(InvalidTool),
+            bash: Tool.init(BashTool),
+            read: Tool.init(read),
+            glob: Tool.init(GlobTool),
+            grep: Tool.init(GrepTool),
+            edit: Tool.init(EditTool),
+            write: Tool.init(WriteTool),
+            task: Tool.init(task),
+            fetch: Tool.init(WebFetchTool),
+            todo: Tool.init(todo),
+            search: Tool.init(WebSearchTool),
+            code: Tool.init(CodeSearchTool),
+            skill: Tool.init(SkillTool),
+            patch: Tool.init(ApplyPatchTool),
+            question: Tool.init(question),
+            lsp: Tool.init(LspTool),
+            plan: Tool.init(PlanExitTool),
+            semantic: Tool.init(SemanticSearchTool), // kilocode_change
+          })
+
+          const kilo = yield* KiloToolRegistry.build() // kilocode_change
+          const search = yield* Effect.promise(() =>
+            KiloIndexing.available().catch((err: unknown) => {
+              log.error("failed to get indexing state, possible configuration error", { err })
+              return false
+            }),
+          ) // kilocode_change
+
           return {
-            title: "",
-            output: out.truncated ? out.content : result,
-            metadata: { truncated: out.truncated, outputPath: out.truncated ? out.outputPath : undefined },
+            custom,
+            builtin: [
+              tool.invalid,
+              ...(questionEnabled ? [tool.question] : []),
+              tool.bash,
+              tool.read,
+              tool.glob,
+              tool.grep,
+              tool.edit,
+              tool.write,
+              tool.task,
+              tool.fetch,
+              tool.todo,
+              tool.search,
+              tool.code,
+              tool.skill,
+              tool.patch,
+              ...(Flag.KILO_EXPERIMENTAL_LSP_TOOL ? [tool.lsp] : []), // kilocode_change
+              ...(KiloToolRegistry.plan() ? [tool.plan] : []), // kilocode_change
+              ...(search ? [tool.semantic] : []), // kilocode_change
+              ...KiloToolRegistry.extra(kilo, cfg), // kilocode_change
+            ],
+            task: tool.task,
+            read: tool.read,
           }
-        },
-      }),
-    }
-  }
+        }),
+      )
 
-  export async function register(tool: Tool.Info) {
-    const { custom } = await state()
-    const idx = custom.findIndex((t) => t.id === tool.id)
-    if (idx >= 0) {
-      custom.splice(idx, 1, tool)
-      return
-    }
-    custom.push(tool)
-  }
+      const all: Interface["all"] = Effect.fn("ToolRegistry.all")(function* () {
+        const s = yield* InstanceState.get(state)
+        return [...s.builtin, ...s.custom] as Tool.Def[]
+      })
 
-  async function all(): Promise<Tool.Info[]> {
-    const custom = await state().then((x) => x.custom)
-    const config = await Config.get()
-    const question = ["app", "cli", "desktop"].includes(Flag.KILO_CLIENT) || Flag.KILO_ENABLE_QUESTION_TOOL
-    const indexing_enabled = await KiloIndexing.available().catch((err: unknown) => {
-      // kilocode_change start
-      log.error("failed to get indexing state, possible configuration error", { err })
-      return false
-      // kilocode_change end
-    }) // kilocode_change
+      const ids: Interface["ids"] = Effect.fn("ToolRegistry.ids")(function* () {
+        return (yield* all()).map((tool) => tool.id)
+      })
 
-    return [
-      InvalidTool,
-      ...(["app", "cli", "desktop", "vscode"].includes(Flag.KILO_CLIENT) && question ? [QuestionTool] : []), // kilocode_change
-      BashTool,
-      ReadTool,
-      GlobTool,
-      GrepTool,
-      ...(indexing_enabled ? [SemanticSearchTool] : []), // kilocode_change
-      EditTool,
-      WriteTool,
-      TaskTool,
-      WebFetchTool,
-      TodoWriteTool,
-      // TodoReadTool,
-      WebSearchTool,
-      CodeSearchTool,
-      ...(config.experimental?.codebase_search === true ? [CodebaseSearchTool] : []), // kilocode_change
-      SkillTool,
-      ApplyPatchTool,
-      ...(Flag.KILO_EXPERIMENTAL_LSP_TOOL ? [LspTool] : []),
-      ...(config.experimental?.batch_tool === true ? [BatchTool] : []),
-      PlanExitTool, // kilocode_change - always registered; gated by agent permission instead
-      ...custom,
-    ]
-  }
-
-  export async function ids() {
-    return all().then((x) => x.map((t) => t.id))
-  }
-
-  export async function tools(
-    model: {
-      providerID: string
-      modelID: string
-    },
-    agent?: Agent.Info,
-  ) {
-    const tools = await all()
-    const result = await Promise.all(
-      tools
-        .filter((t) => {
-          // Enable websearch/codesearch for zen/kilo users OR via enable flag
-          // kilocode_change start
-          if (t.id === "codesearch" || t.id === "websearch") {
-            return model.providerID === "opencode" || model.providerID === "kilo" || Flag.KILO_ENABLE_EXA
+      const tools: Interface["tools"] = Effect.fn("ToolRegistry.tools")(function* (input) {
+        const filtered = (yield* all()).filter((tool) => {
+          if (tool.id === CodeSearchTool.id || tool.id === WebSearchTool.id) {
+            return KiloToolRegistry.exa(input.providerID) // kilocode_change
           }
-          // kilocode_change end
 
-          // use apply tool in same format as codex
           const usePatch =
-            model.modelID.includes("gpt-") && !model.modelID.includes("oss") && !model.modelID.includes("gpt-4")
-          if (t.id === "apply_patch") return usePatch
-          if (t.id === "edit" || t.id === "write") return !usePatch
+            KiloToolRegistry.e2e() || // kilocode_change
+            (input.modelID.includes("gpt-") && !input.modelID.includes("oss") && !input.modelID.includes("gpt-4"))
+          if (tool.id === ApplyPatchTool.id) return usePatch
+          if (tool.id === EditTool.id || tool.id === WriteTool.id) return !usePatch
 
           return true
         })
-        .map(async (t) => {
-          using _ = log.time(t.id)
-          const tool = await t.init({ agent })
-          const output = {
-            description: tool.description,
-            parameters: tool.parameters,
-          }
-          await Plugin.trigger("tool.definition", { toolID: t.id }, output)
-          return {
-            id: t.id,
-            ...tool,
-            description: output.description,
-            parameters: output.parameters,
-          }
-        }),
-    )
-    return result
+
+        return yield* Effect.forEach(
+          filtered,
+          Effect.fnUntraced(function* (tool: Tool.Def) {
+            using _ = log.time(tool.id)
+            const output = {
+              description: tool.description,
+              parameters: tool.parameters,
+            }
+            yield* plugin.trigger("tool.definition", { toolID: tool.id }, output)
+            return {
+              id: tool.id,
+              description: [
+                output.description,
+                tool.id === TaskTool.id ? yield* TaskDescription(input.agent) : undefined,
+                tool.id === SkillTool.id ? yield* SkillDescription(input.agent) : undefined,
+              ]
+                .filter(Boolean)
+                .join("\n"),
+              parameters: output.parameters,
+              execute: tool.execute,
+              formatValidationError: tool.formatValidationError,
+            }
+          }),
+          { concurrency: "unbounded" },
+        )
+      })
+
+      const named: Interface["named"] = Effect.fn("ToolRegistry.named")(function* () {
+        const s = yield* InstanceState.get(state)
+        return { task: s.task, read: s.read }
+      })
+
+      return Service.of({ ids, all, named, tools })
+    }),
+  )
+
+  export const defaultLayer = Layer.unwrap(
+    Effect.sync(() =>
+      layer.pipe(
+        Layer.provide(Config.defaultLayer),
+        Layer.provide(Plugin.defaultLayer),
+        Layer.provide(Question.defaultLayer),
+        Layer.provide(Todo.defaultLayer),
+        Layer.provide(Agent.defaultLayer),
+        Layer.provide(LSP.defaultLayer),
+        Layer.provide(FileTime.defaultLayer),
+        Layer.provide(Instruction.defaultLayer),
+        Layer.provide(AppFileSystem.defaultLayer),
+      ),
+    ),
+  )
+
+  const { runPromise } = makeRuntime(Service, defaultLayer)
+
+  export async function ids() {
+    return runPromise((svc) => svc.ids())
+  }
+
+  export async function tools(input: {
+    providerID: ProviderID
+    modelID: ModelID
+    agent: Agent.Info
+  }): Promise<(Tool.Def & { id: string })[]> {
+    return runPromise((svc) => svc.tools(input))
   }
 }

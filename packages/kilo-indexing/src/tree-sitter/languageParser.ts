@@ -1,4 +1,3 @@
-
 import * as path from "path"
 import { existsSync } from "fs"
 import type { Parser as ParserT, Language as LanguageT, Query as QueryT } from "web-tree-sitter"

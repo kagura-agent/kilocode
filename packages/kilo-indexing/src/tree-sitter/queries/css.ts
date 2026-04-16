@@ -1,4 +1,3 @@
-
 /*
 CSS Tree-Sitter Query Patterns
 */

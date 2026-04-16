@@ -1,4 +1,3 @@
-
 // Query patterns for TOML syntax elements
 export const tomlQuery = `
 ; Tables - capture the entire table node

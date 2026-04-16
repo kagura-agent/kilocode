@@ -1,4 +1,3 @@
-
 export const ocamlQuery = `
 ; Captures module definitions
 (module_definition

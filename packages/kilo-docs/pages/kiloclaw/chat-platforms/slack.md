@@ -5,6 +5,8 @@ description: "Connect your KiloClaw agent to Slack"
 
 # Slack
 
+{% youtube url="https://youtu.be/Q5bt-qH-_pY" title="Slack Setup Guide" caption="How to connect your KiloClaw agent to Slack" /%}
+
 Connect your KiloClaw agent to Slack by creating a Slack app from the OpenClaw manifest and linking it to your KiloClaw dashboard.
 
 ## Step 1: Create a Slack App from the OpenClaw Manifest
@@ -45,11 +47,8 @@ You need two tokens from Slack:
 
 ## Step 4: Pair Slack with KiloClaw
 
-1. In Slack, DM the app and type your slash command (e.g., `/claw`) followed by anything — this triggers the pairing flow
-
-> 📝 **Note**
-> The slash command is whatever you defined in the manifest. Any text after the command will work to trigger pairing.
+1. In Slack, DM the app and send any message — this triggers the pairing flow
 
 2. The app will return a pairing code
 3. Return to [app.kilocode.ai/claw](https://app.kilocode.ai/claw) and confirm the pairing code and approve
-4. You should now be able to chat with the bot from Slack
+4. You should now be able to DM the bot from Slack. You will need to add the bot to any individual channels and tell it to update its config for any channels you want it to participate in.

@@ -1,4 +1,3 @@
-
 /*
 PHP Tree-sitter Query - Standardized Version
 

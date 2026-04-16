@@ -1,28 +1,21 @@
+import { Effect } from "effect"
 import path from "path"
 import { pathToFileURL } from "url"
 import z from "zod"
 import { Tool } from "./tool"
 import { Skill } from "../skill"
-import { PermissionNext } from "../permission/next"
 import { Ripgrep } from "../file/ripgrep"
 import { iife } from "@/util/iife"
 
-const BUILTIN = Skill.BUILTIN_LOCATION // kilocode_change
+const Parameters = z.object({
+  name: z.string().describe("The name of the skill from available_skills"),
+})
 
-export const SkillTool = Tool.define("skill", async (ctx) => {
-  const skills = await Skill.all()
-
-  // Filter skills by agent permissions if agent provided
-  const agent = ctx?.agent
-  const accessibleSkills = agent
-    ? skills.filter((skill) => {
-        const rule = PermissionNext.evaluate("skill", skill.name, agent.permission)
-        return rule.action !== "deny"
-      })
-    : skills
+export const SkillTool = Tool.define("skill", async () => {
+  const list = await Skill.available()
 
   const description =
-    accessibleSkills.length === 0
+    list.length === 0
       ? "Load a specialized skill that provides domain-specific instructions and workflows. No skills are currently available."
       : [
           "Load a specialized skill that provides domain-specific instructions and workflows.",
@@ -36,40 +29,17 @@ export const SkillTool = Tool.define("skill", async (ctx) => {
           "The following skills provide specialized sets of instructions for particular tasks",
           "Invoke this tool to load a skill when a task matches one of the available skills listed below:",
           "",
-          "<available_skills>",
-          // kilocode_change start - guard pathToFileURL for builtin skills
-          ...accessibleSkills.flatMap((skill) => {
-            const loc = skill.location === BUILTIN ? BUILTIN : pathToFileURL(skill.location).href
-            return [
-              `  <skill>`,
-              `    <name>${skill.name}</name>`,
-              `    <description>${skill.description}</description>`,
-              `    <location>${loc}</location>`,
-              `  </skill>`,
-            ]
-          }),
-          // kilocode_change end
-          "</available_skills>",
+          Skill.fmt(list, { verbose: false }),
         ].join("\n")
-
-  const examples = accessibleSkills
-    .map((skill) => `'${skill.name}'`)
-    .slice(0, 3)
-    .join(", ")
-  const hint = examples.length > 0 ? ` (e.g., ${examples}, ...)` : ""
-
-  const parameters = z.object({
-    name: z.string().describe(`The name of the skill from available_skills${hint}`),
-  })
 
   return {
     description,
-    parameters,
-    async execute(params: z.infer<typeof parameters>, ctx) {
+    parameters: Parameters,
+    async execute(params: z.infer<typeof Parameters>, ctx) {
       const skill = await Skill.get(params.name)
 
       if (!skill) {
-        const available = await Skill.all().then((x) => Object.keys(x).join(", "))
+        const available = await Skill.all().then((x) => x.map((skill) => skill.name).join(", "))
         throw new Error(`Skill "${params.name}" not found. Available skills: ${available || "none"}`)
       }
 
@@ -81,7 +51,7 @@ export const SkillTool = Tool.define("skill", async (ctx) => {
       })
 
       // kilocode_change start - built-in skills have no filesystem directory
-      if (skill.location === BUILTIN) {
+      if (skill.location === Skill.BUILTIN_LOCATION) {
         return {
           title: `Loaded skill: ${skill.name}`,
           output: [
@@ -93,7 +63,7 @@ export const SkillTool = Tool.define("skill", async (ctx) => {
           ].join("\n"),
           metadata: {
             name: skill.name,
-            dir: BUILTIN,
+            dir: Skill.BUILTIN_LOCATION,
           },
         }
       }
@@ -147,3 +117,23 @@ export const SkillTool = Tool.define("skill", async (ctx) => {
     },
   }
 })
+
+export const SkillDescription: Tool.DynamicDescription = (agent) =>
+  Effect.gen(function* () {
+    const list = yield* Effect.promise(() => Skill.available(agent))
+    if (list.length === 0) return "No skills are currently available."
+    return [
+      "Load a specialized skill that provides domain-specific instructions and workflows.",
+      "",
+      "When you recognize that a task matches one of the available skills listed below, use this tool to load the full skill instructions.",
+      "",
+      "The skill will inject detailed instructions, workflows, and access to bundled resources (scripts, references, templates) into the conversation context.",
+      "",
+      'Tool output includes a `<skill_content name="...">` block with the loaded content.',
+      "",
+      "The following skills provide specialized sets of instructions for particular tasks",
+      "Invoke this tool to load a skill when a task matches one of the available skills listed below:",
+      "",
+      Skill.fmt(list, { verbose: false }),
+    ].join("\n")
+  })

@@ -110,7 +110,7 @@ export namespace KiloIndexing {
   const state = Instance.state(
     async () => {
       const cfg = await Config.get()
-      if (!hasIndexingPlugin(cfg.plugin)) {
+      if (!hasIndexingPlugin((cfg.plugin ?? []).map(Config.pluginSpecifier))) {
         const publish = async () => {
           await Bus.publish(Event, { status: missing() })
         }

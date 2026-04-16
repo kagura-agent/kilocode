@@ -1,4 +1,3 @@
-
 import { Log } from "../../util/log"
 
 const log = Log.create({ service: "indexing-validation" })

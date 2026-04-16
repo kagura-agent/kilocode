@@ -1,4 +1,3 @@
-
 export const scalaQuery = `
 ; Classes
 (class_definition

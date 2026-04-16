@@ -1,4 +1,3 @@
-
 /**
  * Runtime adapter interfaces for the indexing package.
  *

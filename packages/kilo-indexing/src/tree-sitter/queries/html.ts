@@ -1,4 +1,3 @@
-
 export default `
 ; Document structure
 (document) @definition.document

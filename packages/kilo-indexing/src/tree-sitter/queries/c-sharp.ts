@@ -1,4 +1,3 @@
-
 /*
 C# Tree-Sitter Query Patterns
 */

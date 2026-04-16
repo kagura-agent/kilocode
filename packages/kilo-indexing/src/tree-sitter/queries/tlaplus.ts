@@ -1,4 +1,3 @@
-
 /*
 Supported TLA+ structures:
 - modules with header, extends, constants, variables

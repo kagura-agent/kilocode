@@ -1,4 +1,3 @@
-
 /**
  * Interface for code index embedders.
  * This interface is implemented by both OpenAI and Ollama embedders.

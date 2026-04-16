@@ -1,4 +1,3 @@
-
 /*
 Rust language structures for tree-sitter parsing
 Captures all required constructs for tests

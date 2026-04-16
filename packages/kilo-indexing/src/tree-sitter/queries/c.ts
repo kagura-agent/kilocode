@@ -1,4 +1,3 @@
-
 /*
 C Language Constructs Supported by Tree-Sitter Parser:
 

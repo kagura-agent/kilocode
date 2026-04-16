@@ -1,4 +1,3 @@
-
 export interface ICacheManager {
   getHash(filePath: string): string | undefined
   updateHash(filePath: string, hash: string): void

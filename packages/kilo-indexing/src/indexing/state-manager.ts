@@ -1,4 +1,3 @@
-
 import { Emitter } from "./runtime"
 
 export type IndexingState = "Standby" | "Indexing" | "Indexed" | "Error"

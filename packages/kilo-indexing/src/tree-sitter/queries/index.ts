@@ -1,4 +1,3 @@
-
 export { solidityQuery } from "./solidity"
 export { default as phpQuery } from "./php"
 export { vueQuery } from "./vue"

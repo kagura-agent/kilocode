@@ -1,4 +1,3 @@
-
 import type { EmbedderProvider } from "./manager"
 
 /**

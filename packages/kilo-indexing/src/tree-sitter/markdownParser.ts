@@ -1,4 +1,3 @@
-
 import type { QueryCapture } from "web-tree-sitter"
 
 interface MockNode {

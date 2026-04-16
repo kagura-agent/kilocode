@@ -1,4 +1,3 @@
-
 /*
 Supported C++ structures:
 - struct/class/union declarations

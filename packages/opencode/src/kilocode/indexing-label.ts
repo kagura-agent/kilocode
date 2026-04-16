@@ -1,5 +1,5 @@
 type Status = {
-  state: "Disabled" | "In Progress" | "Complete" | "Error"
+  state: "Disabled" | "In Progress" | "Complete" | "Error" | "Standby"
   message: string
   processedFiles: number
   totalFiles: number

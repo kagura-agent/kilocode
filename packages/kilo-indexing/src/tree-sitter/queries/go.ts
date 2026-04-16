@@ -1,4 +1,3 @@
-
 /*
 Go Tree-Sitter Query Patterns
 Updated to capture full declarations instead of just identifiers

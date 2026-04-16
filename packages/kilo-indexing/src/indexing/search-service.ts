@@ -1,4 +1,3 @@
-
 import path from "path"
 import type { VectorStoreSearchResult } from "./interfaces"
 import type { IEmbedder } from "./interfaces/embedder"

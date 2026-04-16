@@ -1,4 +1,3 @@
-
 /*
 Python Tree-sitter Query Patterns
 */

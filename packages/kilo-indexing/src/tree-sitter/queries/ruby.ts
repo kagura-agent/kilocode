@@ -1,4 +1,3 @@
-
 /*
 - method definitions (including singleton methods and aliases, with associated comments)
 - class definitions (including singleton classes, with associated comments)

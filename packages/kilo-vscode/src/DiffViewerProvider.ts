@@ -1,5 +1,4 @@
 import * as vscode from "vscode"
-import type { FileDiff } from "@kilocode/sdk/v2/client"
 import type { KiloConnectionService } from "./services/cli-backend"
 import { buildWebviewHtml } from "./utils"
 import { GitOps } from "./agent-manager/GitOps"
@@ -212,6 +211,7 @@ export class DiffViewerProvider implements vscode.Disposable {
 
   public dispose(): void {
     this.stopDiffPolling()
+    this.gitOps.dispose()
     this.panel?.dispose()
     this.outputChannel.dispose()
   }

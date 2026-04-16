@@ -1,4 +1,3 @@
-
 export const vueQuery = `
 ; Top-level structure
 (component) @component.definition

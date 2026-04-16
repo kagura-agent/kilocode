@@ -1,4 +1,3 @@
-
 export const solidityQuery = `
 ; Contract declarations
 (contract_declaration

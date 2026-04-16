@@ -3,8 +3,10 @@ import { hasIndexingPlugin } from "@kilocode/kilo-indexing/detect"
 
 export const INDEXING_PLUGIN = "@kilocode/kilo-indexing"
 
+type PluginItem = string | readonly [string, unknown]
+
 type ConfigLike = {
-  plugin?: readonly string[] | null
+  plugin?: readonly PluginItem[] | null
 }
 
 type Req = {
@@ -15,8 +17,13 @@ type LogLike = {
   debug: (msg: string, data?: Record<string, unknown>) => void
 }
 
-function list(items?: readonly string[] | null): string[] {
-  return items?.filter((item): item is string => typeof item === "string") ?? []
+function spec(item: PluginItem): string {
+  if (typeof item === "string") return item
+  return item[0]
+}
+
+function list(items?: readonly PluginItem[] | null): string[] {
+  return items?.map(spec) ?? []
 }
 
 export function indexingEnabled(config?: ConfigLike | null): boolean {
@@ -34,9 +41,12 @@ export function resolveIndexingPlugin(req: Req, log?: LogLike): string {
   }
 }
 
-export function ensureIndexingPlugin(items?: readonly string[] | null, plugin?: string): string[] {
-  const plugins = list(items)
+export function ensureIndexingPlugin<T extends PluginItem>(
+  items?: readonly T[] | null,
+  plugin?: string,
+): Array<T | string> {
+  const plugins = items ? [...items] : []
   if (!plugin) return plugins
-  if (hasIndexingPlugin(plugins)) return plugins
+  if (hasIndexingPlugin(list(plugins))) return plugins
   return [...plugins, plugin]
 }

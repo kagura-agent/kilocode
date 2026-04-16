@@ -5,14 +5,18 @@ import { TuiEvent } from "@/cli/cmd/tui/event"
 import { Flag } from "@/flag/flag"
 import { Global } from "@/global"
 import { Identifier } from "@/id/id"
+import { Instance } from "@/project/instance"
 import { Provider } from "@/provider/provider"
+import { ProviderID, ModelID } from "@/provider/schema"
 import { Question } from "@/question"
 import { Session } from "@/session"
+import { SessionID, MessageID, PartID } from "@/session/schema"
 import { LLM } from "@/session/llm"
 import { MessageV2 } from "@/session/message-v2"
 import { Todo } from "@/session/todo"
 import { Log } from "@/util/log"
 import path from "path"
+import z from "zod"
 
 function toText(item: MessageV2.WithParts): string {
   return item.parts
@@ -66,9 +70,9 @@ export async function generateHandover(input: {
       ? await Provider.getModel(agent.model.providerID, agent.model.modelID)
       : await Provider.getModel(input.model.providerID, input.model.modelID)
 
-    const sessionID = Identifier.ascending("session")
+    const sessionID = SessionID.make(Identifier.ascending("session"))
     const userMsg: MessageV2.User = {
-      id: Identifier.ascending("message"),
+      id: MessageID.ascending(),
       sessionID,
       role: "user",
       time: { created: Date.now() },
@@ -88,7 +92,7 @@ export async function generateHandover(input: {
       model,
       small: true,
       messages: [
-        ...MessageV2.toModelMessages(input.messages, model),
+        ...(await MessageV2.toModelMessages(input.messages, model)),
         {
           role: "user" as const,
           content: HANDOVER_PROMPT,
@@ -120,18 +124,20 @@ export namespace PlanFollowup {
     return value
   }
 
-  async function resolveCodeModel(input: Pick<MessageV2.User, "model" | "variant">) {
+  const ModelState = z
+    .object({
+      model: z.record(z.string(), z.object({ providerID: ProviderID.zod, modelID: ModelID.zod })).optional(),
+      variant: z.record(z.string(), z.string().optional()).optional(),
+    })
+    .passthrough()
+
+  async function resolveCodeModel(input: Pick<MessageV2.User, "model">) {
     const state =
       Flag.KILO_CLIENT === "cli"
         ? await Bun.file(path.join(Global.Path.state, "model.json"))
             .text()
-            .then(
-              (raw) =>
-                JSON.parse(raw) as {
-                  model?: Record<string, MessageV2.User["model"]>
-                  variant?: Record<string, string | undefined>
-                },
-            )
+            .then((raw) => ModelState.safeParse(JSON.parse(raw)))
+            .then((r) => (r.success ? r.data : undefined))
             .catch(() => undefined)
         : undefined
     const saved = state?.model?.code
@@ -140,8 +146,7 @@ export namespace PlanFollowup {
       if (full) {
         const key = `${saved.providerID}/${saved.modelID}`
         return {
-          model: saved,
-          variant: resolveVariant(state?.variant?.[key], full),
+          model: { ...saved, variant: resolveVariant(state?.variant?.[key], full) },
         }
       }
     }
@@ -151,8 +156,7 @@ export namespace PlanFollowup {
       const full = await Provider.getModel(agent.model.providerID, agent.model.modelID).catch(() => undefined)
       if (full) {
         return {
-          model: agent.model,
-          variant: resolveVariant(agent.variant, full),
+          model: { ...agent.model, variant: resolveVariant(agent.variant, full) },
         }
       }
     }
@@ -162,7 +166,7 @@ export namespace PlanFollowup {
   async function resolvePlan(input: {
     assistant?: MessageV2.WithParts
     messages: MessageV2.WithParts[]
-    sessionID: string
+    sessionID: SessionID
   }) {
     // Fast path: check the last assistant message's text first (avoids array scanning)
     if (input.assistant) {
@@ -179,22 +183,21 @@ export namespace PlanFollowup {
     if (text) return text
 
     // Fall back to plan file on disk
-    const session = await Session.get(input.sessionID)
+    const session = await Session.get(SessionID.make(input.sessionID))
     const file = Bun.file(Session.plan(session))
     const plan = await file.text().catch(() => "")
     return plan.trim()
   }
 
   async function inject(input: {
-    sessionID: string
+    sessionID: SessionID
     agent: string
     model: MessageV2.User["model"]
-    variant?: MessageV2.User["variant"]
     text: string
     synthetic?: boolean
   }) {
     const msg: MessageV2.User = {
-      id: Identifier.ascending("message"),
+      id: MessageID.ascending(),
       sessionID: input.sessionID,
       role: "user",
       time: {
@@ -202,11 +205,10 @@ export namespace PlanFollowup {
       },
       agent: input.agent,
       model: input.model,
-      variant: input.variant,
     }
     await Session.updateMessage(msg)
     await Session.updatePart({
-      id: Identifier.ascending("part"),
+      id: PartID.ascending(),
       messageID: msg.id,
       sessionID: input.sessionID,
       type: "text",
@@ -215,7 +217,7 @@ export namespace PlanFollowup {
     } satisfies MessageV2.TextPart)
   }
 
-  function prompt(input: { sessionID: string; abort: AbortSignal }) {
+  function prompt(input: { sessionID: SessionID; abort: AbortSignal }) {
     const promise = Question.ask({
       sessionID: input.sessionID,
       questions: [
@@ -255,55 +257,67 @@ export namespace PlanFollowup {
   }
 
   async function startNew(input: {
-    sessionID: string
+    sessionID: SessionID
     plan: string
     messages: MessageV2.WithParts[]
     model: MessageV2.User["model"]
-    variant?: MessageV2.User["variant"]
     abort?: AbortSignal
   }) {
     const code = await resolveCodeModel({
       model: input.model,
-      variant: input.variant,
     })
+    const session = await Session.get(input.sessionID)
     const [handover, todos] = await Promise.all([
       generateHandover({ messages: input.messages, model: input.model, abort: input.abort }),
       Todo.get(input.sessionID),
     ])
 
-    const sections = [`Implement the following plan:\n\n${input.plan}`]
+    await Instance.provide({
+      directory: session.directory,
+      fn: async () => {
+        const file = Session.plan(session)
+        const sections = [
+          `Plan file: ${file}\nRead this file first and treat it as the source of truth for implementation.`,
+          `Implement the following plan:\n\n${input.plan}`,
+        ]
 
-    if (handover) {
-      sections.push(`## Handover from Planning Session\n\n${handover}`)
-    }
+        if (handover) {
+          sections.push(`## Handover from Planning Session\n\n${handover}`)
+        }
 
-    const todoList = formatTodos(todos)
-    if (todoList) {
-      sections.push(`## Todo List\n\n${todoList}`)
-    }
+        const todoList = formatTodos(todos)
+        if (todoList) {
+          sections.push(`## Todo List\n\n${todoList}`)
+        }
 
-    const next = await Session.create({})
-    await inject({
-      sessionID: next.id,
-      agent: "code",
-      model: code.model,
-      variant: code.variant,
-      text: sections.join("\n\n"),
-      synthetic: false,
+        const next = await Session.create({})
+        await inject({
+          sessionID: next.id,
+          agent: "code",
+          model: code.model,
+          text: sections.join("\n\n"),
+          synthetic: false,
+        })
+        if (todos.length) {
+          await Todo.update({ sessionID: next.id, todos })
+        }
+        await Bus.publish(TuiEvent.SessionSelect, { sessionID: next.id })
+        void import("@/session/prompt")
+          .then((item) =>
+            Instance.provide({
+              directory: next.directory,
+              fn: () => item.SessionPrompt.loop({ sessionID: next.id }),
+            }),
+          )
+          .catch((error) => {
+            log.error("failed to start follow-up session", { sessionID: next.id, error })
+          })
+      },
     })
-    if (todos.length) {
-      await Todo.update({ sessionID: next.id, todos })
-    }
-    await Bus.publish(TuiEvent.SessionSelect, { sessionID: next.id })
-    void import("@/session/prompt")
-      .then((item) => item.SessionPrompt.loop({ sessionID: next.id }))
-      .catch((error) => {
-        log.error("failed to start follow-up session", { sessionID: next.id, error })
-      })
   }
 
   export async function ask(input: {
-    sessionID: string
+    sessionID: SessionID
     messages: MessageV2.WithParts[]
     abort: AbortSignal
   }): Promise<"continue" | "break"> {
@@ -338,7 +352,6 @@ export namespace PlanFollowup {
         plan,
         messages: input.messages,
         model: user.model,
-        variant: user.variant,
         abort: input.abort,
       })
       return "break"
@@ -348,13 +361,11 @@ export namespace PlanFollowup {
       Telemetry.trackPlanFollowup(input.sessionID, "continue")
       const code = await resolveCodeModel({
         model: user.model,
-        variant: user.variant,
       })
       await inject({
         sessionID: input.sessionID,
         agent: "code",
         model: code.model,
-        variant: code.variant,
         text: "Implement the plan above.",
       })
       return "continue"
@@ -365,7 +376,6 @@ export namespace PlanFollowup {
       sessionID: input.sessionID,
       agent: "plan",
       model: user.model,
-      variant: user.variant,
       text: answer,
     })
     return "continue"

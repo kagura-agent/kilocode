@@ -1,4 +1,3 @@
-
 /*
 Supported Embedded Template structures:
 - Code blocks (class, module, method definitions)

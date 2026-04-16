@@ -1,4 +1,3 @@
-
 // Query patterns for Emacs Lisp
 export const elispQuery = `
 ; Function definitions - capture only name and actual function node

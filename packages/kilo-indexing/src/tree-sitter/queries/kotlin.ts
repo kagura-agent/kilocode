@@ -1,4 +1,3 @@
-
 /*
 - class declarations (regular, data, abstract, sealed, enum, annotation)
 - interface declarations

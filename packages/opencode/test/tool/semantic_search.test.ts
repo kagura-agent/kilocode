@@ -5,11 +5,12 @@ import { SemanticSearchTool } from "../../src/tool/semantic_search"
 import { KiloIndexing } from "../../src/kilocode/indexing"
 import { Instance } from "../../src/project/instance"
 import { tmpdir } from "../fixture/fixture"
-import type { PermissionNext } from "../../src/permission/next"
+import type { Permission } from "../../src/permission"
+import { MessageID, SessionID } from "../../src/session/schema"
 
 const baseCtx = {
-  sessionID: "test",
-  messageID: "",
+  sessionID: SessionID.make("ses_test"),
+  messageID: MessageID.make("msg_test"),
   callID: "",
   agent: "code",
   abort: AbortSignal.any([]),
@@ -29,7 +30,7 @@ describe("tool.semantic_search", () => {
     await Instance.provide({
       directory: tmp.path,
       fn: async () => {
-        const requests: Array<Omit<PermissionNext.Request, "id" | "sessionID" | "tool">> = []
+        const requests: Array<Omit<Permission.Request, "id" | "sessionID" | "tool">> = []
         const search = spyOn(KiloIndexing, "search").mockResolvedValue([])
 
         try {
@@ -41,7 +42,7 @@ describe("tool.semantic_search", () => {
             },
             {
               ...baseCtx,
-              ask: async (req: Omit<PermissionNext.Request, "id" | "sessionID" | "tool">) => {
+              ask: async (req: Omit<Permission.Request, "id" | "sessionID" | "tool">) => {
                 requests.push(req)
               },
             },

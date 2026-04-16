@@ -1,7 +1,9 @@
 import { hasIndexingPlugin } from "@kilocode/kilo-indexing/detect"
 
+type PluginItem = string | readonly [string, unknown]
+
 type ConfigLike = {
-  plugin?: readonly string[] | null
+  plugin?: readonly PluginItem[] | null
 }
 
 export type Features = {
@@ -10,6 +12,6 @@ export type Features = {
 
 export function configFeatures(config?: ConfigLike | null): Features {
   return {
-    indexing: hasIndexingPlugin(config?.plugin?.filter((item): item is string => typeof item === "string")),
+    indexing: hasIndexingPlugin(config?.plugin?.map((item) => (typeof item === "string" ? item : item[0]))),
   }
 }

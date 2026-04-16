@@ -1,4 +1,3 @@
-
 export const zigQuery = `
 ; Functions
 (function_declaration) @function.definition

@@ -10,7 +10,7 @@ import { RemoteIndicator } from "@/kilocode/remote-tui" // kilocode_change
 import { formatIndexingLabel } from "@/kilocode/indexing-label" // kilocode_change
 
 function indexingTone(
-  state: "Disabled" | "In Progress" | "Complete" | "Error",
+  state: "Disabled" | "In Progress" | "Complete" | "Error" | "Standby",
   theme: ReturnType<typeof useTheme>["theme"],
 ) {
   if (state === "Complete") return theme.success

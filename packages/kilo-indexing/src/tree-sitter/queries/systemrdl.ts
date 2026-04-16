@@ -1,4 +1,3 @@
-
 /*
 Supported SystemRDL structures:
 - component declarations

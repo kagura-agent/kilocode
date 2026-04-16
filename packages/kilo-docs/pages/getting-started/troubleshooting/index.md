@@ -10,3 +10,4 @@ This section contains guides for diagnosing and resolving common issues with Kil
 ## Guides
 
 - [**Extension Troubleshooting**](/docs/getting-started/troubleshooting/troubleshooting-extension) - How to capture console logs and report issues with the Kilo Code extension
+- [**Heap Snapshot**](/docs/getting-started/troubleshooting/heap-snapshot) - How to capture a heap snapshot for diagnosing memory issues

@@ -2074,6 +2074,21 @@ describe("ProviderTransform.message - strip prefill reasoning", () => {
     // The middle assistant with empty reasoning filtered for anthropic (has reasoning + text)
     expect(result[result.length - 1].role).toBe("user")
   })
+
+  test("drops trailing assistant entirely when only reasoning remains", () => {
+    const msgs = [
+      { role: "user", content: "Hi" },
+      {
+        role: "assistant",
+        content: [{ type: "reasoning", text: "still thinking" }],
+      },
+    ] as any[]
+
+    const result = ProviderTransform.message(msgs, anthropic, {}) as any[]
+
+    expect(result).toHaveLength(1)
+    expect(result[0].role).toBe("user")
+  })
 })
 // kilocode_change end
 

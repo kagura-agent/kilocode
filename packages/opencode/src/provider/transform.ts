@@ -270,6 +270,7 @@ export namespace ProviderTransform {
     if (Array.isArray(last.content) && last.content.some((part) => part.type === "tool-call")) return msgs
 
     let changed = false
+    let drop = false
     let content = last.content
     if (Array.isArray(content)) {
       const filtered = content.filter((part) => part.type !== "reasoning")
@@ -277,6 +278,13 @@ export namespace ProviderTransform {
         content = filtered
         changed = true
       }
+      // If nothing but reasoning was present, drop the trailing assistant
+      // entirely — Anthropic rejects both thinking-only and empty-content
+      // prefills. The next turn will restart naturally.
+      if (filtered.length === 0) drop = true
+    } else if (typeof content === "string" && content === "") {
+      drop = true
+      changed = true
     }
 
     let providerOptions = last.providerOptions
@@ -290,6 +298,7 @@ export namespace ProviderTransform {
     }
 
     if (!changed) return msgs
+    if (drop) return msgs.slice(0, -1)
     return [...msgs.slice(0, -1), { ...last, content, providerOptions } as ModelMessage]
   }
   // kilocode_change end

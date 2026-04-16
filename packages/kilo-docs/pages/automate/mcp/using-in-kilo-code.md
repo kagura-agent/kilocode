@@ -425,7 +425,7 @@ You can edit both global and project-level MCP configuration files directly from
 {% tabs %}
 {% tab label="VSCode" %}
 
-Set the `timeout` field (in milliseconds) in the server's config entry. The default is 30 seconds.
+Set the `timeout` field (in milliseconds) in the server's config entry. The default is 10 seconds for local servers and 15 seconds for remote servers.
 
 {% /tab %}
 {% tab label="CLI" %}

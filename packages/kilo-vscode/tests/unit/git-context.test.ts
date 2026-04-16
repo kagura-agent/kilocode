@@ -10,11 +10,12 @@ function git(cwd: string, args: string[]) {
   throw new Error(Buffer.from(result.stderr).toString("utf8") || Buffer.from(result.stdout).toString("utf8"))
 }
 
-async function repo(run: (dir: string) => Promise<void>) {
+async function repo(run: (dir: string) => Promise<void>, commit = true) {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), "kilo-git-context-"))
   try {
     git(dir, ["init"])
-    git(dir, ["-c", "user.name=Kilo", "-c", "user.email=kilo@example.com", "commit", "--allow-empty", "-m", "init"])
+    if (commit)
+      git(dir, ["-c", "user.name=Kilo", "-c", "user.email=kilo@example.com", "commit", "--allow-empty", "-m", "init"])
     await run(dir)
   } finally {
     await fs.rm(dir, { recursive: true, force: true })
@@ -68,5 +69,18 @@ describe("getGitChangesContext", () => {
       expect(result.content).toContain("+hello")
       expect(result.content).toContain("+world")
     })
+  })
+
+  it("handles repositories without an initial commit", async () => {
+    await repo(async (dir) => {
+      await fs.writeFile(path.join(dir, "new.txt"), "hello\n")
+      git(dir, ["add", "new.txt"])
+
+      const result = await getGitChangesContext(dir)
+      expect(result.content).not.toContain("Unable to read git diff")
+      expect(result.content).toContain("A  new.txt")
+      expect(result.content).toContain("diff --git a/new.txt b/new.txt")
+      expect(result.content).toContain("+hello")
+    }, false)
   })
 })

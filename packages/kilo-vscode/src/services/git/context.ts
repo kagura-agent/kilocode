@@ -20,9 +20,12 @@ export async function getGitChangesContext(dir: string): Promise<{ content: stri
   if (probe.error) return done(dir, `Unable to read git changes: ${probe.error}`)
   if (probe.code !== 0 || probe.out.trim() !== "true") return done(dir, "Not a git repository.")
 
+  const head = await run(["rev-parse", "--verify", "HEAD"], dir, SMALL)
+  if (head.error) return done(dir, `Unable to read git changes: ${head.error}`)
+
   const [status, diff, untracked] = await Promise.all([
     run(["status", "--short"], dir, SMALL),
-    run(["diff", "HEAD"], dir, LIMIT),
+    changes(dir, head.code === 0),
     run(["ls-files", "--others", "--exclude-standard", "-z"], dir, SMALL),
   ])
   const fail = status.error ?? diff.error ?? untracked.error
@@ -41,6 +44,20 @@ export async function getGitChangesContext(dir: string): Promise<{ content: stri
     `Working directory: ${dir}\n\nStatus:\n${status.out.trim() || "(empty)"}\n\nDiff:\n${body || "(empty)"}${note}`,
     truncated,
   )
+}
+
+async function changes(dir: string, born: boolean): Promise<Result> {
+  if (born) return run(["diff", "HEAD"], dir, LIMIT)
+
+  const [cached, work] = await Promise.all([run(["diff", "--cached"], dir, LIMIT), run(["diff"], dir, LIMIT)])
+  return {
+    out: [cached.out.trim(), work.out.trim()].filter(Boolean).join("\n\n"),
+    err: [cached.err.trim(), work.err.trim()].filter(Boolean).join("\n"),
+    code: cached.code !== 0 ? cached.code : work.code,
+    signal: cached.signal ?? work.signal,
+    truncated: cached.truncated || work.truncated,
+    error: cached.error ?? work.error,
+  }
 }
 
 async function untrackedDiff(dir: string, raw: string): Promise<{ content: string; truncated: boolean }> {

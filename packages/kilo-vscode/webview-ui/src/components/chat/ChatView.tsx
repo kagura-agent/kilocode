@@ -28,6 +28,7 @@ interface ChatViewProps {
   continueInWorktree?: boolean
   promptBoxId?: string
   pendingSessionID?: string
+  agentManagerContext?: string
 }
 
 export const ChatView: Component<ChatViewProps> = (props) => {
@@ -215,7 +216,12 @@ export const ChatView: Component<ChatViewProps> = (props) => {
             </div>
           </Show>
           <Show when={!props.readonly}>
-            <PromptInput blocked={blocked} boxId={props.promptBoxId} pendingSessionID={props.pendingSessionID} />
+            <PromptInput
+              blocked={blocked}
+              boxId={props.promptBoxId}
+              pendingSessionID={props.pendingSessionID}
+              agentManagerContext={props.agentManagerContext}
+            />
           </Show>
         </div>
       </Show>

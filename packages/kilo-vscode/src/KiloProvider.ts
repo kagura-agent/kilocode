@@ -31,7 +31,6 @@ import {
   flushPendingSessionRefresh as flushPendingSessionRefreshUtil,
   resolveContextDirectory,
   resolveWorkspaceDirectory,
-  mergeFileSearchResults,
   type SessionRefreshContext,
 } from "./kilo-provider-utils"
 import { GitOps } from "./agent-manager/GitOps"
@@ -46,6 +45,9 @@ import { slimPart, slimParts } from "./kilo-provider/slim-metadata"
 import { handleContinueInWorktree } from "./kilo-provider/continue-worktree"
 import { parseMessageFiles, type MessageFile } from "./kilo-provider/message-files"
 import { getTerminalContents } from "./services/terminal/context"
+import { handleContextRequest } from "./kilo-provider/context-requests"
+import { resolveGitChangesTarget } from "./kilo-provider/git-changes-target"
+import { handleLoadRequest } from "./kilo-provider/load-requests"
 import { matchFollowup, recordFollowup, type Followup } from "./kilo-provider/followup-session"
 import { childID } from "./kilo-provider/task-session"
 import { handleNetworkEvent, clearNetworkWaits } from "./kilo-provider/network"
@@ -559,6 +561,9 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
         }
       }
 
+      if (await this.handleContextMessage(message)) return
+      if (this.handleLoadMessage(message)) return
+
       switch (message.type) {
         case "webviewReady":
           console.log("[Kilo New] KiloProvider: ✅ webviewReady received")
@@ -706,9 +711,6 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
             this.handleOpenFile(message.filePath, message.line, message.column)
           }
           break
-        case "requestProviders":
-          this.fetchAndSendProviders().catch((e) => console.error("[Kilo New] fetchAndSendProviders failed:", e))
-          break
         case "connectProvider":
         case "authorizeProviderOAuth":
         case "completeProviderOAuth":
@@ -723,15 +725,6 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
           break
         case "compact":
           await this.handleCompact(message.sessionID, message.providerID, message.modelID)
-          break
-        case "requestAgents":
-          this.fetchAndSendAgents().catch((e) => console.error("[Kilo New] fetchAndSendAgents failed:", e))
-          break
-        case "requestSkills":
-          this.fetchAndSendSkills().catch((e) => console.error("[Kilo New] fetchAndSendSkills failed:", e))
-          break
-        case "requestCommands":
-          this.fetchAndSendCommands().catch((e) => console.error("[Kilo New] fetchAndSendCommands failed:", e))
           break
         case "removeSkill":
           this.removeSkillViaCli(message.location).catch((e: unknown) =>
@@ -798,48 +791,6 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
           }
           break
         }
-        case "requestChatCompletion": {
-          if (!this.chatAutocomplete) {
-            this.chatAutocomplete = new ChatTextAreaAutocomplete(this.connectionService)
-          }
-          void this.chatAutocomplete.handle(
-            { type: "requestChatCompletion", text: message.text, requestId: message.requestId },
-            {
-              postMessage: (msg: { type: "chatCompletionResult"; text: string; requestId: string }) =>
-                this.postMessage(msg),
-            },
-          )
-          break
-        }
-        case "requestFileSearch": {
-          const sdkClient = this.client
-          if (sdkClient) {
-            const dir = this.getWorkspaceDirectory(this.currentSession?.id)
-            const openPaths = dir ? await this.getOpenTabPaths(dir) : new Set<string>()
-            void sdkClient.find
-              .files({ query: message.query, directory: dir, type: "file", limit: 50 }, { throwOnError: true })
-              .then(({ data: paths }) => {
-                const uri = vscode.window.activeTextEditor?.document.uri
-                const active =
-                  uri?.scheme === "file" && dir ? path.relative(dir, uri.fsPath).replaceAll("\\", "/") : undefined
-                const result = mergeFileSearchResults({ query: message.query, backend: paths, open: openPaths, active })
-                this.postMessage({ type: "fileSearchResult", paths: result, dir, requestId: message.requestId })
-              })
-              .catch((error: unknown) => {
-                console.error("[Kilo New] File search failed:", error)
-                this.postMessage({ type: "fileSearchResult", paths: [], dir, requestId: message.requestId })
-              })
-          } else {
-            this.postMessage({ type: "fileSearchResult", paths: [], dir: "", requestId: message.requestId })
-          }
-          break
-        }
-        case "requestTerminalContext":
-          void this.handleTerminalContext(message.requestId)
-          break
-        case "chatCompletionAccepted":
-          this.chatAutocomplete?.telemetry.captureAcceptSuggestion(message.suggestionLength)
-          break
         case "toggleRemote":
         case "setRemoteEnabled":
         case "requestRemoteStatus":
@@ -1036,6 +987,48 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
           break
         }
       }
+    })
+  }
+
+  private async handleContextMessage(message: Record<string, unknown>): Promise<boolean> {
+    const sid = typeof message.sessionID === "string" ? message.sessionID : this.currentSession?.id
+    const msg = await resolveGitChangesTarget(message, this.getWorkspaceDirectory(sid))
+    return handleContextRequest({
+      message: msg,
+      client: this.client,
+      dir: (sid) => this.getWorkspaceDirectory(sid ?? this.currentSession?.id),
+      active: () => {
+        const uri = vscode.window.activeTextEditor?.document.uri
+        return uri?.scheme === "file" ? uri.fsPath : undefined
+      },
+      open: (dir) => this.getOpenTabPaths(dir),
+      post: (msg) => this.postMessage(msg),
+      terminal: (requestId) => void this.handleTerminalContext(requestId),
+      chat: (text, requestId) => {
+        if (!this.chatAutocomplete) this.chatAutocomplete = new ChatTextAreaAutocomplete(this.connectionService)
+        void this.chatAutocomplete.handle(
+          { type: "requestChatCompletion", text, requestId },
+          {
+            postMessage: (msg: { type: "chatCompletionResult"; text: string; requestId: string }) =>
+              this.postMessage(msg),
+          },
+        )
+      },
+      accept: (length) => this.chatAutocomplete?.telemetry.captureAcceptSuggestion(length),
+      error: getErrorMessage,
+    })
+  }
+
+  private handleLoadMessage(message: Record<string, unknown>): boolean {
+    return handleLoadRequest(message.type, {
+      requestProviders: () =>
+        this.fetchAndSendProviders().catch((e) => console.error("[Kilo New] fetchAndSendProviders failed:", e)),
+      requestAgents: () =>
+        this.fetchAndSendAgents().catch((e) => console.error("[Kilo New] fetchAndSendAgents failed:", e)),
+      requestSkills: () =>
+        this.fetchAndSendSkills().catch((e) => console.error("[Kilo New] fetchAndSendSkills failed:", e)),
+      requestCommands: () =>
+        this.fetchAndSendCommands().catch((e) => console.error("[Kilo New] fetchAndSendCommands failed:", e)),
     })
   }
 

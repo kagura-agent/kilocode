@@ -731,9 +731,15 @@ export interface ChatCompletionResultMessage {
   requestId: string
 }
 
+export interface FileSearchItem {
+  path: string
+  type: "file" | "folder"
+}
+
 export interface FileSearchResultMessage {
   type: "fileSearchResult"
   paths: string[]
+  items?: FileSearchItem[]
   dir: string
   requestId: string
 }
@@ -747,6 +753,19 @@ export interface TerminalContextResultMessage {
 
 export interface TerminalContextErrorMessage {
   type: "terminalContextError"
+  requestId: string
+  error: string
+}
+
+export interface GitChangesContextResultMessage {
+  type: "gitChangesContextResult"
+  requestId: string
+  content: string
+  truncated?: boolean
+}
+
+export interface GitChangesContextErrorMessage {
+  type: "gitChangesContextError"
   requestId: string
   error: string
 }
@@ -1493,6 +1512,8 @@ export type ExtensionMessage =
   | FileSearchResultMessage
   | TerminalContextResultMessage
   | TerminalContextErrorMessage
+  | GitChangesContextResultMessage
+  | GitChangesContextErrorMessage
   | QuestionRequestMessage
   | QuestionResolvedMessage
   | QuestionErrorMessage
@@ -1838,12 +1859,23 @@ export interface RequestFileSearchMessage {
   type: "requestFileSearch"
   query: string
   requestId: string
+  sessionID?: string
+  agentManagerContext?: string
 }
 
 export interface RequestTerminalContextMessage {
   type: "requestTerminalContext"
   requestId: string
   sessionID?: string
+}
+
+export interface RequestGitChangesContextMessage {
+  type: "requestGitChangesContext"
+  requestId: string
+  sessionID?: string
+  agentManagerContext?: string
+  contextDirectory?: string
+  gitChangesBase?: string
 }
 
 export interface ChatCompletionAcceptedMessage {
@@ -2450,6 +2482,7 @@ export type WebviewMessage =
   | RequestChatCompletionMessage
   | RequestFileSearchMessage
   | RequestTerminalContextMessage
+  | RequestGitChangesContextMessage
   | ChatCompletionAcceptedMessage
   | UpdateSettingRequest
   | RequestTimelineSettingMessage

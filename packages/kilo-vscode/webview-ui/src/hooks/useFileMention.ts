@@ -1,6 +1,6 @@
 import { createEffect, createSignal, onCleanup } from "solid-js"
 import type { Accessor } from "solid-js"
-import type { FileAttachment, WebviewMessage, ExtensionMessage } from "../types/messages"
+import type { FileAttachment, FileSearchItem, WebviewMessage, ExtensionMessage } from "../types/messages"
 import {
   AT_PATTERN,
   syncMentionedPaths as _syncMentionedPaths,
@@ -42,7 +42,11 @@ export interface FileMention {
   addPaths: (paths: string[], cwd: string) => void
 }
 
-export function useFileMention(vscode: VSCodeContext): FileMention {
+export function useFileMention(
+  vscode: VSCodeContext,
+  sessionID?: Accessor<string | undefined>,
+  context?: Accessor<string | undefined>,
+): FileMention {
   const [mentionedPaths, setMentionedPaths] = createSignal<Set<string>>(new Set())
   const [mentionQuery, setMentionQuery] = createSignal<string | null>(null)
   const [mentionResults, setMentionResults] = createSignal<MentionResult[]>([])
@@ -60,10 +64,16 @@ export function useFileMention(vscode: VSCodeContext): FileMention {
 
   const unsubscribe = vscode.onMessage((message) => {
     if (message.type !== "fileSearchResult") return
-    const result = message as { type: "fileSearchResult"; paths: string[]; dir: string; requestId: string }
+    const result = message as {
+      type: "fileSearchResult"
+      paths: string[]
+      items?: FileSearchItem[]
+      dir: string
+      requestId: string
+    }
     if (result.requestId === `file-search-${fileSearchCounter}`) {
       workspaceDir = result.dir
-      setMentionResults(buildMentionResults(mentionQuery() ?? "", result.paths))
+      setMentionResults(buildMentionResults(mentionQuery() ?? "", result.items ?? result.paths))
       setMentionIndex(0)
     }
   })
@@ -77,7 +87,13 @@ export function useFileMention(vscode: VSCodeContext): FileMention {
     if (fileSearchTimer) clearTimeout(fileSearchTimer)
     fileSearchTimer = setTimeout(() => {
       fileSearchCounter++
-      vscode.postMessage({ type: "requestFileSearch", query, requestId: `file-search-${fileSearchCounter}` })
+      vscode.postMessage({
+        type: "requestFileSearch",
+        query,
+        requestId: `file-search-${fileSearchCounter}`,
+        sessionID: sessionID?.(),
+        agentManagerContext: context?.(),
+      })
     }, FILE_SEARCH_DEBOUNCE_MS)
   }
 
@@ -110,7 +126,8 @@ export function useFileMention(vscode: VSCodeContext): FileMention {
     textarea.setSelectionRange(pos, pos)
     textarea.focus()
 
-    if (result.type === "file") setMentionedPaths((prev) => new Set([...prev, result.value]))
+    if (result.type === "file" || result.type === "folder")
+      setMentionedPaths((prev) => new Set([...prev, result.value]))
     closeMention()
     onSelect?.()
   }

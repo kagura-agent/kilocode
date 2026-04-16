@@ -66,6 +66,11 @@ describe("buildMentionResults", () => {
     const result = buildMentionResults("src", [{ path: "src", type: "folder" }])
     expect(result).toEqual([{ type: "folder", value: "src" }])
   })
+
+  it("omits git changes when git is unavailable", () => {
+    const result = buildMentionResults("git", ["src/git.ts"], false)
+    expect(result.map((item) => item.type)).toEqual(["file"])
+  })
 })
 
 describe("syncMentionedPaths", () => {

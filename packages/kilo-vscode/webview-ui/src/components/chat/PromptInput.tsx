@@ -66,9 +66,10 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
   const dialog = useDialog()
   const sid = () => session.currentSessionID() ?? props.pendingSessionID ?? session.draftSessionID() ?? undefined
   const ctx = () => props.agentManagerContext
-  const mention = useFileMention(vscode, sid, ctx)
+  const hasGit = () => server.gitInstalled()
+  const mention = useFileMention(vscode, sid, ctx, hasGit)
   const terminal = useTerminalContext(vscode)
-  const git = useGitChangesContext(vscode, ctx)
+  const git = useGitChangesContext(vscode, ctx, hasGit)
   const excluded = worktree ? new Set(["sessions"]) : undefined
   const slash = useSlashCommand(vscode, excluded)
   const imageAttach = useImageAttachments()
@@ -284,7 +285,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
   const highlightMentions = () => {
     const paths = new Set(mention.mentionedPaths())
     if (hasTerminalMention(text())) paths.add("terminal")
-    if (hasGitChangesMention(text())) paths.add("git-changes")
+    if (hasGit() && hasGitChangesMention(text())) paths.add("git-changes")
     return paths
   }
   const placeholder = () => {
@@ -634,7 +635,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
       showToast({ variant: "error", title: "Git changes unavailable", description: err.message })
       return undefined
     })
-    if (hasGitChangesMention(message) && !gitFile) return
+    if (hasGit() && hasGitChangesMention(message) && !gitFile) return
 
     const allFiles = [
       ...mentionFiles,

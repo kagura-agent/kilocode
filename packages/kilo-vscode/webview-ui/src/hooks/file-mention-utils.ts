@@ -43,12 +43,12 @@ export function getGitChangesMentionResult(query: string): MentionResult[] {
   return [GIT_CHANGES_RESULT]
 }
 
-export function buildMentionResults(query: string, items: FileSearchItem[] | string[]): MentionResult[] {
+export function buildMentionResults(query: string, items: FileSearchItem[] | string[], git = true): MentionResult[] {
   const results = items.map((item) => {
     if (typeof item === "string") return { type: "file" as const, value: item }
     return { type: item.type, value: item.path }
   })
-  return [...getTerminalMentionResult(query), ...getGitChangesMentionResult(query), ...results]
+  return [...getTerminalMentionResult(query), ...(git ? getGitChangesMentionResult(query) : []), ...results]
 }
 
 /**

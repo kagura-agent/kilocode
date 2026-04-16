@@ -21,7 +21,11 @@ export interface GitChangesContext {
   resolveAttachment: (text: string, sessionID?: string) => Promise<FileAttachment | undefined>
 }
 
-export function useGitChangesContext(vscode: VSCodeContext, context?: Accessor<string | undefined>): GitChangesContext {
+export function useGitChangesContext(
+  vscode: VSCodeContext,
+  context?: Accessor<string | undefined>,
+  git?: Accessor<boolean>,
+): GitChangesContext {
   const [pending, setPending] = createSignal(false)
   const requests = new Map<string, Pending>()
   let counter = 0
@@ -72,6 +76,7 @@ export function useGitChangesContext(vscode: VSCodeContext, context?: Accessor<s
 
   const resolveAttachment = async (text: string, sessionID?: string) => {
     if (!hasGitChangesMention(text)) return undefined
+    if (git?.() === false) return undefined
 
     const content = await request(sessionID)
     return buildGitChangesAttachment(text, content)

@@ -254,16 +254,14 @@ jobs:
   #         APPLE_API_KEY_PATH: ${{ runner.temp }}/apple-api-key.p8
 
   # kilocode_change start
-  # Smoke test disabled as a release gate due to infrastructure issues.
-  # The job is skipped via `if: false` so it no longer blocks publishing.
-  # Re-enable by restoring the original `if:` condition and uncommenting
-  # `- smoke-test` in the publish job's `needs` list below.
+  # Run smoke tests against CLI assets uploaded to the draft GitHub release
+  # before publishing the release and package artifacts.
   smoke-test:
-    name: Smoke Test (pre-publish gate) [DISABLED]
+    name: Smoke Test (pre-publish gate)
     needs:
       - version
       - build-cli
-    if: false # was: github.repository == 'Kilo-Org/kilocode'
+    if: github.repository == 'Kilo-Org/kilocode'
     runs-on: ubuntu-24.04
     steps:
       - name: Trigger kilo-bench smoke test
@@ -276,7 +274,11 @@ jobs:
           gh api repos/Kilo-Org/kilo-bench/dispatches \
             --method POST \
             -f event_type=smoke-test \
+            -f 'client_payload[cli_version]=${{ needs.version.outputs.version }}' \
             -f 'client_payload[release_tag]=${{ needs.version.outputs.tag }}' \
+            -f 'client_payload[release_id]=${{ needs.version.outputs.release }}' \
+            -f 'client_payload[pre_release]=${{ inputs.pre_release }}' \
+            -f 'client_payload[source_repo]=${{ github.repository }}' \
             -f 'client_payload[source_run_id]=${{ github.run_id }}'
 
           # Poll for the run created after our dispatch timestamp.
@@ -336,7 +338,7 @@ jobs:
       - version
       - build-cli
       - build-vscode
-      # - smoke-test  # disabled: infrastructure issues (see smoke-test job comment)
+      - smoke-test
       # - build-tauri
     runs-on: ubuntu-24.04
     steps:

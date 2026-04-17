@@ -462,13 +462,13 @@ If you have any issues with the migration the original data is not yet deleted a
 
 - [#69](https://github.com/Kilo-Org/kilocode-legacy/pull/69) [`ac89448`](https://github.com/Kilo-Org/kilocode-legacy/commit/ac89448a886d2bc59e0585174db85b77ea54a643) Thanks [@kilo-code-bot](https://github.com/apps/kilo-code-bot)! - Add MiniMax-M2.7 and MiniMax-M2.7-highspeed models to the MiniMax provider
 
-- [#65](https://github.com/Kilo-Org/kilocode-legacy/pull/65) [`08029f2`](https://github.com/Kilo-Org/kilocode-legacy/commit/08029f26c4f038e0101484b9bf4430b8b7054168) Thanks [@kilo-code-bot](https://github.com/apps/kilo-code-bot)! - Update new user welcome credits from $5 to $2.50
+- [#65](https://github.com/Kilo-Org/kilocode-legacy/pull/65) [`08029f2`](https://github.com/Kilo-Org/kilocode-legacy/commit/08029f26c4f038e0101484b9bf4430b8b7054168) Thanks [@kilo-code-bot](https://github.com/apps/kilo-code-bot)! - Update new user onboarding credits
 
 ## 5.10.4
 
 ### Patch Changes
 
-- [#54](https://github.com/Kilo-Org/kilocode-legacy/pull/54) [`7de6525`](https://github.com/Kilo-Org/kilocode-legacy/commit/7de652520851d8debad92b72d6cb9dfa10edb399) Thanks [@kilo-code-bot](https://github.com/apps/kilo-code-bot)! - Update onboarding premium models text to reflect new first top-up bonus credits offer
+- [#54](https://github.com/Kilo-Org/kilocode-legacy/pull/54) [`7de6525`](https://github.com/Kilo-Org/kilocode-legacy/commit/7de652520851d8debad92b72d6cb9dfa10edb399) Thanks [@kilo-code-bot](https://github.com/apps/kilo-code-bot)! - Update onboarding premium models text
 
 ## 5.10.3
 

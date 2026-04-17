@@ -589,10 +589,15 @@ export interface MessageRemovedMessage {
   messageID: string
 }
 
+export type MessageLoadMode = "replace" | "prepend" | "focus" | "reconcile"
+
 export interface MessagesLoadedMessage {
   type: "messagesLoaded"
   sessionID: string
   messages: Message[]
+  mode?: Exclude<MessageLoadMode, "focus">
+  cursor?: string
+  hasMore?: boolean
 }
 
 export interface MessageCreatedMessage {
@@ -1403,6 +1408,13 @@ export interface DiffViewerLoadingMessage {
   loading: boolean
 }
 
+export interface DiffViewerRevertFileResultMessage {
+  type: "diffViewer.revertFileResult"
+  file: string
+  status: "success" | "error"
+  message: string
+}
+
 export interface ClearPendingPromptsMessage {
   type: "clearPendingPrompts"
 }
@@ -1598,6 +1610,7 @@ export type ExtensionMessage =
   | ViewSubAgentSessionMessage
   | DiffViewerDiffsMessage
   | DiffViewerLoadingMessage
+  | DiffViewerRevertFileResultMessage
   | MarketplaceDataMessage
   | MarketplaceInstallResultMessage
   | MarketplaceRemoveResultMessage
@@ -1677,6 +1690,9 @@ export interface ClearSessionRequest {
 export interface LoadMessagesRequest {
   type: "loadMessages"
   sessionID: string
+  mode?: MessageLoadMode
+  before?: string
+  limit?: number
 }
 
 export interface LoadSessionsRequest {

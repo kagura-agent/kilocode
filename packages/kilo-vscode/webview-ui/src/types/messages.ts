@@ -799,6 +799,12 @@ export interface ConfigUpdatedMessage {
   config: Config
 }
 
+export interface ConfigUpdateFailedMessage {
+  type: "configUpdateFailed"
+  message: string
+  details?: string
+}
+
 export interface GlobalConfigLoadedMessage {
   type: "globalConfigLoaded"
   config: Config
@@ -1515,6 +1521,7 @@ export type ExtensionMessage =
   | ClaudeCompatSettingLoadedMessage
   | ConfigLoadedMessage
   | ConfigUpdatedMessage
+  | ConfigUpdateFailedMessage
   | GlobalConfigLoadedMessage
   | NotificationSettingsLoadedMessage
   | TimelineSettingLoadedMessage

@@ -414,15 +414,12 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
 
     // Automatically update model when agent changes
     createEffect(() => {
-      // kilocode_change start - wait for persistence load; don't overwrite saved per-agent picks (#9050)
+      // kilocode_change start - wait for persistence load and skip when a per-agent pick already exists (#9050)
       if (!model.ready) return
-      // kilocode_change end
       const value = agent.current()
-      if (!value) return // kilocode_change - guard against empty agent list during org switch
-      // kilocode_change start - skip when the user (or a previous session) already picked a model
+      if (!value) return // guard against empty agent list during org switch
       if (!value.model) return
       if (model.saved(value.name)) return
-      // kilocode_change end
       if (isModelValid(value.model))
         model.set({
           providerID: value.model.providerID,
@@ -434,6 +431,7 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
           message: `Agent ${value.name}'s configured model ${value.model.providerID}/${value.model.modelID} is not valid`,
           duration: 3000,
         })
+      // kilocode_change end
     })
 
     const result = {

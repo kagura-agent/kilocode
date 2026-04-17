@@ -162,7 +162,7 @@ Press `Cmd+D` (macOS) / `Ctrl+D` (Windows/Linux) to toggle the diff panel. It sh
 - Supports unified and split diff views
 - **Drag file headers into chat** — drag a file header from the diff panel into the chat input to insert an `@file` mention, giving the agent context about specific changed files
 
-See [Agent Manager Workflows](/docs/automate/agent-manager-workflows#merging-worktree-and-main) for the full integration story, including when to apply locally vs. merge directly vs. open a pull request.
+See [Agent Manager Workflows](/docs/automate/agent-manager-workflows#merging-worktree-and-parent-branch) for the full integration story, including when to apply locally vs. merge directly vs. open a pull request.
 
 ## Terminals
 

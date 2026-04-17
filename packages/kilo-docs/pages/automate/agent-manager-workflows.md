@@ -36,7 +36,7 @@ Every productive worktree session follows the same rhythm:
 3. **Verify manually.** Before you trust "all tests pass", run the app with the run script (`Cmd+E` / `Ctrl+E`) or open the worktree's terminal (`Cmd+/` / `Ctrl+/`) and run the tests yourself.
 4. **Review the diff** (`Cmd+D` / `Ctrl+D`). Drop inline comments, then **Send to chat** to feed them back to the agent.
 5. **Iterate.** Re-run, re-review. Repeat until the diff is ready — not until the agent says it is done.
-6. **Ship it.** See [Merging: worktree and main](#merging-worktree-and-main).
+6. **Ship it.** See [Merging worktree and parent branch](#merging-worktree-and-parent-branch).
 
 The single biggest lever on this loop is **keeping each worktree's scope small**. A small diff tests quickly, reviews quickly, and PRs quickly.
 
@@ -114,30 +114,30 @@ Layer review in before asking a teammate:
 
 A typical sequence: self-review in the diff panel → `/local-review-uncommitted` → push → CI review → teammate review.
 
-## Merging: worktree and main
+## Merging worktree and parent branch
 
-Over a worktree's life you will merge in two directions: worktree → main (integrating the work back), and main → worktree (staying current).
+Over a worktree's life you will merge in two directions: from the worktree back to its parent branch (integrating the work), and from the parent branch into the worktree (staying current). The parent branch is whatever branch the worktree was created from — often `main`, but not always. The examples below use `main`; substitute your actual parent branch where relevant.
 
 ```mermaid
 graph LR
-  main["main"]
+  parent["parent branch"]
   wt["worktree"]
 
-  main -->|"Pull main in (stay current)"| wt
-  wt -->|"Apply / Merge / PR"| main
+  parent -->|"Pull parent in (stay current)"| wt
+  wt -->|"Apply / Merge / PR"| parent
 ```
 
-### Worktree → main
+### Worktree → parent branch
 
 Three ways, pick based on how much collaboration the change needs:
 
-- **Apply to local** — from the diff panel. Copies the worktree's changes onto your main checkout. You can stop there, or commit and push from your normal terminal. Fastest path for solo work.
+- **Apply to local** — from the diff panel. Copies the worktree's changes onto your checkout of the parent branch. You can stop there, or commit and push from your normal terminal. Fastest path for solo work.
 - **Merge directly** — from the session terminal: `git checkout main && git merge <branch>`. The natural flow on teams without a PR culture.
 - **Open a PR** — `git push -u origin <branch> && gh pr create --fill` from the session terminal. The PR badge appears on the worktree and stays in sync with CI and reviews.
 
-### Main → worktree
+### Parent branch → worktree
 
-When main moves ahead, ask the agent from the worktree's session:
+When the parent branch moves ahead, ask the agent from the worktree's session:
 
 > Merge the latest `origin/main` into this branch and resolve any conflicts. Do not use `git stash`.
 
@@ -155,11 +155,11 @@ The Agent Manager is good at conflict resolution when you give it context. A low
 
 ### When several worktrees finish at once
 
-Merge the most foundational one first. Then, in each remaining worktree, ask the agent to pull the updated main in (same prompt as above) before merging. The agent handles the merge direction and only escalates conflicts it cannot resolve.
+Merge the most foundational one first. Then, in each remaining worktree, ask the agent to pull the updated parent branch in (same prompt as above) before merging. The agent handles the merge direction and only escalates conflicts it cannot resolve.
 
 ## Hygiene
 
-- Merge within a day or two. Past that, pull main into the worktree rather than letting it drift.
+- Merge within a day or two. Past that, pull the parent branch into the worktree rather than letting it drift.
 - After a branch merges, close the worktree from its context menu. The branch is preserved; the directory is removed.
 - Do not run more than four or five agents at once. The practical limit is review and integration cost, not memory.
 

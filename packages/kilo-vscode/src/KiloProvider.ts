@@ -48,8 +48,8 @@ import { slimPart, slimParts } from "./kilo-provider/slim-metadata"
 import { handleContinueInWorktree } from "./kilo-provider/continue-worktree"
 import { parseMessageFiles, type MessageFile } from "./kilo-provider/message-files"
 import { getTerminalContents } from "./services/terminal/context"
-import { captureGitChangesContext } from "./kilo-provider/git-changes-context"
-import { disposeGitChangesTarget, resolveGitChangesTarget } from "./kilo-provider/git-changes-target"
+import { disposeGitChangesTarget } from "./kilo-provider/git-changes-target"
+import { interceptMessage } from "./kilo-provider/git-changes-request"
 import { matchFollowup, recordFollowup, type Followup } from "./kilo-provider/followup-session"
 import { childID } from "./kilo-provider/task-session"
 import { handleNetworkEvent, clearNetworkWaits } from "./kilo-provider/network"
@@ -548,22 +548,15 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
   private setupWebviewMessageHandler(webview: vscode.Webview): void {
     this.webviewMessageDisposable?.dispose()
     this.webviewMessageDisposable = webview.onDidReceiveMessage(async (message) => {
-      // Run interceptor if attached (e.g., AgentManagerProvider worktree logic)
-      if (this.onBeforeMessage) {
-        try {
-          const result = await this.onBeforeMessage(message)
-          if (result === null) return // consumed by interceptor
-          message = result
-        } catch (error) {
-          console.error("[Kilo New] KiloProvider: interceptor error:", error)
-          return
-        }
-      }
-
-      if (message.type === "requestGitChangesContext") {
-        await this.handleGitChangesContext(message)
-        return
-      }
+      const intercepted = await interceptMessage(message, {
+        client: this.client,
+        workspaceDir: (sid) => this.getWorkspaceDirectory(sid ?? this.currentSession?.id),
+        post: (m) => this.postMessage(m),
+        error: getErrorMessage,
+        before: this.onBeforeMessage,
+      })
+      if (intercepted === null) return
+      message = intercepted
 
       switch (message.type) {
         case "webviewReady":
@@ -1042,21 +1035,6 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
           break
         }
       }
-    })
-  }
-
-  private async handleGitChangesContext(message: Record<string, unknown>): Promise<void> {
-    const sid = typeof message.sessionID === "string" ? message.sessionID : this.currentSession?.id
-    const dir = this.getWorkspaceDirectory(sid)
-    const resolved = await resolveGitChangesTarget(message, dir)
-    const requestId = typeof message.requestId === "string" ? message.requestId : ""
-    await captureGitChangesContext({
-      requestId,
-      dir: typeof resolved.contextDirectory === "string" ? resolved.contextDirectory : dir,
-      client: this.client,
-      base: typeof resolved.gitChangesBase === "string" ? resolved.gitChangesBase : undefined,
-      post: (msg) => this.postMessage(msg),
-      error: getErrorMessage,
     })
   }
 

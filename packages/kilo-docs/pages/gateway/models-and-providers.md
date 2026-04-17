@@ -76,6 +76,10 @@ Provided under the [NVIDIA API Trial Terms of Service](https://assets.ngc.nvidia
 
 Kilo Auto virtual models automatically select the best underlying model based on the task type. The selection is controlled by the `x-kilocode-mode` request header.
 
+{% callout type="info" title="Underlying models can change" %}
+The mappings below reflect the current routing. The underlying models behind each `kilo-auto/*` tier are updated server-side as better options become available or as providers change pricing and availability — the tier IDs themselves remain stable.
+{% /callout %}
+
 ### `kilo-auto/frontier`
 
 Highest performance and capability for any task. Frontier requests are sent with medium reasoning effort and medium verbosity.

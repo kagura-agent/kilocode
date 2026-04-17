@@ -23,6 +23,10 @@ That's it. No configuration needed.
 
 You can see which underlying models are used, as well as the cost, in the expanded model picker. Model mapping information is also available on the [Gateway Model page](/docs/gateway/models-and-providers#kilo-autofrontier).
 
+{% callout type="info" title="Models can change" %}
+The underlying models behind each Auto Model tier are updated server-side as better options become available or as providers change pricing and availability. The tier you select stays the same; the model it routes to may change over time.
+{% /callout %}
+
 ## Tiers
 
 - **Frontier** — Routes to the latest and most capable paid models. Uses different models for reasoning-heavy tasks (planning, architecture, debugging) versus implementation tasks (coding, building, exploring), pairing the right capability to each type of work.

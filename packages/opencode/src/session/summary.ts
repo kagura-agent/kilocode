@@ -179,8 +179,6 @@ export namespace SessionSummary {
   })
   export const summarize = dispatch.summarize
   export const cancel = dispatch.cancel
-  /** Visible for testing — not a stable API. */
-  export const _internal = dispatch._internal
   // kilocode_change end
 
   export const DiffInput = z.object({

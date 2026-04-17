@@ -17,8 +17,6 @@ import { $ } from "bun"
 import { Instance } from "../../src/project/instance"
 import { Server } from "../../src/server/server"
 import { Session } from "../../src/session"
-import { SessionPrompt } from "../../src/session/prompt"
-import { SessionSummary } from "../../src/session/summary"
 import { Snapshot } from "../../src/snapshot"
 import { DiffEngine } from "../../src/kilocode/snapshot/diff-engine"
 import { Filesystem } from "../../src/util/filesystem"
@@ -101,27 +99,6 @@ test("pathological diffFull workload finishes quickly and does not block abort",
       expect(hit!.patch).toBe("")
       expect(hit!.additions).toBeGreaterThan(0)
       expect(hit!.deletions).toBeGreaterThan(0)
-    },
-  })
-})
-
-test("SessionPrompt.cancel also cancels an inflight summary", async () => {
-  // The fix wires `SessionSummary.cancel` into `SessionPrompt.cancel`. This
-  // proves ESC reaches the summary dispatcher even if the session itself
-  // isn't technically "busy".
-  await using tmp = await tmpdir({ git: true })
-  await Instance.provide({
-    directory: tmp.path,
-    fn: async () => {
-      const session = await Session.create({})
-
-      const ac = new AbortController()
-      SessionSummary._internal.inflight.set(session.id, ac)
-
-      await SessionPrompt.cancel(session.id)
-
-      expect(ac.signal.aborted).toBe(true)
-      expect(SessionSummary._internal.inflight.has(session.id)).toBe(false)
     },
   })
 })

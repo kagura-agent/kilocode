@@ -130,12 +130,6 @@ export namespace SummaryDispatch {
     return {
       summarize,
       cancel,
-      /** Visible for testing — not a stable API. */
-      _internal: {
-        get inflight() {
-          return inflight
-        },
-      },
     }
   }
 }

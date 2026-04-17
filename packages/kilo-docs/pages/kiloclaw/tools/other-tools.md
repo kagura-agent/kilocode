@@ -41,8 +41,6 @@ When the tool only provides an API (no CLI), follow these steps:
 
 {% callout type="note" %}
 If you have not configured your KiloClaw with the 1Password CLI, you can add the username in `TOOLS.md` and the key in the [KiloClaw Dashboard](https://app.kilo.ai/claw/settings) under **Additional Secrets** with the config path `skills.entries.<TOOL_NAME>.apiKey` and environment variable name `<TOOL_NAME>_API_KEY`.
-
-Change the TOOLS.md instruction to reference the correct Environment Variable.
 {% /callout %}
 
 ## Improving performance

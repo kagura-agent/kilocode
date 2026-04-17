@@ -928,6 +928,16 @@ export function Prompt(props: PromptProps) {
                   e.preventDefault()
                   return
                 }
+                // kilocode_change start - ensure configured newline combos insert newline
+                // even if the textarea's keyBindings dispatch gets preempted. Relies on
+                // terminals that report modifiers on Return (Kitty keyboard protocol);
+                // Ctrl+J works universally because it is literally ASCII LF.
+                if (keybind.match("input_newline", e)) {
+                  input.insertText("\n")
+                  e.preventDefault()
+                  return
+                }
+                // kilocode_change end
                 // Check clipboard for images before terminal-handled paste runs.
                 // This helps terminals that forward Ctrl+V to the app; Windows
                 // Terminal 1.25+ usually handles Ctrl+V before this path.

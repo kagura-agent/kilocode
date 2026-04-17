@@ -22,6 +22,7 @@ import { Link } from "@tui/ui/link"
 import { isKiloError, showKiloErrorToast } from "@/kilocode/kilo-errors"
 import { registerKiloCommands } from "@/kilocode/kilo-commands"
 import { initializeTUIDependencies } from "@kilocode/kilo-gateway/tui"
+import { logKeyboardDiagnostics, useKittyKeyboardCheck } from "./kitty-keyboard"
 
 // Re-export so upstream can render the route without importing directly
 export { KiloClawView } from "@/kilocode/claw/view"
@@ -151,6 +152,11 @@ export function init() {
 
   // Register Kilo Gateway commands (profile, teams, kiloclaw, remote, etc.)
   registerKiloCommands(useSDK)
+
+  // Warn users on terminals that don't support Shift+Enter for newlines, and
+  // emit a diagnostic log when KILO_LOG_KEYS=1 to help with bug reports.
+  useKittyKeyboardCheck()
+  logKeyboardDiagnostics()
 
   // Register auto-approve toggle
   command.register(() => [

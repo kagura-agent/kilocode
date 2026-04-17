@@ -83,4 +83,27 @@ describe("getGitChangesContext", () => {
       expect(result.content).toContain("+hello")
     }, false)
   })
+
+  it("omits binary untracked file contents", async () => {
+    await repo(async (dir) => {
+      const bytes = Buffer.from([0x00, 0x01, 0x02, 0x03, 0x04, 0xff, 0xfe])
+      await fs.writeFile(path.join(dir, "blob.bin"), bytes)
+
+      const result = await getGitChangesContext(dir)
+      expect(result.content).toContain("diff --git a/blob.bin b/blob.bin")
+      expect(result.content).toContain("<binary file omitted: blob.bin>")
+      expect(result.content).not.toContain("+\u0001")
+    })
+  })
+
+  it("omits the hunk header for empty untracked files", async () => {
+    await repo(async (dir) => {
+      await fs.writeFile(path.join(dir, "empty.txt"), "")
+
+      const result = await getGitChangesContext(dir)
+      expect(result.content).toContain("diff --git a/empty.txt b/empty.txt")
+      expect(result.content).toContain("new file mode 100644")
+      expect(result.content).not.toMatch(/empty\.txt[\s\S]*@@ -0,0/)
+    })
+  })
 })

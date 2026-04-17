@@ -63,6 +63,7 @@ async function changes(dir: string, born: boolean): Promise<Result> {
 async function untrackedDiff(dir: string, raw: string): Promise<{ content: string; truncated: boolean }> {
   const files = raw.split("\0").filter(Boolean)
   const parts: string[] = []
+  let used = 0
   let truncated = false
 
   for (const file of files) {
@@ -75,24 +76,35 @@ async function untrackedDiff(dir: string, raw: string): Promise<{ content: strin
       continue
     }
 
-    const text = await fs.readFile(full, "utf8").catch(() => `<binary or unreadable file: ${file}>`)
-    const next = patch(file, text)
-    const size = Buffer.byteLength([...parts, next].join("\n\n"), "utf8")
-    if (size > LIMIT) {
+    const buf = await fs.readFile(full).catch(() => undefined)
+    const next = !buf
+      ? patch(file, `<unreadable file: ${file}>`)
+      : binary(buf)
+        ? patch(file, `<binary file omitted: ${file}>`)
+        : patch(file, buf.toString("utf8"))
+    const size = Buffer.byteLength(next, "utf8") + (parts.length ? 2 : 0)
+    if (used + size > LIMIT) {
       truncated = true
       break
     }
     parts.push(next)
+    used += size
   }
 
   return cap(parts.join("\n\n"), truncated)
 }
 
+function binary(buf: Buffer): boolean {
+  const head = buf.subarray(0, Math.min(buf.length, 8192))
+  return head.includes(0)
+}
+
 function patch(file: string, text: string) {
-  const rows = text.split("\n")
-  const body = (text.endsWith("\n") ? rows.slice(0, -1) : rows).map((line) => `+${line}`).join("\n")
-  const count = body ? body.split("\n").length : 0
-  return `diff --git a/${file} b/${file}\nnew file mode 100644\n--- /dev/null\n+++ b/${file}\n@@ -0,0 +1,${count} @@${body ? `\n${body}` : ""}`
+  const header = `diff --git a/${file} b/${file}\nnew file mode 100644\n--- /dev/null\n+++ b/${file}`
+  if (!text) return header
+  const lines = text.endsWith("\n") ? text.slice(0, -1).split("\n") : text.split("\n")
+  const body = lines.map((line) => `+${line}`).join("\n")
+  return `${header}\n@@ -0,0 +1,${lines.length} @@\n${body}`
 }
 
 function cap(content: string, truncated = false) {

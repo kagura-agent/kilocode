@@ -47,7 +47,7 @@ import { handleContinueInWorktree } from "./kilo-provider/continue-worktree"
 import { parseMessageFiles, type MessageFile } from "./kilo-provider/message-files"
 import { getTerminalContents } from "./services/terminal/context"
 import { handleContextRequest } from "./kilo-provider/context-requests"
-import { resolveGitChangesTarget } from "./kilo-provider/git-changes-target"
+import { disposeGitChangesTarget, resolveGitChangesTarget } from "./kilo-provider/git-changes-target"
 import { handleLoadRequest } from "./kilo-provider/load-requests"
 import { matchFollowup, recordFollowup, type Followup } from "./kilo-provider/followup-session"
 import { childID } from "./kilo-provider/task-session"
@@ -3336,5 +3336,6 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
     this.ignoreController?.dispose()
     this.chatAutocomplete?.dispose()
     this.marketplace?.dispose()
+    disposeGitChangesTarget()
   }
 }

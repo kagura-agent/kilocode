@@ -10,13 +10,10 @@ Kilo Code provides its own built-in API provider that gives you access to the la
 
 ## Getting Started
 
-When you sign up for Kilo Code, you can start immediately with free models, or top up your account for the first time to get bonus credits.
-
-To claim your bonus credits:
+When you sign up for Kilo Code, you can start immediately with free models, or add credits to access premium models.
 
 1. **Sign up:** Complete the registration process
-2. **First top-up:** Add funds to your account and get $20 bonus credits
-3. **Start Coding:** Enjoy your $20 in free credits
+2. **Start Coding:** Begin using Kilo Code with free models or add credits for premium access
 
 ## Registration Process
 
@@ -64,7 +61,7 @@ With the Kilo Code provider, if you sign up with Google you can also connect oth
 
 ## Tips and Notes
 
-- **Free Credits:** New users receive free credits to explore Kilo Code's capabilities
+- **Free Models:** New users can start with free models to explore Kilo Code's capabilities
 - **Identity Verification:** The temporary hold system ensures service reliability while preventing misuse
 - **Seamless Integration:** No need to manage multiple API keys or provider configurations
 - **Latest Models:** Automatic access to the most current frontier coding models

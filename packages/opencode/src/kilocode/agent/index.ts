@@ -151,6 +151,29 @@ export function resolveKey(name: string): string {
   return name === "build" ? "code" : name
 }
 
+// Resolve an agent key with case-insensitive fallback and name-to-slug mapping.
+// When the exact key isn't found, searches for agents whose `name` field matches
+// (case-insensitive), so LLMs can use display names like "Jarvis" to find the
+// agent defined in jarvis.md.
+export function resolveAgentKey(
+  key: string,
+  agents: Record<string, { name: string }>,
+): string {
+  const resolved = resolveKey(key)
+  if (agents[resolved]) return resolved
+
+  // Case-insensitive slug match
+  const lower = resolved.toLowerCase()
+  const slugMatch = Object.keys(agents).find((k) => k.toLowerCase() === lower)
+  if (slugMatch) return slugMatch
+
+  // Match by agent name field (case-insensitive)
+  const nameMatch = Object.entries(agents).find(([, v]) => v.name.toLowerCase() === lower)
+  if (nameMatch) return nameMatch[0]
+
+  return resolved
+}
+
 // Remap "build" → "code" in agent config entries for backward compat in the config loop.
 export function preprocessConfig<T>(agentConfig: Record<string, T>): Record<string, T> {
   const result: Record<string, T> = {}

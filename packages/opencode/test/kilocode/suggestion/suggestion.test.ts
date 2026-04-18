@@ -142,4 +142,80 @@ describe("suggestion", () => {
       },
     })
   })
+
+  test("suggestion auto-dismisses after timeout", async () => {
+    await using tmp = await tmpdir({ git: true })
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const ask = Suggestion.show({
+          sessionID: "ses_test",
+          text: "Review?",
+          actions: [{ label: "Go", prompt: "/review" }],
+          timeoutMs: 50, // 50ms timeout for test
+        })
+
+        // Suggestion should be pending
+        expect(await Suggestion.list()).toHaveLength(1)
+
+        // Wait for timeout
+        await new Promise((r) => setTimeout(r, 100))
+
+        // Should auto-dismiss
+        await expect(ask).rejects.toBeInstanceOf(Suggestion.DismissedError)
+        expect(await Suggestion.list()).toEqual([])
+      },
+    })
+  })
+
+  test("timeout is cleared when suggestion is accepted before expiry", async () => {
+    await using tmp = await tmpdir({ git: true })
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const ask = Suggestion.show({
+          sessionID: "ses_test",
+          text: "Review?",
+          actions: [{ label: "Go", prompt: "/review" }],
+          timeoutMs: 200,
+        })
+
+        const list = await Suggestion.list()
+        await Suggestion.accept({ requestID: list[0]!.id, index: 0 })
+
+        await expect(ask).resolves.toEqual({
+          label: "Go",
+          prompt: "/review",
+        })
+
+        // Wait past the original timeout to verify no errors
+        await new Promise((r) => setTimeout(r, 250))
+        expect(await Suggestion.list()).toEqual([])
+      },
+    })
+  })
+
+  test("timeout is cleared when suggestion is dismissed before expiry", async () => {
+    await using tmp = await tmpdir({ git: true })
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const ask = Suggestion.show({
+          sessionID: "ses_test",
+          text: "Review?",
+          actions: [{ label: "Go", prompt: "/review" }],
+          timeoutMs: 200,
+        })
+
+        const list = await Suggestion.list()
+        await Suggestion.dismiss(list[0]!.id)
+
+        await expect(ask).rejects.toBeInstanceOf(Suggestion.DismissedError)
+
+        // Wait past the original timeout to verify no double-dismiss
+        await new Promise((r) => setTimeout(r, 250))
+        expect(await Suggestion.list()).toEqual([])
+      },
+    })
+  })
 })

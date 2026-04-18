@@ -8,6 +8,9 @@ import z from "zod"
 export namespace Suggestion {
   const log = Log.create({ service: "suggestion" })
 
+  /** Default timeout for suggestions in milliseconds (5 minutes). */
+  const DEFAULT_TIMEOUT_MS = 5 * 60 * 1000
+
   export const Action = z
     .object({
       label: z.string().describe("Button or option label (1-5 words)"),
@@ -94,6 +97,7 @@ export namespace Suggestion {
     actions: Action[]
     blocking?: boolean
     tool?: { messageID: string; callID: string }
+    timeoutMs?: number
   }): Promise<Action> {
     const s = await state()
     const id = Identifier.ascending("suggestion")
@@ -109,10 +113,27 @@ export namespace Suggestion {
         blocking: input.blocking,
         tool: input.tool,
       }
+
+      const timeoutMs = input.timeoutMs ?? DEFAULT_TIMEOUT_MS
+      const timer = setTimeout(() => {
+        if (!s.pending[id]) return
+        log.info("timed out", { id, timeoutMs })
+        dismiss(id)
+      }, timeoutMs)
+
+      const originalResolve = resolve
+      const originalReject = reject
+
       s.pending[id] = {
         info,
-        resolve,
-        reject,
+        resolve: (action) => {
+          clearTimeout(timer)
+          originalResolve(action)
+        },
+        reject: (error) => {
+          clearTimeout(timer)
+          originalReject(error)
+        },
       }
       Bus.publish(Event.Shown, info)
     })

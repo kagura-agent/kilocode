@@ -306,7 +306,7 @@ export namespace Agent {
           }
 
           const get = Effect.fnUntraced(function* (agent: string) {
-            return agents[KiloAgent.resolveKey(agent)] // kilocode_change - treat "build" as "code"
+            return agents[KiloAgent.resolveAgentKey(agent, agents)] // kilocode_change - slug/name fallback
           })
 
           const list = Effect.fnUntraced(function* () {

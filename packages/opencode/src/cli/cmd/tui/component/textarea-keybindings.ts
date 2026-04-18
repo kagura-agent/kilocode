@@ -65,9 +65,11 @@ export function useTextareaKeybindings() {
     const keybinds = keybind.all
 
     return [
+      ...TEXTAREA_ACTIONS.flatMap((action) => mapTextareaKeybindings(keybinds, action)),
+      // Hardcoded fallbacks come after config so user/default keybindings
+      // (e.g. shift+return → newline) take priority over the generic submit.
       { name: "return", action: "submit" },
       { name: "return", meta: true, action: "newline" },
-      ...TEXTAREA_ACTIONS.flatMap((action) => mapTextareaKeybindings(keybinds, action)),
     ] satisfies KeyBinding[]
   })
 }

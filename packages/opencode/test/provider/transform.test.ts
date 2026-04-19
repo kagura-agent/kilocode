@@ -3138,6 +3138,50 @@ describe("ProviderTransform.variants", () => {
         expect(result).toEqual({ reasoning: { enabled: false } })
       })
     })
+
+    describe("@ai-sdk/github-copilot", () => {
+      test("gpt-5-mini uses low instead of minimal", () => {
+        const model = createMockModel({
+          id: "copilot/gpt-5-mini",
+          providerID: "copilot",
+          api: {
+            id: "gpt-5-mini",
+            url: "https://api.githubcopilot.com",
+            npm: "@ai-sdk/github-copilot",
+          },
+        })
+        const result = ProviderTransform.smallOptions(model)
+        expect(result).toEqual({ store: false, reasoningEffort: "low" })
+      })
+
+      test("gpt-5 uses low instead of minimal", () => {
+        const model = createMockModel({
+          id: "copilot/gpt-5",
+          providerID: "copilot",
+          api: {
+            id: "gpt-5",
+            url: "https://api.githubcopilot.com",
+            npm: "@ai-sdk/github-copilot",
+          },
+        })
+        const result = ProviderTransform.smallOptions(model)
+        expect(result).toEqual({ store: false, reasoningEffort: "low" })
+      })
+
+      test("non-gpt-5 model returns store false only", () => {
+        const model = createMockModel({
+          id: "copilot/gpt-4o",
+          providerID: "copilot",
+          api: {
+            id: "gpt-4o",
+            url: "https://api.githubcopilot.com",
+            npm: "@ai-sdk/github-copilot",
+          },
+        })
+        const result = ProviderTransform.smallOptions(model)
+        expect(result).toEqual({ store: false })
+      })
+    })
   })
 
   describe("@ai-sdk/groq", () => {

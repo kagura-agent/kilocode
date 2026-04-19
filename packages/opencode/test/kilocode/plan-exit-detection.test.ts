@@ -491,4 +491,91 @@ describe("plan_exit detection", () => {
       })
       await expect(pending).resolves.toBe("continue")
     }))
+
+  test("shouldAskPlanFollowup returns false after 'Continue here' (last user agent is code)", () =>
+    withInstance(async () => {
+      const session = await Session.create({})
+      const now = Date.now()
+
+      // Original user message in plan mode
+      const user1 = await Session.updateMessage({
+        id: MessageID.ascending(),
+        role: "user",
+        sessionID: session.id,
+        time: { created: now },
+        agent: "plan",
+        model,
+      })
+      await Session.updatePart({
+        id: PartID.ascending(),
+        messageID: user1.id,
+        sessionID: session.id,
+        type: "text",
+        text: "Create a plan",
+      })
+
+      // Assistant calls plan_exit
+      const assistant1: MessageV2.Assistant = {
+        id: MessageID.ascending(),
+        role: "assistant",
+        sessionID: session.id,
+        time: { created: now + 1 },
+        parentID: user1.id,
+        modelID: model.modelID,
+        providerID: model.providerID,
+        mode: "plan",
+        agent: "plan",
+        path: { cwd: Instance.directory, root: Instance.worktree },
+        cost: 0,
+        tokens: { total: 0, input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } },
+        finish: "end_turn",
+      }
+      await Session.updateMessage(assistant1)
+      await Session.updatePart({
+        id: PartID.ascending(),
+        messageID: assistant1.id,
+        sessionID: session.id,
+        type: "text",
+        text: "Here is the plan",
+      })
+      await Session.updatePart({
+        id: PartID.ascending(),
+        messageID: assistant1.id,
+        sessionID: session.id,
+        type: "tool",
+        callID: Identifier.ascending("tool"),
+        tool: "plan_exit",
+        state: {
+          status: "completed",
+          input: {},
+          output: "Plan is ready. Ending planning turn.",
+          title: "plan_exit",
+          metadata: {},
+          time: { start: now + 1, end: now + 1 },
+        },
+      } satisfies MessageV2.ToolPart)
+
+      // Simulate "Continue here" — injected user message with agent="code"
+      const user2 = await Session.updateMessage({
+        id: MessageID.ascending(),
+        role: "user",
+        sessionID: session.id,
+        time: { created: now + 2 },
+        agent: "code",
+        model,
+      })
+      await Session.updatePart({
+        id: PartID.ascending(),
+        messageID: user2.id,
+        sessionID: session.id,
+        type: "text",
+        text: "Implement the plan above.",
+        synthetic: true,
+      } satisfies MessageV2.TextPart)
+
+      const messages = await Session.messages({ sessionID: session.id })
+
+      // After "Continue here", the popup should NOT trigger again
+      expect(SessionPrompt.shouldAskPlanFollowup({ messages, abort: AbortSignal.any([]) })).toBe(false)
+    }))
 })

@@ -25,6 +25,11 @@ export namespace KiloSessionPrompt {
     if (input.abort.aborted) return false
     if (!["cli", "vscode"].includes(Flag.KILO_CLIENT)) return false
     const idx = input.messages.findLastIndex((m) => m.info.role === "user")
+    if (idx === -1) return false
+    // Skip if the last user message already transitioned away from plan mode
+    // (e.g. "Continue here" injects a user message with agent="code")
+    const lastUser = input.messages[idx].info
+    if (lastUser.role === "user" && lastUser.agent !== "plan") return false
     return input.messages
       .slice(idx + 1)
       .some((msg) =>

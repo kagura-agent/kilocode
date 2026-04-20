@@ -103,6 +103,32 @@ pattern2
     })
   })
 
+  describe("isUnrooted", () => {
+    test("simple filename is unrooted", () => {
+      expect(IgnoreMigrator.isUnrooted("secret.txt")).toBe(true)
+    })
+
+    test("glob pattern is unrooted", () => {
+      expect(IgnoreMigrator.isUnrooted("*.env")).toBe(true)
+    })
+
+    test("directory pattern (trailing slash only) is unrooted", () => {
+      expect(IgnoreMigrator.isUnrooted("secrets/")).toBe(true)
+    })
+
+    test("rooted pattern is not unrooted", () => {
+      expect(IgnoreMigrator.isUnrooted("/root-only")).toBe(false)
+    })
+
+    test("nested path pattern is not unrooted", () => {
+      expect(IgnoreMigrator.isUnrooted("config/secrets.json")).toBe(false)
+    })
+
+    test("pattern with separator in middle is not unrooted", () => {
+      expect(IgnoreMigrator.isUnrooted("src/secrets/")).toBe(false)
+    })
+  })
+
   describe("buildPermissionRules", () => {
     test("creates default allow rule", () => {
       const rules = IgnoreMigrator.buildPermissionRules([])
@@ -115,6 +141,8 @@ pattern2
 
       expect(rules["*"]).toBe("allow")
       expect(rules["secrets/*"]).toBe("deny")
+      // Unrooted: also denies in subdirectories
+      expect(rules["*/secrets/*"]).toBe("deny")
     })
 
     test("creates allow rules for negated patterns", () => {
@@ -126,6 +154,9 @@ pattern2
 
       expect(rules["*.env"]).toBe("deny")
       expect(rules[".env.example"]).toBe("allow")
+      // Unrooted variants
+      expect(rules["*/*.env"]).toBe("deny")
+      expect(rules["*/.env.example"]).toBe("allow")
     })
 
     test("handles multiple deny patterns", () => {
@@ -150,6 +181,25 @@ pattern2
 
       expect(rules["config/*"]).toBe("deny")
       expect(rules["config/public.json"]).toBe("allow")
+    })
+
+    test("single filename gets subdirectory variant for any-depth matching", () => {
+      const patterns = [{ pattern: "secret.txt", negated: false, source: "project" as const }]
+      const rules = IgnoreMigrator.buildPermissionRules(patterns)
+
+      // Root match
+      expect(rules["secret.txt"]).toBe("deny")
+      // Subdirectory match
+      expect(rules["*/secret.txt"]).toBe("deny")
+    })
+
+    test("rooted pattern does not get subdirectory variant", () => {
+      const patterns = [{ pattern: "/config/private/", negated: false, source: "project" as const }]
+      const rules = IgnoreMigrator.buildPermissionRules(patterns)
+
+      expect(rules["config/private/*"]).toBe("deny")
+      // Rooted: no subdirectory variant
+      expect(rules["*/config/private/*"]).toBeUndefined()
     })
   })
 
@@ -199,7 +249,9 @@ pattern2
       const editRules = result.permission.edit as Record<string, string>
 
       expect(readRules["secrets/*"]).toBe("deny")
+      expect(readRules["*/secrets/*"]).toBe("deny")
       expect(editRules["secrets/*"]).toBe("deny")
+      expect(editRules["*/secrets/*"]).toBe("deny")
     })
 
     test("handles negation patterns correctly", async () => {

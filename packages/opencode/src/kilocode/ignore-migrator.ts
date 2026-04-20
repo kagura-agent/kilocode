@@ -114,31 +114,59 @@ export namespace IgnoreMigrator {
   }
 
   /**
+   * Check if a gitignore pattern is "unrooted" (should match at any tree depth).
+   *
+   * Per gitignore spec: "If there is a separator at the beginning or middle
+   * (or both) of the pattern, then the pattern is relative to the directory
+   * level of the particular .gitignore file itself. Otherwise the pattern may
+   * also match at any level below the .gitignore level."
+   *
+   * A trailing "/" only means "directories only" and does not count as a
+   * separator for this rule.
+   */
+  export function isUnrooted(pattern: string): boolean {
+    const withoutTrailingSlash = pattern.replace(/\/$/, "")
+    return !withoutTrailingSlash.includes("/")
+  }
+
+  /**
    * Build permission rules from ignore patterns.
    *
    * Order matters! Patterns are evaluated in order:
    * 1. Start with "*": "allow" (default allow)
    * 2. Add deny patterns
    * 3. Add negated patterns (allow) last to override denies
+   *
+   * For unrooted patterns (no path separator at beginning or middle),
+   * gitignore matches them at any depth in the tree. We emit both the
+   * root-level pattern and a wildcard-prefixed variant so Wildcard.all
+   * can match them in subdirectories too.
    */
   export function buildPermissionRules(patterns: IgnorePattern[]): Record<string, Config.PermissionAction> {
     const rules: Record<string, Config.PermissionAction> = {
       "*": "allow", // Default: allow all
     }
 
+    function addRule(pattern: IgnorePattern, action: Config.PermissionAction) {
+      const glob = convertToGlob(pattern.pattern)
+      rules[glob] = action
+      // Unrooted patterns must also match inside subdirectories
+      if (isUnrooted(pattern.pattern)) {
+        rules["*/" + glob] = action
+      }
+    }
+
     // First pass: add deny rules
     for (const p of patterns) {
       if (!p.negated) {
-        const glob = convertToGlob(p.pattern)
-        rules[glob] = "deny"
+        addRule(p, "deny")
       }
     }
 
     // Second pass: add negated (allow) rules - these override denies
     for (const p of patterns) {
       if (p.negated) {
-        const glob = convertToGlob(p.pattern)
-        rules[glob] = "allow"
+        addRule(p, "allow")
       }
     }
 

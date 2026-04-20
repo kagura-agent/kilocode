@@ -72,6 +72,12 @@ export const QuestionDock: Component<{ request: QuestionRequest }> = (props) => 
 
   // Localized view of the current question. The wire-format `label` is preserved for reply
   // matching; only the display text goes through `tr()`.
+  //
+  // translateOption returns accessor functions, not plain strings. SolidJS runs the <For>
+  // child callback in an untracked scope (via mapArray), so reading `language.t(...)` once
+  // at construction would freeze translations at the first render. Accessors force every
+  // JSX read to happen inside the binding's tracking scope, so switching the sidebar
+  // language while a question dock is visible re-renders the option labels.
   const questionText = createMemo(() => tr(language.t, question()?.questionKey, question()?.question ?? ""))
   const translateOption = (opt: {
     label: string
@@ -79,8 +85,8 @@ export const QuestionDock: Component<{ request: QuestionRequest }> = (props) => 
     labelKey?: string
     descriptionKey?: string
   }) => ({
-    label: tr(language.t, opt.labelKey, opt.label),
-    description: opt.description ? tr(language.t, opt.descriptionKey, opt.description) : "",
+    label: () => tr(language.t, opt.labelKey, opt.label),
+    description: () => (opt.description ? tr(language.t, opt.descriptionKey, opt.description) : ""),
   })
 
   const focusPrompt = () => requestAnimationFrame(() => window.dispatchEvent(new Event("focusPrompt")))
@@ -142,6 +148,11 @@ export const QuestionDock: Component<{ request: QuestionRequest }> = (props) => 
     if (outcome.kind === "submit") {
       // Mirror TUI behaviour: a single-question single-select option pick submits immediately.
       // handleCustomSubmit covers the custom-input path via its own submit() call.
+      //
+      // NOTE: This auto-submit applies to every single-question single-select prompt, not only
+      // the plan follow-up. If a future caller needs the user to review before submitting, set
+      // `multiple: true` on the question (that path stays on the current tab and waits for the
+      // footer Submit button).
       reply([[answer]])
       return
     }
@@ -367,9 +378,9 @@ export const QuestionDock: Component<{ request: QuestionRequest }> = (props) => 
                         </span>
                       </span>
                       <span data-slot="question-option-main">
-                        <span data-slot="option-label">{localized.label}</span>
-                        <Show when={localized.description}>
-                          <span data-slot="option-description">{localized.description}</span>
+                        <span data-slot="option-label">{localized.label()}</span>
+                        <Show when={localized.description()}>
+                          <span data-slot="option-description">{localized.description()}</span>
                         </Show>
                       </span>
                     </button>

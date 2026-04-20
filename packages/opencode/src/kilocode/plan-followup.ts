@@ -264,7 +264,11 @@ export namespace PlanFollowup {
         {
           question: "Ready to implement?",
           header: "Implement",
-          custom: true,
+          // Keep false: the main prompt input already routes typed text as a question reply,
+          // so "Type your own answer" would be redundant. This was set to false intentionally
+          // in 65566af7f8 and got flipped back to true during the v1.4.4 upstream merge —
+          // do not change without updating that history.
+          custom: false,
           options: [
             {
               label: ANSWER_NEW_SESSION,

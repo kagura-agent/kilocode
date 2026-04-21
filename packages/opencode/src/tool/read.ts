@@ -238,8 +238,9 @@ export const ReadTool = Tool.define(
 // kilocode_change start
 export async function lines(filepath: string, opts: { limit: number; offset: number }) {
   const encoded = await Encoding.read(filepath)
+  const stream = Readable.from([encoded.text])
   const rl = createInterface({
-    input: Readable.from([encoded.text]),
+    input: stream,
     // Note: we use the crlfDelay option to recognize all instances of CR LF
     // ('\r\n') in file as a single line break.
     crlfDelay: Infinity,
@@ -274,6 +275,7 @@ export async function lines(filepath: string, opts: { limit: number; offset: num
     }
   } finally {
     rl.close()
+    stream.destroy()
   }
 
   return { raw, count, cut, more, offset: opts.offset }

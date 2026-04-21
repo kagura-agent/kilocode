@@ -3,16 +3,18 @@
  * Stories for Settings and ProvidersTab components.
  */
 
-import { onMount } from "solid-js"
+import { onMount, type JSXElement } from "solid-js"
+import { useDialog } from "@kilocode/kilo-ui/context/dialog"
 import type { Meta, StoryObj } from "storybook-solidjs-vite"
 import { StoryProviders, mockSessionValue } from "./StoryProviders"
 import { SessionContext } from "../context/session"
 import Settings from "../components/settings/Settings"
 import ProvidersTab from "../components/settings/ProvidersTab"
+import CustomProviderDialog from "../components/settings/CustomProviderDialog"
 import AgentBehaviourTab from "../components/settings/AgentBehaviourTab"
 import ModeEditView from "../components/settings/ModeEditView"
 import McpEditView from "../components/settings/McpEditView"
-import type { AgentConfig, CommandConfig } from "../types/messages"
+import type { AgentConfig, CommandConfig, Config, ProviderConfig } from "../types/messages"
 
 const meta: Meta = {
   title: "Settings",
@@ -22,6 +24,12 @@ export default meta
 type Story = StoryObj
 
 function noop() {}
+
+function DialogStory(props: { render: () => JSXElement }) {
+  const dialog = useDialog()
+  onMount(() => dialog.show(props.render))
+  return <div style={{ height: "700px" }} />
+}
 
 const MOCK_AGENTS = [
   { name: "code", description: "General-purpose coding agent", mode: "primary" as const, native: true },
@@ -53,6 +61,31 @@ export const ProvidersConfigure: Story = {
       <div style={{ "max-height": "700px", overflow: "auto" }}>
         <ProvidersTab />
       </div>
+    </StoryProviders>
+  ),
+}
+
+const CUSTOM_PROVIDER: ProviderConfig = {
+  npm: "@ai-sdk/openai-compatible",
+  options: { baseURL: "https://api.myprovider.com/v1" },
+  models: {
+    "my-model": { name: "My Custom Model" },
+  },
+}
+
+const CUSTOM_CONFIG: Config = { provider: { myprovider: CUSTOM_PROVIDER } }
+
+export const CustomProviderDialogDocs: Story = {
+  name: "CustomProviderDialog — configured provider (docs)",
+  render: () => (
+    <StoryProviders config={CUSTOM_CONFIG}>
+      <DialogStory
+        render={() => (
+          <CustomProviderDialog
+            existing={{ providerID: "myprovider", name: "My AI Provider", config: CUSTOM_PROVIDER }}
+          />
+        )}
+      />
     </StoryProviders>
   ),
 }

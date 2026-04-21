@@ -24,11 +24,11 @@ Add custom models under the `provider.<provider_id>.models` key in your config f
 
 2. Scroll to the bottom of the provider list and click **Custom provider**.
 
-![Custom provider button in the Providers tab](/docs/img/custom-models/custom-provider-button.png)
+![Custom provider button in the Providers tab](/docs/img/screenshot-tests/kilo-vscode/visual-regression/settings/providers-configure-chromium-linux.png)
 
 3. Fill in the custom provider dialog:
 
-![Custom provider configuration dialog](/docs/img/custom-models/custom-provider-details.png)
+![Custom provider configuration dialog](/docs/img/screenshot-tests/kilo-vscode/visual-regression/settings/custom-provider-dialog-docs-chromium-linux.png)
 
 - **Provider ID** — A unique identifier using lowercase letters, numbers, hyphens, or underscores (e.g., `myprovider`). This becomes the `provider_id` in the `provider_id/model_id` format.
 - **Display name** — A human-readable name shown in the UI (e.g., `My AI Provider`).

@@ -1,5 +1,5 @@
 ---
-"@kilocode/opencode": patch
+"@kilocode/cli": patch
 ---
 
 fix(permission): clear permission prompt when session is aborted

@@ -230,11 +230,23 @@ export namespace Permission {
         const deferred = yield* Deferred.make<void, RejectedError | CorrectedError>()
         pending.set(id, { info, ruleset, deferred }) // kilocode_change
         yield* bus.publish(Event.Asked, info)
-        return yield* Effect.ensuring(
-          Deferred.await(deferred),
-          Effect.sync(() => {
-            s.pending.delete(id)
-          }),
+        return yield* Deferred.await(deferred).pipe(
+          Effect.ensuring(
+            Effect.sync(() => {
+              s.pending.delete(id)
+            }),
+          ),
+          Effect.onInterrupt(() =>
+            // When the session is aborted, the deferred is interrupted but
+            // Permission.Event.Replied is never published, leaving the TUI
+            // permission prompt stuck.  Publish the event so the client
+            // clears the prompt.
+            bus.publish(Event.Replied, {
+              sessionID: info.sessionID,
+              requestID: id,
+              reply: "reject" as const,
+            }),
+          ),
         )
       })
 

@@ -109,10 +109,9 @@ export const ApplyPatchTool = Tool.define(
               )
             }
 
-            const pre = yield* EncodedIO.read(filePath) // kilocode_change - preserve file encoding
-            const oldContent = pre.text // kilocode_change
-            let encoding = pre.encoding // kilocode_change
+            const oldContent = (yield* EncodedIO.read(filePath)).text // kilocode_change - encoding-aware read
             let newContent = oldContent
+            let encoding: string // kilocode_change - filled in by the patch helper below
 
             // Apply the update chunks to get new content
             try {

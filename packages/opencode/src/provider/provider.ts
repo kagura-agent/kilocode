@@ -1226,6 +1226,9 @@ const layer: Layer.Layer<
           mergeProvider(providerID, patch)
         }
 
+        // kilocode_change start - resolve env once for patchCustomLoaderResult (azure env fallback)
+        const kiloEnv = yield* env.all()
+        // kilocode_change end
         for (const [id, fn] of Object.entries({ ...custom(dep), ...kiloCustomLoaders(dep) })) {
           // kilocode_change
           const providerID = ProviderID.make(id)
@@ -1236,7 +1239,7 @@ const layer: Layer.Layer<
             continue
           }
           const result = yield* fn(data)
-          if (result) patchCustomLoaderResult(id, result) // kilocode_change
+          if (result) patchCustomLoaderResult(id, result, kiloEnv) // kilocode_change
           if (result && (result.autoload || providers[providerID])) {
             if (result.getModel) modelLoaders[providerID] = result.getModel
             if (result.vars) varsLoaders[providerID] = result.vars

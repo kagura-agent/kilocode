@@ -2,7 +2,6 @@
 import { fetchKiloModels } from "@kilocode/kilo-gateway"
 import { Config } from "../config"
 import { Auth } from "../auth"
-import { Env } from "../env"
 import { Log } from "../util"
 
 export namespace ModelCache {
@@ -265,8 +264,8 @@ export namespace ModelCache {
         }
       }
 
-      // Get from Env
-      const env = Env.all()
+      // Get from Env (process.env — matches upstream's pattern for sync async helpers)
+      const env = process.env
       if (env.KILO_API_KEY) {
         options.kilocodeToken = env.KILO_API_KEY
       }
@@ -297,7 +296,7 @@ export namespace ModelCache {
         options.apiKey = auth.key
       }
 
-      const env = Env.all()
+      const env = process.env
       if (env.APERTIS_API_KEY) {
         options.apiKey = env.APERTIS_API_KEY
       }

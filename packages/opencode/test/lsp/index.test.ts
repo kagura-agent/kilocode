@@ -4,6 +4,7 @@ import fs from "fs/promises"
 import { Effect, Layer } from "effect"
 import { LSP } from "../../src/lsp"
 import { LSPServer } from "../../src/lsp"
+import * as launch from "../../src/lsp/launch" // kilocode_change - spy on spawn
 import * as CrossSpawnSpawner from "../../src/effect/cross-spawn-spawner"
 import { provideTmpdirInstance, tmpdir } from "../fixture/fixture"
 import { testEffect } from "../lib/effect"

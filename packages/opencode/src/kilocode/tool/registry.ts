@@ -4,7 +4,6 @@ import { RecallTool } from "../../tool/recall"
 import { Tool } from "../../tool"
 import { Flag } from "@/flag/flag"
 import { ProviderID } from "../../provider/schema"
-import { Env } from "../../env"
 import { Effect } from "effect"
 
 export namespace KiloToolRegistry {
@@ -57,6 +56,6 @@ export namespace KiloToolRegistry {
 
   /** Check for E2E LLM URL (uses KILO_E2E_LLM_URL env var) */
   export function e2e(): boolean {
-    return !!Env.get("KILO_E2E_LLM_URL")
+    return !!process.env["KILO_E2E_LLM_URL"]
   }
 }

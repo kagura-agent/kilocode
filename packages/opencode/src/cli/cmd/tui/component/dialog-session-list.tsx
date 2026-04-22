@@ -103,7 +103,7 @@ export function DialogSessionList() {
           }
           await project.workspace.sync()
           await sync.session.refresh()
-          if (search()) await refetch()
+          if (search()) await searchActions.refetch() // kilocode_change - use createResource actions
           if (info?.workspaceID === session.workspaceID) {
             route.navigate({ type: "home" })
           }

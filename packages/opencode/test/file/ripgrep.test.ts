@@ -62,7 +62,7 @@ describe("file.ripgrep", () => {
       },
     })
 
-    const result = await Ripgrep.tree({ cwd: tmp.path })
+    const result = await run(Ripgrep.Service.use((rg) => rg.tree({ cwd: tmp.path })))
     expect(result).not.toContain(".kilo")
     expect(result).toContain("src")
   })

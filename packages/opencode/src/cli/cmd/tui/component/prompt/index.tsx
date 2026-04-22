@@ -37,7 +37,6 @@ import { useToast } from "../../ui/toast"
 import { useKV } from "../../context/kv"
 import { useTextareaKeybindings } from "../textarea-keybindings"
 import { DialogSkill } from "../dialog-skill"
-import { shouldSummarize as shouldPasteSummary } from "@/kilocode/paste-summary" // kilocode_change
 import { useArgs } from "@tui/context/args"
 
 export type PromptProps = {

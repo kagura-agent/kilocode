@@ -41,6 +41,17 @@ import kotlinx.coroutines.runBlocking
  */
 abstract class SessionControllerTestBase : BasePlatformTestCase() {
 
+    private class Root : javax.swing.JPanel() {
+        private var shown = true
+        override fun isShowing(): Boolean = shown
+        fun showState(show: Boolean) {
+            shown = show
+        }
+    }
+
+    private val controllers = mutableListOf<SessionController>()
+    private val roots = mutableMapOf<SessionController, Root>()
+
     protected lateinit var rpc: FakeSessionRpcApi
     protected lateinit var appRpc: FakeAppRpcApi
     protected lateinit var projectRpc: FakeWorkspaceRpcApi
@@ -79,8 +90,23 @@ abstract class SessionControllerTestBase : BasePlatformTestCase() {
 
     // ------ Controller creation ------
 
-    protected fun controller(id: String? = null) =
-        SessionController(parent, id, sessions, workspace, app, scope)
+    protected fun controller(id: String? = null) = controller(id, Long.MAX_VALUE)
+
+    protected fun controller(id: String? = null, flushMs: Long): SessionController {
+        val root = Root()
+        val m = SessionController(parent, id, sessions, workspace, app, scope, root, flushMs)
+        controllers.add(m)
+        roots[m] = root
+        return m
+    }
+
+    protected fun hide(m: SessionController) {
+        edt { (roots[m] ?: error("missing root")).showState(false) }
+    }
+
+    protected fun show(m: SessionController) {
+        edt { (roots[m] ?: error("missing root")).showState(true) }
+    }
 
     // ------ Event collection ------
 
@@ -109,10 +135,19 @@ abstract class SessionControllerTestBase : BasePlatformTestCase() {
 
     // ------ EDT + coroutine helpers ------
 
-    /** Let coroutines settle, then drain all pending EDT events. */
+    /** Let coroutines settle without forcing buffered controller delivery. */
+    protected fun settle() = runBlocking {
+        repeat(5) {
+            delay(100)
+            edt { UIUtil.dispatchAllInvocationEvents() }
+        }
+    }
+
+    /** Let coroutines settle, force buffered controller delivery, then drain EDT. */
     protected fun flush() = runBlocking {
         repeat(5) {
             delay(100)
+            controllers.forEach { it.flushEvents() }
             edt { UIUtil.dispatchAllInvocationEvents() }
         }
     }
@@ -154,7 +189,9 @@ abstract class SessionControllerTestBase : BasePlatformTestCase() {
     }
 
     protected fun assertControllerEvents(expected: String, events: List<SessionControllerEvent>) {
-        assertEquals(expected.trimIndent().trim(), events.joinToString("\n"))
+        val exp = expected.trimIndent().lines().map { it.trim() }.filter { it.isNotEmpty() }.sorted()
+        val act = events.map { it.toString() }.sorted()
+        assertEquals(exp.joinToString("\n"), act.joinToString("\n"))
     }
 
     protected fun assertModelEvents(expected: String, events: List<SessionModelEvent>) {

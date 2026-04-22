@@ -52,7 +52,7 @@ class SessionUi(
         private val LOG = KiloLog.create(SessionUi::class.java)
     }
 
-    private val controller = SessionController(this, null, sessions, workspace, app, cs)
+    private val controller = SessionController(this, null, sessions, workspace, app, cs, this)
 
     // ------ card switch ------
 

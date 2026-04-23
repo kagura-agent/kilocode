@@ -28,6 +28,7 @@ import { Identity } from "@kilocode/kilo-telemetry"
 import { makeRuntime } from "@/effect/run-service"
 // kilocode_change end
 import { Installation } from "@/installation"
+import { Token } from "@/util/token"
 import { InstallationVersion } from "@/installation/version"
 import { EffectBridge } from "@/effect"
 import * as Option from "effect/Option"
@@ -378,7 +379,20 @@ export namespace LLM {
           activeTools: Object.keys(tools).filter((x) => x !== "invalid"),
           tools,
           toolChoice: input.toolChoice,
-          maxOutputTokens: params.maxOutputTokens,
+          maxOutputTokens: (() => {
+            const context = input.model.limit.context
+            if (context > 0 && params.maxOutputTokens) {
+              const inputEstimate = messages.reduce((sum, m) => {
+                if (typeof m.content === "string") return sum + Token.estimate(m.content)
+                if (Array.isArray(m.content))
+                  return sum + m.content.reduce((s, p) => s + ("text" in p ? Token.estimate(p.text) : 0), 0)
+                return sum
+              }, 0)
+              const available = context - inputEstimate
+              if (available > 0 && available < params.maxOutputTokens) return available
+            }
+            return params.maxOutputTokens
+          })(),
           abortSignal: input.abort,
           headers: {
               ...(input.model.providerID.startsWith("kilo") // kilocode_change

@@ -630,7 +630,7 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
         return store.status
       },
       get ready() {
-        // kilocode_change - drop unreachable `return true` debug leftover from upstream #23037; caused the TUI to flip `ready` before sync finished, producing a 1-2s startup delay before home content (agents/news/tips) appears.
+        // return true // kilocode_change - upstream #23037 left this debug path enabled; keep it commented so future merges do not restore eager ready state.
         if (process.env.KILO_FAST_BOOT) return true
         return store.status !== "loading"
       },

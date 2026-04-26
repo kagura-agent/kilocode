@@ -803,6 +803,7 @@ describe("session.message-v2.toModelMessage", () => {
     ])
   })
 
+  // kilocode_change start - cherry-picked from anomalyco/opencode#24435
   test("preserves OpenRouter reasoning details through provider transform", async () => {
     const assistantID = "m-assistant"
     const openrouterModel: Provider.Model = {
@@ -875,6 +876,7 @@ describe("session.message-v2.toModelMessage", () => {
       },
     ])
   })
+  // kilocode_change end
 
   test("splits assistant messages on step-start boundaries", async () => {
     const assistantID = "m-assistant"

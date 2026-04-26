@@ -31,7 +31,7 @@ export type PatchDeps = {
   readText: (file: string) => Promise<string>
   write: (file: string, text: string) => Promise<void>
   exists: (file: string) => Promise<boolean>
-  files: (dir: string, name: "opencode" | "tui") => string[]
+  files: (dir: string, name: string) => string[] // kilocode_change — accept kilo/opencode/tui
 }
 
 export type PatchInput = {
@@ -330,25 +330,34 @@ export async function readPluginManifest(target: string): Promise<ManifestResult
   }
 }
 
-function patchDir(input: PatchInput) {
+// kilocode_change start — prefer Kilo-branded config dir when it already exists
+async function patchDir(input: PatchInput, dep: PatchDeps) {
   if (input.global) return input.config ?? Global.Path.config
   const git = input.vcs === "git" && input.worktree !== "/"
   const root = git ? input.worktree : input.directory
-  return path.join(root, ".opencode")
+  for (const name of [".kilocode", ".kilo", ".opencode"]) {
+    const candidate = path.join(root, name)
+    if (await dep.exists(candidate)) return candidate
+  }
+  return path.join(root, ".kilo")
 }
+// kilocode_change end
 
-function patchName(kind: Kind): "opencode" | "tui" {
-  if (kind === "server") return "opencode"
-  return "tui"
+// kilocode_change start — prefer kilo.json(c) over opencode.json(c)
+function patchNames(kind: Kind): string[] {
+  if (kind === "server") return ["kilo", "opencode"]
+  return ["tui"]
 }
+// kilocode_change end
 
 async function patchOne(dir: string, target: Target, spec: string, force: boolean, dep: PatchDeps): Promise<PatchOne> {
-  const name = patchName(target.kind)
-  await using _ = await Flock.acquire(`plug-config:${Filesystem.resolve(path.join(dir, name))}`)
+  const names = patchNames(target.kind) // kilocode_change
+  const allFiles: string[] = []
+  for (const name of names) allFiles.push(...dep.files(dir, name)) // kilocode_change
+  await using _ = await Flock.acquire(`plug-config:${Filesystem.resolve(allFiles[0])}`)
 
-  const files = dep.files(dir, name)
-  let cfg = files[0]
-  for (const file of files) {
+  let cfg = allFiles[0] // kilocode_change
+  for (const file of allFiles) { // kilocode_change
     if (!(await dep.exists(file))) continue
     cfg = file
     break
@@ -419,7 +428,7 @@ async function patchOne(dir: string, target: Target, spec: string, force: boolea
 }
 
 export async function patchPluginConfig(input: PatchInput, dep: PatchDeps = defaultPatchDeps): Promise<PatchResult> {
-  const dir = patchDir(input)
+  const dir = await patchDir(input, dep) // kilocode_change — async to check existing dirs
   const items: PatchItem[] = []
   for (const target of input.targets) {
     const hit = await patchOne(dir, target, input.spec, Boolean(input.force), dep)

@@ -2275,14 +2275,20 @@ const AgentManagerContent: Component = () => {
                     <DropdownMenu.Portal>
                       <DropdownMenu.Content class="am-split-menu">
                         <DropdownMenu.Item onSelect={handleCreateWorktree}>
-                          <DropdownMenu.ItemLabel>{t("agentManager.worktree.new")}</DropdownMenu.ItemLabel>
+                          <span class="am-worktree-menu-gap" aria-hidden="true" />
+                          <DropdownMenu.ItemLabel class="am-worktree-menu-label">
+                            <span>{t("sidebar.session.newWorktree.from")}</span>
+                            <span class="am-worktree-menu-branch">
+                              <Icon name="branch" size="small" />
+                              <strong>{repoDefaultBranch()}</strong>
+                            </span>
+                          </DropdownMenu.ItemLabel>
                           <span class="am-menu-shortcut">
                             {parseBindingTokens(kb().newWorktree ?? "").map((token) => (
                               <kbd class="am-menu-key">{token}</kbd>
                             ))}
                           </span>
                         </DropdownMenu.Item>
-                        <DropdownMenu.Separator />
                         <DropdownMenu.Item onSelect={showAdvancedWorktreeDialog}>
                           <Icon name="settings-gear" size="small" />
                           <DropdownMenu.ItemLabel>{t("agentManager.dialog.configureWorktree")}</DropdownMenu.ItemLabel>

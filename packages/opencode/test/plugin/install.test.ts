@@ -568,11 +568,12 @@ describe("plugin.install.task", () => {
     expect(await Filesystem.exists(path.join(tmp.path, ".kilo", "kilo.jsonc"))).toBe(false)
   })
 
-  test("prefers existing .kilo dir over .opencode default", async () => {
+  test("prefers existing .kilo dir with config over .opencode default", async () => {
     await using tmp = await tmpdir()
     const target = await plugin(tmp.path, ["server"])
     const kiloDir = path.join(tmp.path, ".kilo")
     await fs.mkdir(kiloDir, { recursive: true })
+    await Bun.write(path.join(kiloDir, "kilo.json"), JSON.stringify({}, null, 2))
     const run = createPlugTask(
       {
         mod: "acme@1.2.3",
@@ -582,8 +583,34 @@ describe("plugin.install.task", () => {
 
     const ok = await run(ctx(tmp.path))
     expect(ok).toBe(true)
-    expect(await Filesystem.exists(path.join(tmp.path, ".kilo", "kilo.jsonc"))).toBe(true)
+    expect(await Filesystem.exists(path.join(tmp.path, ".kilo", "kilo.json"))).toBe(true)
     expect(await Filesystem.exists(path.join(tmp.path, ".opencode", "opencode.jsonc"))).toBe(false)
+  })
+
+  test("does not split config when .kilo dir exists but plugin config is in .opencode", async () => {
+    await using tmp = await tmpdir()
+    const target = await plugin(tmp.path, ["server"])
+    // .kilo exists (for agents/modes) but has no plugin config
+    const kiloDir = path.join(tmp.path, ".kilo")
+    await fs.mkdir(kiloDir, { recursive: true })
+    // Plugin config lives in .opencode
+    const opencodeDir = path.join(tmp.path, ".opencode")
+    await fs.mkdir(opencodeDir, { recursive: true })
+    await Bun.write(path.join(opencodeDir, "opencode.json"), JSON.stringify({ plugin: ["seed@1.0.0"] }, null, 2))
+    const run = createPlugTask(
+      {
+        mod: "acme@1.2.3",
+      },
+      deps(path.join(tmp.path, "global"), target),
+    )
+
+    const ok = await run(ctx(tmp.path))
+    expect(ok).toBe(true)
+    // Should update existing .opencode config, not create split in .kilo
+    const json = await read(path.join(opencodeDir, "opencode.json"))
+    expect(json.plugin).toEqual(["seed@1.0.0", "acme@1.2.3"])
+    expect(await Filesystem.exists(path.join(kiloDir, "kilo.jsonc"))).toBe(false)
+    expect(await Filesystem.exists(path.join(kiloDir, "kilo.json"))).toBe(false)
   })
 
   test("falls back to existing .opencode dir for legacy projects", async () => {

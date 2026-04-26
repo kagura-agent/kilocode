@@ -335,9 +335,20 @@ async function patchDir(input: PatchInput, dep: PatchDeps) {
   if (input.global) return input.config ?? Global.Path.config
   const git = input.vcs === "git" && input.worktree !== "/"
   const root = git ? input.worktree : input.directory
-  for (const name of [".kilocode", ".kilo", ".opencode"]) {
-    const candidate = path.join(root, name)
-    if (await dep.exists(candidate)) return candidate
+  // Check for existing config files first — a .kilo/ dir may exist for agents/modes
+  // while plugin config still lives in .opencode/opencode.json(c).
+  const configNames = ["kilo", "opencode"]
+  for (const dir of [".kilocode", ".kilo", ".opencode"]) {
+    const candidate = path.join(root, dir)
+    for (const name of configNames) {
+      for (const file of dep.files(candidate, name)) {
+        if (await dep.exists(file)) return candidate
+      }
+    }
+    // Also check tui config files in the directory
+    for (const file of dep.files(candidate, "tui")) {
+      if (await dep.exists(file)) return candidate
+    }
   }
   return path.join(root, ".kilo")
 }

@@ -562,6 +562,7 @@ export const SessionRoutes = lazy(() =>
         z.object({
           providerID: ProviderID.zod,
           modelID: ModelID.zod,
+          variant: z.string().optional(), // kilocode_change
           auto: z.boolean().optional().default(false),
         }),
       ),
@@ -593,6 +594,7 @@ export const SessionRoutes = lazy(() =>
             model: {
               providerID: body.providerID,
               modelID: body.modelID,
+              variant: body.variant, // kilocode_change
             },
             auto: body.auto,
           })

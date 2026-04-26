@@ -347,6 +347,7 @@ export const useSessionCommands = (actions: SessionCommandContext) => {
       sessionID,
       modelID: model.id,
       providerID: model.provider.id,
+      variant: local.model.variant.current(), // kilocode_change
     })
   }
 

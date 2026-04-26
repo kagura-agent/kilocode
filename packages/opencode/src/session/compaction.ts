@@ -48,7 +48,7 @@ export interface Interface {
   readonly create: (input: {
     sessionID: SessionID
     agent: string
-    model: { providerID: ProviderID; modelID: ModelID }
+    model: { providerID: ProviderID; modelID: ModelID; variant?: string } // kilocode_change
     auto: boolean
     overflow?: boolean
   }) => Effect.Effect<void>
@@ -366,7 +366,7 @@ When constructing the summary, try to stick to this template:
     const create = Effect.fn("SessionCompaction.create")(function* (input: {
       sessionID: SessionID
       agent: string
-      model: { providerID: ProviderID; modelID: ModelID }
+      model: { providerID: ProviderID; modelID: ModelID; variant?: string } // kilocode_change
       auto: boolean
       overflow?: boolean
     }) {

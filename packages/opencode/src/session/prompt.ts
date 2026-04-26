@@ -9,7 +9,7 @@ import { Question } from "@/question" // kilocode_change
 import z from "zod"
 import { SessionID, MessageID, PartID } from "./schema"
 import { MessageV2 } from "./message-v2"
-import { Log } from "../util"
+import { Log, Token } from "../util" // kilocode_change — Token for pre-request overflow estimation
 import { SessionRevert } from "./revert"
 import { makeRuntime } from "@/effect/run-service" // kilocode_change
 import * as Session from "./session"
@@ -36,7 +36,7 @@ import * as CrossSpawnSpawner from "@/effect/cross-spawn-spawner"
 import * as Stream from "effect/Stream"
 import { Command } from "../command"
 import { pathToFileURL, fileURLToPath } from "url"
-import { ConfigMarkdown } from "../config"
+import { Config, ConfigMarkdown } from "../config" // kilocode_change — Config for pre-request overflow check
 import { SessionSummary } from "./summary"
 import { NamedError } from "@opencode-ai/shared/util/error"
 import { SessionProcessor } from "./processor"
@@ -96,6 +96,7 @@ export const layer = Layer.effect(
     const provider = yield* Provider.Service
     const processor = yield* SessionProcessor.Service
     const compaction = yield* SessionCompaction.Service
+    const config = yield* Config.Service // kilocode_change — for pre-request overflow check
     const plugin = yield* Plugin.Service
     const commands = yield* Command.Service
     const permission = yield* Permission.Service
@@ -1551,6 +1552,45 @@ NOTE: At any point in time through this workflow you should feel free to ask the
             const system = [...env, ...(skills ? [skills] : []), ...instructions]
             const format = lastUser.format ?? { type: "text" as const }
             if (format.type === "json_schema") system.push(STRUCTURED_OUTPUT_SYSTEM_PROMPT)
+
+            // kilocode_change start — pre-request overflow guard (#9500)
+            const cfg = yield* config.get()
+            if (cfg.compaction?.auto !== false && model.limit.context !== 0) {
+              // Estimate input tokens: system prompts + model messages
+              const systemText = system.map((s) => (typeof s === "string" ? s : JSON.stringify(s))).join("")
+              const messagesText = JSON.stringify(modelMsgs)
+              const estimatedTokens = Token.estimate(systemText + messagesText)
+
+              const reserved = cfg.compaction?.reserved ?? Math.min(20_000, ProviderTransform.maxOutputTokens(model))
+              const limit = model.limit.input
+                ? model.limit.input - reserved
+                : model.limit.context - ProviderTransform.maxOutputTokens(model)
+
+              if (estimatedTokens >= limit) {
+                const guard = KiloSessionPrompt.guardCompactionAttempt({
+                  sessionID,
+                  attempts: compactionAttempts,
+                  closeReasons,
+                  message: handle.message,
+                })
+                if (guard.exhausted) {
+                  yield* sessions.updateMessage(handle.message)
+                  yield* bus.publish(Session.Event.Error, { sessionID, error: guard.error })
+                  return "break" as const
+                }
+                compactionAttempts++
+                yield* compaction.create({
+                  sessionID,
+                  agent: lastUser.agent,
+                  model: lastUser.model,
+                  auto: true,
+                  overflow: true,
+                })
+                return "continue" as const
+              }
+            }
+            // kilocode_change end
+
             const result = yield* handle.process({
               user: lastUser,
               agent,

@@ -86,7 +86,7 @@ describe("installation", () => {
         Installation.Service.use((svc) => svc.latest("npm")).pipe(Effect.provide(layer)),
       )
       expect(result).toBe("1.5.0")
-      expect(calls).toContainEqual(["npm", "view", `opencode-ai@${InstallationChannel}`, "version", "--json"])
+      expect(calls).toContainEqual(["npm", "view", `@kilocode/cli@${InstallationChannel}`, "version", "--json"]) // kilocode_change
     })
 
     test("reads npm versions via bun pm view", async () => {
@@ -106,7 +106,7 @@ describe("installation", () => {
         Installation.Service.use((svc) => svc.latest("bun")).pipe(Effect.provide(layer)),
       )
       expect(result).toBe("1.6.0")
-      expect(calls).toContainEqual(["bun", "pm", "view", `opencode-ai@${InstallationChannel}`, "version", "--json"])
+      expect(calls).toContainEqual(["bun", "pm", "view", `@kilocode/cli@${InstallationChannel}`, "version", "--json"]) // kilocode_change
     })
 
     test("reads npm versions via pnpm view", async () => {
@@ -126,7 +126,7 @@ describe("installation", () => {
         Installation.Service.use((svc) => svc.latest("pnpm")).pipe(Effect.provide(layer)),
       )
       expect(result).toBe("1.7.0")
-      expect(calls).toContainEqual(["pnpm", "view", `opencode-ai@${InstallationChannel}`, "version", "--json"])
+      expect(calls).toContainEqual(["pnpm", "view", `@kilocode/cli@${InstallationChannel}`, "version", "--json"]) // kilocode_change
     })
 
     test("reads scoop manifest versions", async () => {

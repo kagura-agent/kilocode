@@ -64,7 +64,8 @@ describe("Session.Info", () => {
         additions: 10,
         deletions: 5,
         files: 2,
-        diffs: [{ additions: 1, deletions: 0, file: "a.ts", patch: "--- a/a.ts" }],
+        // kilocode_change - summary.diffs uses SummaryFileDiff (patch omitted) in kilo
+        diffs: [{ additions: 1, deletions: 0, file: "a.ts" }],
       },
       share: { url: "https://share.example.com/s/1" },
       title: "Full session",

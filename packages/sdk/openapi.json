@@ -415,6 +415,391 @@
         ]
       }
     },
+    "/experimental/workspace/adaptor": {
+      "get": {
+        "operationId": "experimental.workspace.adaptor.list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "directory",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workspace",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "summary": "List workspace adaptors",
+        "description": "List all available workspace adaptors for the current project.",
+        "responses": {
+          "200": {
+            "description": "Workspace adaptors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "description": {
+                        "type": "string"
+                      }
+                    },
+                    "required": ["type", "name", "description"]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createKiloClient } from \"@kilocode/sdk\n\nconst client = createKiloClient()\nawait client.experimental.workspace.adaptor.list({\n  ...\n})"
+          }
+        ]
+      }
+    },
+    "/experimental/workspace": {
+      "post": {
+        "operationId": "experimental.workspace.create",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "directory",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workspace",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "summary": "Create workspace",
+        "description": "Create a workspace for the current project.",
+        "responses": {
+          "200": {
+            "description": "Workspace created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Workspace"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^wrk.*"
+                  },
+                  "type": {
+                    "type": "string"
+                  },
+                  "branch": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "extra": {
+                    "anyOf": [
+                      {},
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": ["type", "branch", "extra"]
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createKiloClient } from \"@kilocode/sdk\n\nconst client = createKiloClient()\nawait client.experimental.workspace.create({\n  ...\n})"
+          }
+        ]
+      },
+      "get": {
+        "operationId": "experimental.workspace.list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "directory",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workspace",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "summary": "List workspaces",
+        "description": "List all workspaces.",
+        "responses": {
+          "200": {
+            "description": "Workspaces",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Workspace"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createKiloClient } from \"@kilocode/sdk\n\nconst client = createKiloClient()\nawait client.experimental.workspace.list({\n  ...\n})"
+          }
+        ]
+      }
+    },
+    "/experimental/workspace/status": {
+      "get": {
+        "operationId": "experimental.workspace.status",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "directory",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workspace",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "summary": "Workspace status",
+        "description": "Get connection status for workspaces in the current project.",
+        "responses": {
+          "200": {
+            "description": "Workspace status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "workspaceID": {
+                        "type": "string",
+                        "pattern": "^wrk.*"
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": ["connected", "connecting", "disconnected", "error"]
+                      }
+                    },
+                    "required": ["workspaceID", "status"]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createKiloClient } from \"@kilocode/sdk\n\nconst client = createKiloClient()\nawait client.experimental.workspace.status({\n  ...\n})"
+          }
+        ]
+      }
+    },
+    "/experimental/workspace/{id}": {
+      "delete": {
+        "operationId": "experimental.workspace.remove",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "directory",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workspace",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "schema": {
+              "type": "string",
+              "pattern": "^wrk.*"
+            },
+            "required": true
+          }
+        ],
+        "summary": "Remove workspace",
+        "description": "Remove an existing workspace.",
+        "responses": {
+          "200": {
+            "description": "Workspace removed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Workspace"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createKiloClient } from \"@kilocode/sdk\n\nconst client = createKiloClient()\nawait client.experimental.workspace.remove({\n  ...\n})"
+          }
+        ]
+      }
+    },
+    "/experimental/workspace/{id}/session-restore": {
+      "post": {
+        "operationId": "experimental.workspace.sessionRestore",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "directory",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workspace",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "schema": {
+              "type": "string",
+              "pattern": "^wrk.*"
+            },
+            "required": true
+          }
+        ],
+        "summary": "Restore session into workspace",
+        "description": "Replay a session's sync events into the target workspace in batches.",
+        "responses": {
+          "200": {
+            "description": "Session replay started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": ["total"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "sessionID": {
+                    "type": "string",
+                    "pattern": "^ses.*"
+                  }
+                },
+                "required": ["sessionID"]
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createKiloClient } from \"@kilocode/sdk\n\nconst client = createKiloClient()\nawait client.experimental.workspace.sessionRestore({\n  ...\n})"
+          }
+        ]
+      }
+    },
     "/project": {
       "get": {
         "operationId": "project.list",
@@ -1278,24 +1663,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "consoleManagedProviders": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    },
-                    "activeOrgName": {
-                      "type": "string"
-                    },
-                    "switchableOrgCount": {
-                      "type": "integer",
-                      "minimum": 0,
-                      "maximum": 9007199254740991
-                    }
-                  },
-                  "required": ["consoleManagedProviders", "switchableOrgCount"]
+                  "$ref": "#/components/schemas/ConsoleState"
                 }
               }
             }
@@ -1553,310 +1921,6 @@
           {
             "lang": "js",
             "source": "import { createKiloClient } from \"@kilocode/sdk\n\nconst client = createKiloClient()\nawait client.tool.list({\n  ...\n})"
-          }
-        ]
-      }
-    },
-    "/experimental/workspace/adaptor": {
-      "get": {
-        "operationId": "experimental.workspace.adaptor.list",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "directory",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "workspace",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "summary": "List workspace adaptors",
-        "description": "List all available workspace adaptors for the current project.",
-        "responses": {
-          "200": {
-            "description": "Workspace adaptors",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "type": {
-                        "type": "string"
-                      },
-                      "name": {
-                        "type": "string"
-                      },
-                      "description": {
-                        "type": "string"
-                      }
-                    },
-                    "required": ["type", "name", "description"]
-                  }
-                }
-              }
-            }
-          }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "js",
-            "source": "import { createKiloClient } from \"@kilocode/sdk\n\nconst client = createKiloClient()\nawait client.experimental.workspace.adaptor.list({\n  ...\n})"
-          }
-        ]
-      }
-    },
-    "/experimental/workspace": {
-      "post": {
-        "operationId": "experimental.workspace.create",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "directory",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "workspace",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "summary": "Create workspace",
-        "description": "Create a workspace for the current project.",
-        "responses": {
-          "200": {
-            "description": "Workspace created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Workspace"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BadRequestError"
-                }
-              }
-            }
-          }
-        },
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "id": {
-                    "type": "string",
-                    "pattern": "^wrk.*"
-                  },
-                  "type": {
-                    "type": "string"
-                  },
-                  "branch": {
-                    "anyOf": [
-                      {
-                        "type": "string"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "extra": {
-                    "anyOf": [
-                      {},
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  }
-                },
-                "required": ["type", "branch", "extra"]
-              }
-            }
-          }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "js",
-            "source": "import { createKiloClient } from \"@kilocode/sdk\n\nconst client = createKiloClient()\nawait client.experimental.workspace.create({\n  ...\n})"
-          }
-        ]
-      },
-      "get": {
-        "operationId": "experimental.workspace.list",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "directory",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "workspace",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "summary": "List workspaces",
-        "description": "List all workspaces.",
-        "responses": {
-          "200": {
-            "description": "Workspaces",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Workspace"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "js",
-            "source": "import { createKiloClient } from \"@kilocode/sdk\n\nconst client = createKiloClient()\nawait client.experimental.workspace.list({\n  ...\n})"
-          }
-        ]
-      }
-    },
-    "/experimental/workspace/status": {
-      "get": {
-        "operationId": "experimental.workspace.status",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "directory",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "workspace",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "summary": "Workspace status",
-        "description": "Get connection status for workspaces in the current project.",
-        "responses": {
-          "200": {
-            "description": "Workspace status",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "workspaceID": {
-                        "type": "string",
-                        "pattern": "^wrk.*"
-                      },
-                      "status": {
-                        "type": "string",
-                        "enum": ["connected", "connecting", "disconnected", "error"]
-                      },
-                      "error": {
-                        "type": "string"
-                      }
-                    },
-                    "required": ["workspaceID", "status"]
-                  }
-                }
-              }
-            }
-          }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "js",
-            "source": "import { createKiloClient } from \"@kilocode/sdk\n\nconst client = createKiloClient()\nawait client.experimental.workspace.status({\n  ...\n})"
-          }
-        ]
-      }
-    },
-    "/experimental/workspace/{id}": {
-      "delete": {
-        "operationId": "experimental.workspace.remove",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "directory",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "workspace",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "in": "path",
-            "name": "id",
-            "schema": {
-              "type": "string",
-              "pattern": "^wrk.*"
-            },
-            "required": true
-          }
-        ],
-        "summary": "Remove workspace",
-        "description": "Remove an existing workspace.",
-        "responses": {
-          "200": {
-            "description": "Workspace removed",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Workspace"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BadRequestError"
-                }
-              }
-            }
-          }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "js",
-            "source": "import { createKiloClient } from \"@kilocode/sdk\n\nconst client = createKiloClient()\nawait client.experimental.workspace.remove({\n  ...\n})"
           }
         ]
       }
@@ -4430,34 +4494,30 @@
                   "parts": {
                     "type": "array",
                     "items": {
-                      "anyOf": [
-                        {
-                          "type": "object",
-                          "properties": {
-                            "id": {
-                              "type": "string",
-                              "pattern": "^prt.*"
-                            },
-                            "type": {
-                              "type": "string",
-                              "const": "file"
-                            },
-                            "mime": {
-                              "type": "string"
-                            },
-                            "filename": {
-                              "type": "string"
-                            },
-                            "url": {
-                              "type": "string"
-                            },
-                            "source": {
-                              "$ref": "#/components/schemas/FilePartSource"
-                            }
-                          },
-                          "required": ["type", "mime", "url"]
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "pattern": "^prt.*"
+                        },
+                        "type": {
+                          "type": "string",
+                          "const": "file"
+                        },
+                        "mime": {
+                          "type": "string"
+                        },
+                        "filename": {
+                          "type": "string"
+                        },
+                        "url": {
+                          "type": "string"
+                        },
+                        "source": {
+                          "$ref": "#/components/schemas/FilePartSource"
                         }
-                      ]
+                      },
+                      "required": ["type", "mime", "url"]
                     }
                   }
                 },
@@ -5616,6 +5676,243 @@
           {
             "lang": "js",
             "source": "import { createKiloClient } from \"@kilocode/sdk\n\nconst client = createKiloClient()\nawait client.provider.oauth.callback({\n  ...\n})"
+          }
+        ]
+      }
+    },
+    "/sync/start": {
+      "post": {
+        "operationId": "sync.start",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "directory",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workspace",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "summary": "Start workspace sync",
+        "description": "Start sync loops for workspaces in the current project that have active sessions.",
+        "responses": {
+          "200": {
+            "description": "Workspace sync started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createKiloClient } from \"@kilocode/sdk\n\nconst client = createKiloClient()\nawait client.sync.start({\n  ...\n})"
+          }
+        ]
+      }
+    },
+    "/sync/replay": {
+      "post": {
+        "operationId": "sync.replay",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "directory",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workspace",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "summary": "Replay sync events",
+        "description": "Validate and replay a complete sync event history.",
+        "responses": {
+          "200": {
+            "description": "Replayed sync events",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "sessionID": {
+                      "type": "string"
+                    }
+                  },
+                  "required": ["sessionID"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "directory": {
+                    "type": "string"
+                  },
+                  "events": {
+                    "minItems": 1,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "aggregateID": {
+                          "type": "string"
+                        },
+                        "seq": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 9007199254740991
+                        },
+                        "type": {
+                          "type": "string"
+                        },
+                        "data": {
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {}
+                        }
+                      },
+                      "required": ["id", "aggregateID", "seq", "type", "data"]
+                    }
+                  }
+                },
+                "required": ["directory", "events"]
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createKiloClient } from \"@kilocode/sdk\n\nconst client = createKiloClient()\nawait client.sync.replay({\n  ...\n})"
+          }
+        ]
+      }
+    },
+    "/sync/history": {
+      "post": {
+        "operationId": "sync.history.list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "directory",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workspace",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "summary": "List sync events",
+        "description": "List sync events for all aggregates. Keys are aggregate IDs the client already knows about, values are the last known sequence ID. Events with seq > value are returned for those aggregates. Aggregates not listed in the input get their full history.",
+        "responses": {
+          "200": {
+            "description": "Sync events",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "aggregate_id": {
+                        "type": "string"
+                      },
+                      "seq": {
+                        "type": "number"
+                      },
+                      "type": {
+                        "type": "string"
+                      },
+                      "data": {
+                        "type": "object",
+                        "propertyNames": {
+                          "type": "string"
+                        },
+                        "additionalProperties": {}
+                      }
+                    },
+                    "required": ["id", "aggregate_id", "seq", "type", "data"]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createKiloClient } from \"@kilocode/sdk\n\nconst client = createKiloClient()\nawait client.sync.history.list({\n  ...\n})"
           }
         ]
       }
@@ -6984,7 +7281,6 @@
                   },
                   "duration": {
                     "description": "Duration in milliseconds",
-                    "default": 5000,
                     "type": "number"
                   }
                 },
@@ -7807,7 +8103,8 @@
             "in": "path",
             "name": "requestID",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "pattern": "^que.*"
             },
             "required": true
           }
@@ -7876,7 +8173,8 @@
             "in": "path",
             "name": "requestID",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "pattern": "^que.*"
             },
             "required": true
           }
@@ -9887,6 +10185,9 @@
                                 "type": "string"
                               }
                             }
+                          },
+                          "text": {
+                            "type": "string"
                           }
                         }
                       }
@@ -10563,44 +10864,6 @@
         },
         "required": ["type", "properties"]
       },
-      "Event.installation.updated": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "const": "installation.updated"
-          },
-          "properties": {
-            "type": "object",
-            "properties": {
-              "version": {
-                "type": "string"
-              }
-            },
-            "required": ["version"]
-          }
-        },
-        "required": ["type", "properties"]
-      },
-      "Event.installation.update-available": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "const": "installation.update-available"
-          },
-          "properties": {
-            "type": "object",
-            "properties": {
-              "version": {
-                "type": "string"
-              }
-            },
-            "required": ["version"]
-          }
-        },
-        "required": ["type", "properties"]
-      },
       "Event.server.connected": {
         "type": "object",
         "properties": {
@@ -10676,20 +10939,8 @@
                 "type": "string"
               },
               "event": {
-                "anyOf": [
-                  {
-                    "type": "string",
-                    "const": "add"
-                  },
-                  {
-                    "type": "string",
-                    "const": "change"
-                  },
-                  {
-                    "type": "string",
-                    "const": "unlink"
-                  }
-                ]
+                "type": "string",
+                "enum": ["add", "change", "unlink"]
               }
             },
             "required": ["file", "event"]
@@ -10729,6 +10980,44 @@
           "properties": {
             "type": "object",
             "properties": {}
+          }
+        },
+        "required": ["type", "properties"]
+      },
+      "Event.installation.updated": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "installation.updated"
+          },
+          "properties": {
+            "type": "object",
+            "properties": {
+              "version": {
+                "type": "string"
+              }
+            },
+            "required": ["version"]
+          }
+        },
+        "required": ["type", "properties"]
+      },
+      "Event.installation.update-available": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "installation.update-available"
+          },
+          "properties": {
+            "type": "object",
+            "properties": {
+              "version": {
+                "type": "string"
+              }
+            },
+            "required": ["version"]
           }
         },
         "required": ["type", "properties"]
@@ -10818,7 +11107,6 @@
               },
               "duration": {
                 "description": "Duration in milliseconds",
-                "default": 5000,
                 "type": "number"
               }
             },
@@ -10942,10 +11230,12 @@
             "type": "object",
             "properties": {
               "sessionID": {
-                "type": "string"
+                "type": "string",
+                "pattern": "^ses.*"
               },
               "requestID": {
-                "type": "string"
+                "type": "string",
+                "pattern": "^que.*"
               }
             },
             "required": ["sessionID", "requestID"]
@@ -10964,10 +11254,12 @@
             "type": "object",
             "properties": {
               "sessionID": {
-                "type": "string"
+                "type": "string",
+                "pattern": "^ses.*"
               },
               "requestID": {
-                "type": "string"
+                "type": "string",
+                "pattern": "^que.*"
               }
             },
             "required": ["sessionID", "requestID"]
@@ -10986,10 +11278,12 @@
             "type": "object",
             "properties": {
               "sessionID": {
-                "type": "string"
+                "type": "string",
+                "pattern": "^ses.*"
               },
               "requestID": {
-                "type": "string"
+                "type": "string",
+                "pattern": "^que.*"
               }
             },
             "required": ["sessionID", "requestID"]
@@ -11027,48 +11321,6 @@
               }
             },
             "required": ["sessionID", "messageID", "partID", "field", "delta"]
-          }
-        },
-        "required": ["type", "properties"]
-      },
-      "Event.session.turn.open": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "const": "session.turn.open"
-          },
-          "properties": {
-            "type": "object",
-            "properties": {
-              "sessionID": {
-                "type": "string"
-              }
-            },
-            "required": ["sessionID"]
-          }
-        },
-        "required": ["type", "properties"]
-      },
-      "Event.session.turn.close": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "const": "session.turn.close"
-          },
-          "properties": {
-            "type": "object",
-            "properties": {
-              "sessionID": {
-                "type": "string"
-              },
-              "reason": {
-                "type": "string",
-                "enum": ["completed", "error", "interrupted"]
-              }
-            },
-            "required": ["sessionID", "reason"]
           }
         },
         "required": ["type", "properties"]
@@ -11159,6 +11411,50 @@
               }
             },
             "required": ["sessionID", "requestID", "reply"]
+          }
+        },
+        "required": ["type", "properties"]
+      },
+      "Event.session.turn.open": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "session.turn.open"
+          },
+          "properties": {
+            "type": "object",
+            "properties": {
+              "sessionID": {
+                "type": "string",
+                "pattern": "^ses.*"
+              }
+            },
+            "required": ["sessionID"]
+          }
+        },
+        "required": ["type", "properties"]
+      },
+      "Event.session.turn.close": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "session.turn.close"
+          },
+          "properties": {
+            "type": "object",
+            "properties": {
+              "sessionID": {
+                "type": "string",
+                "pattern": "^ses.*"
+              },
+              "reason": {
+                "type": "string",
+                "enum": ["completed", "error", "interrupted"]
+              }
+            },
+            "required": ["sessionID", "reason"]
           }
         },
         "required": ["type", "properties"]
@@ -11482,7 +11778,8 @@
         "type": "object",
         "properties": {
           "messageID": {
-            "type": "string"
+            "type": "string",
+            "pattern": "^msg.*"
           },
           "callID": {
             "type": "string"
@@ -11494,10 +11791,12 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "string"
+            "type": "string",
+            "pattern": "^que.*"
           },
           "sessionID": {
-            "type": "string"
+            "type": "string",
+            "pattern": "^ses.*"
           },
           "questions": {
             "description": "Questions to ask",
@@ -11539,10 +11838,12 @@
         "type": "object",
         "properties": {
           "sessionID": {
-            "type": "string"
+            "type": "string",
+            "pattern": "^ses.*"
           },
           "requestID": {
-            "type": "string"
+            "type": "string",
+            "pattern": "^que.*"
           },
           "answers": {
             "type": "array",
@@ -11570,10 +11871,12 @@
         "type": "object",
         "properties": {
           "sessionID": {
-            "type": "string"
+            "type": "string",
+            "pattern": "^ses.*"
           },
           "requestID": {
-            "type": "string"
+            "type": "string",
+            "pattern": "^que.*"
           }
         },
         "required": ["sessionID", "requestID"]
@@ -11591,30 +11894,107 @@
         },
         "required": ["type", "properties"]
       },
-      "Todo": {
-        "type": "object",
-        "properties": {
-          "content": {
-            "description": "Brief description of the task",
-            "type": "string"
-          },
-          "status": {
-            "description": "Current status of the task: pending, in_progress, completed, cancelled",
-            "type": "string"
-          },
-          "priority": {
-            "description": "Priority level of the task: high, medium, low",
-            "type": "string"
-          }
-        },
-        "required": ["content", "status", "priority"]
-      },
-      "Event.todo.updated": {
+      "Event.command.executed": {
         "type": "object",
         "properties": {
           "type": {
             "type": "string",
-            "const": "todo.updated"
+            "const": "command.executed"
+          },
+          "properties": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "sessionID": {
+                "type": "string",
+                "pattern": "^ses.*"
+              },
+              "arguments": {
+                "type": "string"
+              },
+              "messageID": {
+                "type": "string",
+                "pattern": "^msg.*"
+              }
+            },
+            "required": ["name", "sessionID", "arguments", "messageID"]
+          }
+        },
+        "required": ["type", "properties"]
+      },
+      "Event.suggestion.shown": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "suggestion.shown"
+          },
+          "properties": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^sug.*"
+              },
+              "sessionID": {
+                "type": "string",
+                "pattern": "^ses.*"
+              },
+              "text": {
+                "type": "string"
+              },
+              "actions": {
+                "minItems": 1,
+                "maxItems": 2,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "label": {
+                      "description": "Button or option label (1-5 words)",
+                      "type": "string"
+                    },
+                    "description": {
+                      "description": "Brief explanation of what this action does",
+                      "type": "string"
+                    },
+                    "prompt": {
+                      "description": "Synthetic user prompt to inject when this action is accepted",
+                      "type": "string"
+                    }
+                  },
+                  "required": ["label", "prompt"]
+                }
+              },
+              "blocking": {
+                "type": "boolean"
+              },
+              "tool": {
+                "type": "object",
+                "properties": {
+                  "messageID": {
+                    "type": "string"
+                  },
+                  "callID": {
+                    "type": "string"
+                  }
+                },
+                "required": ["messageID", "callID"]
+              }
+            },
+            "required": ["id", "sessionID", "text", "actions"]
+          }
+        },
+        "required": ["type", "properties"]
+      },
+      "Event.suggestion.accepted": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "suggestion.accepted"
           },
           "properties": {
             "type": "object",
@@ -11623,14 +12003,59 @@
                 "type": "string",
                 "pattern": "^ses.*"
               },
-              "todos": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/Todo"
-                }
+              "requestID": {
+                "type": "string",
+                "pattern": "^sug.*"
+              },
+              "index": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "action": {
+                "type": "object",
+                "properties": {
+                  "label": {
+                    "description": "Button or option label (1-5 words)",
+                    "type": "string"
+                  },
+                  "description": {
+                    "description": "Brief explanation of what this action does",
+                    "type": "string"
+                  },
+                  "prompt": {
+                    "description": "Synthetic user prompt to inject when this action is accepted",
+                    "type": "string"
+                  }
+                },
+                "required": ["label", "prompt"]
               }
             },
-            "required": ["sessionID", "todos"]
+            "required": ["sessionID", "requestID", "index", "action"]
+          }
+        },
+        "required": ["type", "properties"]
+      },
+      "Event.suggestion.dismissed": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "suggestion.dismissed"
+          },
+          "properties": {
+            "type": "object",
+            "properties": {
+              "sessionID": {
+                "type": "string",
+                "pattern": "^ses.*"
+              },
+              "requestID": {
+                "type": "string",
+                "pattern": "^sug.*"
+              }
+            },
+            "required": ["sessionID", "requestID"]
           }
         },
         "required": ["type", "properties"]
@@ -11684,7 +12109,8 @@
                 "const": "offline"
               },
               "requestID": {
-                "type": "string"
+                "type": "string",
+                "pattern": "^que.*"
               },
               "message": {
                 "type": "string"
@@ -11737,128 +12163,64 @@
         },
         "required": ["type", "properties"]
       },
-      "SuggestionAction": {
+      "Todo": {
         "type": "object",
         "properties": {
-          "label": {
-            "description": "Button or option label (1-5 words)",
+          "content": {
+            "description": "Brief description of the task",
             "type": "string"
           },
-          "description": {
-            "description": "Brief explanation of what this action does",
+          "status": {
+            "description": "Current status of the task: pending, in_progress, completed, cancelled",
             "type": "string"
           },
-          "prompt": {
-            "description": "Synthetic user prompt to inject when this action is accepted",
+          "priority": {
+            "description": "Priority level of the task: high, medium, low",
             "type": "string"
           }
         },
-        "required": ["label", "prompt"]
+        "required": ["content", "status", "priority"]
       },
-      "SuggestionRequest": {
+      "Event.todo.updated": {
         "type": "object",
         "properties": {
-          "id": {
+          "type": {
             "type": "string",
-            "pattern": "^sug.*"
+            "const": "todo.updated"
           },
-          "sessionID": {
+          "properties": {
+            "type": "object",
+            "properties": {
+              "sessionID": {
+                "type": "string",
+                "pattern": "^ses.*"
+              },
+              "todos": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Todo"
+                }
+              }
+            },
+            "required": ["sessionID", "todos"]
+          }
+        },
+        "required": ["type", "properties"]
+      },
+      "Event.vcs.branch.updated": {
+        "type": "object",
+        "properties": {
+          "type": {
             "type": "string",
-            "pattern": "^ses.*"
+            "const": "vcs.branch.updated"
           },
-          "text": {
-            "description": "Suggestion text shown to the user",
-            "type": "string"
-          },
-          "actions": {
-            "description": "Available actions the user can take",
-            "minItems": 1,
-            "maxItems": 2,
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SuggestionAction"
+          "properties": {
+            "type": "object",
+            "properties": {
+              "branch": {
+                "type": "string"
+              }
             }
-          },
-          "blocking": {
-            "description": "Whether this suggestion blocks prompt input. When unset, the TUI treats the suggestion as blocking for backwards compatibility; the built-in suggest tool always sets this to false.",
-            "type": "boolean"
-          },
-          "tool": {
-            "type": "object",
-            "properties": {
-              "messageID": {
-                "type": "string"
-              },
-              "callID": {
-                "type": "string"
-              }
-            },
-            "required": ["messageID", "callID"]
-          }
-        },
-        "required": ["id", "sessionID", "text", "actions"]
-      },
-      "Event.suggestion.shown": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "const": "suggestion.shown"
-          },
-          "properties": {
-            "$ref": "#/components/schemas/SuggestionRequest"
-          }
-        },
-        "required": ["type", "properties"]
-      },
-      "Event.suggestion.accepted": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "const": "suggestion.accepted"
-          },
-          "properties": {
-            "type": "object",
-            "properties": {
-              "sessionID": {
-                "type": "string"
-              },
-              "requestID": {
-                "type": "string"
-              },
-              "index": {
-                "type": "integer",
-                "minimum": 0,
-                "maximum": 9007199254740991
-              },
-              "action": {
-                "$ref": "#/components/schemas/SuggestionAction"
-              }
-            },
-            "required": ["sessionID", "requestID", "index", "action"]
-          }
-        },
-        "required": ["type", "properties"]
-      },
-      "Event.suggestion.dismissed": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "const": "suggestion.dismissed"
-          },
-          "properties": {
-            "type": "object",
-            "properties": {
-              "sessionID": {
-                "type": "string"
-              },
-              "requestID": {
-                "type": "string"
-              }
-            },
-            "required": ["sessionID", "requestID"]
           }
         },
         "required": ["type", "properties"]
@@ -11879,54 +12241,6 @@
               }
             },
             "required": ["sessionID"]
-          }
-        },
-        "required": ["type", "properties"]
-      },
-      "Event.command.executed": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "const": "command.executed"
-          },
-          "properties": {
-            "type": "object",
-            "properties": {
-              "name": {
-                "type": "string"
-              },
-              "sessionID": {
-                "type": "string",
-                "pattern": "^ses.*"
-              },
-              "arguments": {
-                "type": "string"
-              },
-              "messageID": {
-                "type": "string",
-                "pattern": "^msg.*"
-              }
-            },
-            "required": ["name", "sessionID", "arguments", "messageID"]
-          }
-        },
-        "required": ["type", "properties"]
-      },
-      "Event.vcs.branch.updated": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "const": "vcs.branch.updated"
-          },
-          "properties": {
-            "type": "object",
-            "properties": {
-              "branch": {
-                "type": "string"
-              }
-            }
           }
         },
         "required": ["type", "properties"]
@@ -12145,6 +12459,40 @@
         },
         "required": ["type", "properties"]
       },
+      "Event.workspace.restore": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "workspace.restore"
+          },
+          "properties": {
+            "type": "object",
+            "properties": {
+              "workspaceID": {
+                "type": "string",
+                "pattern": "^wrk.*"
+              },
+              "sessionID": {
+                "type": "string",
+                "pattern": "^ses.*"
+              },
+              "total": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "step": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": ["workspaceID", "sessionID", "total", "step"]
+          }
+        },
+        "required": ["type", "properties"]
+      },
       "Event.workspace.status": {
         "type": "object",
         "properties": {
@@ -12162,9 +12510,6 @@
               "status": {
                 "type": "string",
                 "enum": ["connected", "connecting", "disconnected", "error"]
-              },
-              "error": {
-                "type": "string"
               }
             },
             "required": ["workspaceID", "status"]
@@ -13362,6 +13707,25 @@
         },
         "required": ["type", "properties"]
       },
+      "SnapshotSummaryFileDiff": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "type": "string"
+          },
+          "additions": {
+            "type": "number"
+          },
+          "deletions": {
+            "type": "number"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["added", "deleted", "modified"]
+          }
+        },
+        "required": ["file", "additions", "deletions"]
+      },
       "PermissionAction": {
         "type": "string",
         "enum": ["allow", "deny", "ask"]
@@ -13426,23 +13790,7 @@
               "diffs": {
                 "type": "array",
                 "items": {
-                  "type": "object",
-                  "properties": {
-                    "file": {
-                      "type": "string"
-                    },
-                    "additions": {
-                      "type": "number"
-                    },
-                    "deletions": {
-                      "type": "number"
-                    },
-                    "status": {
-                      "type": "string",
-                      "enum": ["added", "deleted", "modified"]
-                    }
-                  },
-                  "required": ["file", "additions", "deletions"]
+                  "$ref": "#/components/schemas/SnapshotSummaryFileDiff"
                 }
               }
             },
@@ -13881,23 +14229,7 @@
                           "diffs": {
                             "type": "array",
                             "items": {
-                              "type": "object",
-                              "properties": {
-                                "file": {
-                                  "type": "string"
-                                },
-                                "additions": {
-                                  "type": "number"
-                                },
-                                "deletions": {
-                                  "type": "number"
-                                },
-                                "status": {
-                                  "type": "string",
-                                  "enum": ["added", "deleted", "modified"]
-                                }
-                              },
-                              "required": ["file", "additions", "deletions"]
+                              "$ref": "#/components/schemas/SnapshotSummaryFileDiff"
                             }
                           }
                         },
@@ -13921,8 +14253,7 @@
                           }
                         ]
                       }
-                    },
-                    "required": ["url"]
+                    }
                   },
                   "title": {
                     "anyOf": [
@@ -13987,8 +14318,7 @@
                           }
                         ]
                       }
-                    },
-                    "required": ["created", "updated", "compacting", "archived"]
+                    }
                   },
                   "permission": {
                     "anyOf": [
@@ -14027,20 +14357,7 @@
                       }
                     ]
                   }
-                },
-                "required": [
-                  "id",
-                  "slug",
-                  "projectID",
-                  "workspaceID",
-                  "directory",
-                  "parentID",
-                  "summary",
-                  "title",
-                  "version",
-                  "permission",
-                  "revert"
-                ]
+                }
               }
             },
             "required": ["sessionID", "info"]
@@ -14106,12 +14423,6 @@
                 "$ref": "#/components/schemas/Event.server.instance.disposed"
               },
               {
-                "$ref": "#/components/schemas/Event.installation.updated"
-              },
-              {
-                "$ref": "#/components/schemas/Event.installation.update-available"
-              },
-              {
                 "$ref": "#/components/schemas/Event.server.connected"
               },
               {
@@ -14131,6 +14442,12 @@
               },
               {
                 "$ref": "#/components/schemas/Event.lsp.updated"
+              },
+              {
+                "$ref": "#/components/schemas/Event.installation.updated"
+              },
+              {
+                "$ref": "#/components/schemas/Event.installation.update-available"
               },
               {
                 "$ref": "#/components/schemas/Event.tui.prompt.append"
@@ -14166,16 +14483,16 @@
                 "$ref": "#/components/schemas/Event.message.part.delta"
               },
               {
-                "$ref": "#/components/schemas/Event.session.turn.open"
-              },
-              {
-                "$ref": "#/components/schemas/Event.session.turn.close"
-              },
-              {
                 "$ref": "#/components/schemas/Event.permission.asked"
               },
               {
                 "$ref": "#/components/schemas/Event.permission.replied"
+              },
+              {
+                "$ref": "#/components/schemas/Event.session.turn.open"
+              },
+              {
+                "$ref": "#/components/schemas/Event.session.turn.close"
               },
               {
                 "$ref": "#/components/schemas/Event.session.diff"
@@ -14193,13 +14510,7 @@
                 "$ref": "#/components/schemas/Event.question.rejected"
               },
               {
-                "$ref": "#/components/schemas/Event.todo.updated"
-              },
-              {
-                "$ref": "#/components/schemas/Event.session.status"
-              },
-              {
-                "$ref": "#/components/schemas/Event.session.idle"
+                "$ref": "#/components/schemas/Event.command.executed"
               },
               {
                 "$ref": "#/components/schemas/Event.suggestion.shown"
@@ -14211,13 +14522,19 @@
                 "$ref": "#/components/schemas/Event.suggestion.dismissed"
               },
               {
-                "$ref": "#/components/schemas/Event.session.compacted"
+                "$ref": "#/components/schemas/Event.session.status"
               },
               {
-                "$ref": "#/components/schemas/Event.command.executed"
+                "$ref": "#/components/schemas/Event.session.idle"
+              },
+              {
+                "$ref": "#/components/schemas/Event.todo.updated"
               },
               {
                 "$ref": "#/components/schemas/Event.vcs.branch.updated"
+              },
+              {
+                "$ref": "#/components/schemas/Event.session.compacted"
               },
               {
                 "$ref": "#/components/schemas/Event.kilo-sessions.remote-status-changed"
@@ -14245,6 +14562,9 @@
               },
               {
                 "$ref": "#/components/schemas/Event.workspace.failed"
+              },
+              {
+                "$ref": "#/components/schemas/Event.workspace.restore"
               },
               {
                 "$ref": "#/components/schemas/Event.workspace.status"
@@ -14330,8 +14650,7 @@
               "type": "string"
             }
           }
-        },
-        "additionalProperties": false
+        }
       },
       "PermissionActionConfig": {
         "anyOf": [
@@ -14566,16 +14885,14 @@
                 "type": "boolean"
               },
               "timeout": {
-                "description": "Timeout in milliseconds for requests to this provider. Default is 120000 (2 minutes). Set to false to disable timeout.",
+                "description": "Timeout in milliseconds for requests to this provider. Default is 300000 (5 minutes). Set to false to disable timeout.",
                 "anyOf": [
                   {
-                    "description": "Timeout in milliseconds for requests to this provider. Default is 120000 (2 minutes). Set to false to disable timeout.",
                     "type": "integer",
                     "exclusiveMinimum": 0,
                     "maximum": 9007199254740991
                   },
                   {
-                    "description": "Disable timeout for this provider entirely.",
                     "type": "boolean",
                     "const": false
                   }
@@ -14596,67 +14913,53 @@
               "type": "string"
             },
             "additionalProperties": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "string"
-                },
-                "name": {
-                  "type": "string"
-                },
-                "family": {
-                  "type": "string"
-                },
-                "release_date": {
-                  "type": "string"
-                },
-                "attachment": {
-                  "type": "boolean"
-                },
-                "reasoning": {
-                  "type": "boolean"
-                },
-                "temperature": {
-                  "type": "boolean"
-                },
-                "tool_call": {
-                  "type": "boolean"
-                },
-                "interleaved": {
-                  "anyOf": [
-                    {
-                      "type": "boolean",
-                      "const": true
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "field": {
-                          "type": "string",
-                          "enum": ["reasoning_content", "reasoning_details"]
-                        }
-                      },
-                      "required": ["field"],
-                      "additionalProperties": false
-                    }
-                  ]
-                },
-                "cost": {
+              "anyOf": [
+                {
                   "type": "object",
                   "properties": {
-                    "input": {
-                      "type": "number"
+                    "id": {
+                      "type": "string"
                     },
-                    "output": {
-                      "type": "number"
+                    "name": {
+                      "type": "string"
                     },
-                    "cache_read": {
-                      "type": "number"
+                    "family": {
+                      "type": "string"
                     },
-                    "cache_write": {
-                      "type": "number"
+                    "release_date": {
+                      "type": "string"
                     },
-                    "context_over_200k": {
+                    "attachment": {
+                      "type": "boolean"
+                    },
+                    "reasoning": {
+                      "type": "boolean"
+                    },
+                    "temperature": {
+                      "type": "boolean"
+                    },
+                    "tool_call": {
+                      "type": "boolean"
+                    },
+                    "interleaved": {
+                      "anyOf": [
+                        {
+                          "type": "boolean",
+                          "const": true
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "field": {
+                              "type": "string",
+                              "enum": ["reasoning_content", "reasoning_details"]
+                            }
+                          },
+                          "required": ["field"]
+                        }
+                      ]
+                    },
+                    "cost": {
                       "type": "object",
                       "properties": {
                         "input": {
@@ -14670,104 +14973,130 @@
                         },
                         "cache_write": {
                           "type": "number"
+                        },
+                        "context_over_200k": {
+                          "type": "object",
+                          "properties": {
+                            "input": {
+                              "type": "number"
+                            },
+                            "output": {
+                              "type": "number"
+                            },
+                            "cache_read": {
+                              "type": "number"
+                            },
+                            "cache_write": {
+                              "type": "number"
+                            }
+                          },
+                          "required": ["input", "output"]
                         }
                       },
                       "required": ["input", "output"]
-                    }
-                  },
-                  "required": ["input", "output"]
-                },
-                "limit": {
-                  "type": "object",
-                  "properties": {
-                    "context": {
-                      "type": "number"
                     },
-                    "input": {
-                      "type": "number"
+                    "limit": {
+                      "type": "object",
+                      "properties": {
+                        "context": {
+                          "type": "number"
+                        },
+                        "input": {
+                          "type": "number"
+                        },
+                        "output": {
+                          "type": "number"
+                        }
+                      },
+                      "required": ["context", "output"]
                     },
-                    "output": {
-                      "type": "number"
-                    }
-                  },
-                  "required": ["context", "output"]
-                },
-                "modalities": {
-                  "type": "object",
-                  "properties": {
-                    "input": {
-                      "type": "array",
-                      "items": {
-                        "type": "string",
-                        "enum": ["text", "audio", "image", "video", "pdf"]
+                    "modalities": {
+                      "type": "object",
+                      "properties": {
+                        "input": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": ["text", "audio", "image", "video", "pdf"]
+                          }
+                        },
+                        "output": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": ["text", "audio", "image", "video", "pdf"]
+                          }
+                        }
+                      },
+                      "required": ["input", "output"]
+                    },
+                    "experimental": {
+                      "type": "boolean"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": ["alpha", "beta", "deprecated"]
+                    },
+                    "provider": {
+                      "type": "object",
+                      "properties": {
+                        "npm": {
+                          "type": "string"
+                        },
+                        "api": {
+                          "type": "string"
+                        }
                       }
                     },
-                    "output": {
-                      "type": "array",
-                      "items": {
-                        "type": "string",
-                        "enum": ["text", "audio", "image", "video", "pdf"]
-                      }
-                    }
-                  },
-                  "required": ["input", "output"]
-                },
-                "experimental": {
-                  "type": "boolean"
-                },
-                "status": {
-                  "type": "string",
-                  "enum": ["alpha", "beta", "deprecated"]
-                },
-                "provider": {
-                  "type": "object",
-                  "properties": {
-                    "npm": {
-                      "type": "string"
+                    "options": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {}
                     },
-                    "api": {
-                      "type": "string"
+                    "headers": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    },
+                    "variants": {
+                      "description": "Variant-specific configuration",
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "disabled": {
+                                "description": "Disable this variant for the model",
+                                "type": "boolean"
+                              }
+                            },
+                            "additionalProperties": {}
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
                     }
                   }
                 },
-                "options": {
-                  "type": "object",
-                  "propertyNames": {
-                    "type": "string"
-                  },
-                  "additionalProperties": {}
-                },
-                "headers": {
-                  "type": "object",
-                  "propertyNames": {
-                    "type": "string"
-                  },
-                  "additionalProperties": {
-                    "type": "string"
-                  }
-                },
-                "variants": {
-                  "description": "Variant-specific configuration",
-                  "type": "object",
-                  "propertyNames": {
-                    "type": "string"
-                  },
-                  "additionalProperties": {
-                    "type": "object",
-                    "properties": {
-                      "disabled": {
-                        "description": "Disable this variant for the model",
-                        "type": "boolean"
-                      }
-                    },
-                    "additionalProperties": {}
-                  }
+                {
+                  "type": "null"
                 }
-              }
+              ]
             }
           }
-        },
-        "additionalProperties": false
+        }
       },
       "McpLocalConfig": {
         "type": "object",
@@ -14800,13 +15129,10 @@
           },
           "timeout": {
             "description": "Timeout in ms for MCP server requests. Defaults to 5000 (5 seconds) if not specified.",
-            "type": "integer",
-            "exclusiveMinimum": 0,
-            "maximum": 9007199254740991
+            "type": "number"
           }
         },
-        "required": ["type", "command"],
-        "additionalProperties": false
+        "required": ["type", "command"]
       },
       "McpOAuthConfig": {
         "type": "object",
@@ -14827,8 +15153,7 @@
             "description": "OAuth redirect URI (default: http://127.0.0.1:19876/mcp/oauth/callback).",
             "type": "string"
           }
-        },
-        "additionalProperties": false
+        }
       },
       "McpRemoteConfig": {
         "type": "object",
@@ -14870,13 +15195,10 @@
           },
           "timeout": {
             "description": "Timeout in ms for MCP server requests. Defaults to 5000 (5 seconds) if not specified.",
-            "type": "integer",
-            "exclusiveMinimum": 0,
-            "maximum": 9007199254740991
+            "type": "number"
           }
         },
-        "required": ["type", "url"],
-        "additionalProperties": false
+        "required": ["type", "url"]
       },
       "LayoutConfig": {
         "description": "@deprecated Always uses stretch layout.",
@@ -14993,10 +15315,6 @@
             "description": "@deprecated Use 'share' field instead. Share newly created sessions automatically",
             "type": "boolean"
           },
-          "remote_control": {
-            "description": "Enable remote control of sessions via Kilo Cloud. Equivalent to running /remote on startup.",
-            "type": "boolean"
-          },
           "autoupdate": {
             "description": "Automatically update to the latest version. Set to true to auto-update, false to disable, or 'notify' to show update notifications",
             "anyOf": [
@@ -15022,6 +15340,10 @@
             "items": {
               "type": "string"
             }
+          },
+          "remote_control": {
+            "description": "Enable remote control of sessions via Kilo Cloud. Equivalent to running /remote on startup.",
+            "type": "boolean"
           },
           "model": {
             "description": "Model to use in the format of provider/model, eg anthropic/claude-2",
@@ -15151,8 +15473,7 @@
           "formatter": {
             "anyOf": [
               {
-                "type": "boolean",
-                "const": false
+                "type": "boolean"
               },
               {
                 "type": "object",
@@ -15194,8 +15515,7 @@
           "lsp": {
             "anyOf": [
               {
-                "type": "boolean",
-                "const": false
+                "type": "boolean"
               },
               {
                 "type": "object",
@@ -15294,6 +15614,24 @@
               "prompt": {
                 "description": "Custom system prompt for AI commit message generation. When set, replaces the default conventional commits prompt entirely.",
                 "type": "string"
+              }
+            }
+          },
+          "tool_output": {
+            "description": "Thresholds for truncating tool output. When output exceeds either limit, the full text is written to the truncation directory and a preview is returned.",
+            "type": "object",
+            "properties": {
+              "max_lines": {
+                "description": "Maximum lines of tool output before it is truncated and saved to disk (default: 2000)",
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              },
+              "max_bytes": {
+                "description": "Maximum bytes of tool output before it is truncated and saved to disk (default: 51200)",
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
               }
             }
           },
@@ -15465,6 +15803,53 @@
             "$ref": "#/components/schemas/WellKnownAuth"
           }
         ]
+      },
+      "Workspace": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^wrk.*"
+          },
+          "type": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "branch": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "directory": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "extra": {
+            "anyOf": [
+              {},
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "projectID": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "type", "name", "branch", "directory", "extra", "projectID"]
       },
       "NotFoundError": {
         "type": "object",
@@ -15761,6 +16146,24 @@
         },
         "required": ["id", "name", "source", "env", "options", "models"]
       },
+      "ConsoleState": {
+        "type": "object",
+        "properties": {
+          "consoleManagedProviders": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "activeOrgName": {
+            "type": "string"
+          },
+          "switchableOrgCount": {
+            "type": "number"
+          }
+        },
+        "required": ["consoleManagedProviders", "switchableOrgCount"]
+      },
       "ToolIDs": {
         "type": "array",
         "items": {
@@ -15785,53 +16188,6 @@
         "items": {
           "$ref": "#/components/schemas/ToolListItem"
         }
-      },
-      "Workspace": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "pattern": "^wrk.*"
-          },
-          "type": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "branch": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "directory": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "extra": {
-            "anyOf": [
-              {},
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "projectID": {
-            "type": "string"
-          }
-        },
-        "required": ["id", "type", "name", "branch", "directory", "extra", "projectID"]
       },
       "Worktree": {
         "type": "object",
@@ -15983,23 +16339,7 @@
               "diffs": {
                 "type": "array",
                 "items": {
-                  "type": "object",
-                  "properties": {
-                    "file": {
-                      "type": "string"
-                    },
-                    "additions": {
-                      "type": "number"
-                    },
-                    "deletions": {
-                      "type": "number"
-                    },
-                    "status": {
-                      "type": "string",
-                      "enum": ["added", "deleted", "modified"]
-                    }
-                  },
-                  "required": ["file", "additions", "deletions"]
+                  "$ref": "#/components/schemas/SnapshotSummaryFileDiff"
                 }
               }
             },
@@ -16244,16 +16584,8 @@
         "type": "object",
         "properties": {
           "type": {
-            "anyOf": [
-              {
-                "type": "string",
-                "const": "oauth"
-              },
-              {
-                "type": "string",
-                "const": "api"
-              }
-            ]
+            "type": "string",
+            "enum": ["oauth", "api"]
           },
           "label": {
             "type": "string"
@@ -16285,16 +16617,8 @@
                           "type": "string"
                         },
                         "op": {
-                          "anyOf": [
-                            {
-                              "type": "string",
-                              "const": "eq"
-                            },
-                            {
-                              "type": "string",
-                              "const": "neq"
-                            }
-                          ]
+                          "type": "string",
+                          "enum": ["eq", "neq"]
                         },
                         "value": {
                           "type": "string"
@@ -16343,16 +16667,8 @@
                           "type": "string"
                         },
                         "op": {
-                          "anyOf": [
-                            {
-                              "type": "string",
-                              "const": "eq"
-                            },
-                            {
-                              "type": "string",
-                              "const": "neq"
-                            }
-                          ]
+                          "type": "string",
+                          "enum": ["eq", "neq"]
                         },
                         "value": {
                           "type": "string"
@@ -16376,16 +16692,8 @@
             "type": "string"
           },
           "method": {
-            "anyOf": [
-              {
-                "type": "string",
-                "const": "auto"
-              },
-              {
-                "type": "string",
-                "const": "code"
-              }
-            ]
+            "type": "string",
+            "enum": ["auto", "code"]
           },
           "instructions": {
             "type": "string"
@@ -16542,12 +16850,6 @@
             "$ref": "#/components/schemas/Event.server.instance.disposed"
           },
           {
-            "$ref": "#/components/schemas/Event.installation.updated"
-          },
-          {
-            "$ref": "#/components/schemas/Event.installation.update-available"
-          },
-          {
             "$ref": "#/components/schemas/Event.server.connected"
           },
           {
@@ -16567,6 +16869,12 @@
           },
           {
             "$ref": "#/components/schemas/Event.lsp.updated"
+          },
+          {
+            "$ref": "#/components/schemas/Event.installation.updated"
+          },
+          {
+            "$ref": "#/components/schemas/Event.installation.update-available"
           },
           {
             "$ref": "#/components/schemas/Event.tui.prompt.append"
@@ -16602,16 +16910,16 @@
             "$ref": "#/components/schemas/Event.message.part.delta"
           },
           {
-            "$ref": "#/components/schemas/Event.session.turn.open"
-          },
-          {
-            "$ref": "#/components/schemas/Event.session.turn.close"
-          },
-          {
             "$ref": "#/components/schemas/Event.permission.asked"
           },
           {
             "$ref": "#/components/schemas/Event.permission.replied"
+          },
+          {
+            "$ref": "#/components/schemas/Event.session.turn.open"
+          },
+          {
+            "$ref": "#/components/schemas/Event.session.turn.close"
           },
           {
             "$ref": "#/components/schemas/Event.session.diff"
@@ -16629,13 +16937,7 @@
             "$ref": "#/components/schemas/Event.question.rejected"
           },
           {
-            "$ref": "#/components/schemas/Event.todo.updated"
-          },
-          {
-            "$ref": "#/components/schemas/Event.session.status"
-          },
-          {
-            "$ref": "#/components/schemas/Event.session.idle"
+            "$ref": "#/components/schemas/Event.command.executed"
           },
           {
             "$ref": "#/components/schemas/Event.suggestion.shown"
@@ -16647,13 +16949,19 @@
             "$ref": "#/components/schemas/Event.suggestion.dismissed"
           },
           {
-            "$ref": "#/components/schemas/Event.session.compacted"
+            "$ref": "#/components/schemas/Event.session.status"
           },
           {
-            "$ref": "#/components/schemas/Event.command.executed"
+            "$ref": "#/components/schemas/Event.session.idle"
+          },
+          {
+            "$ref": "#/components/schemas/Event.todo.updated"
           },
           {
             "$ref": "#/components/schemas/Event.vcs.branch.updated"
+          },
+          {
+            "$ref": "#/components/schemas/Event.session.compacted"
           },
           {
             "$ref": "#/components/schemas/Event.kilo-sessions.remote-status-changed"
@@ -16681,6 +16989,9 @@
           },
           {
             "$ref": "#/components/schemas/Event.workspace.failed"
+          },
+          {
+            "$ref": "#/components/schemas/Event.workspace.restore"
           },
           {
             "$ref": "#/components/schemas/Event.workspace.status"
@@ -16992,6 +17303,67 @@
           }
         },
         "required": ["name", "extensions", "enabled"]
+      },
+      "SuggestionAction": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "description": "Button or option label (1-5 words)",
+            "type": "string"
+          },
+          "description": {
+            "description": "Brief explanation of what this action does",
+            "type": "string"
+          },
+          "prompt": {
+            "description": "Synthetic user prompt to inject when this action is accepted",
+            "type": "string"
+          }
+        },
+        "required": ["label", "prompt"]
+      },
+      "SuggestionRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^sug.*"
+          },
+          "sessionID": {
+            "type": "string",
+            "pattern": "^ses.*"
+          },
+          "text": {
+            "description": "Suggestion text shown to the user",
+            "type": "string"
+          },
+          "actions": {
+            "description": "Available actions the user can take",
+            "minItems": 1,
+            "maxItems": 2,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SuggestionAction"
+            }
+          },
+          "blocking": {
+            "description": "Whether this suggestion blocks prompt input. When unset, the TUI treats the suggestion as blocking for backwards compatibility; the built-in suggest tool always sets this to false.",
+            "type": "boolean"
+          },
+          "tool": {
+            "type": "object",
+            "properties": {
+              "messageID": {
+                "type": "string"
+              },
+              "callID": {
+                "type": "string"
+              }
+            },
+            "required": ["messageID", "callID"]
+          }
+        },
+        "required": ["id", "sessionID", "text", "actions"]
       }
     }
   }

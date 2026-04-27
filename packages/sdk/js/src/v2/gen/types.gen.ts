@@ -467,45 +467,32 @@ export type EventCommandExecuted = {
   }
 }
 
-export type SuggestionAction = {
-  /**
-   * Button or option label (1-5 words)
-   */
-  label: string
-  /**
-   * Brief explanation of what this action does
-   */
-  description?: string
-  /**
-   * Synthetic user prompt to inject when this action is accepted
-   */
-  prompt: string
-}
-
-export type SuggestionRequest = {
-  id: string
-  sessionID: string
-  /**
-   * Suggestion text shown to the user
-   */
-  text: string
-  /**
-   * Available actions the user can take
-   */
-  actions: Array<SuggestionAction>
-  /**
-   * Whether this suggestion blocks prompt input. When unset, the TUI treats the suggestion as blocking for backwards compatibility; the built-in suggest tool always sets this to false.
-   */
-  blocking?: boolean
-  tool?: {
-    messageID: string
-    callID: string
-  }
-}
-
 export type EventSuggestionShown = {
   type: "suggestion.shown"
-  properties: SuggestionRequest
+  properties: {
+    id: string
+    sessionID: string
+    text: string
+    actions: Array<{
+      /**
+       * Button or option label (1-5 words)
+       */
+      label: string
+      /**
+       * Brief explanation of what this action does
+       */
+      description?: string
+      /**
+       * Synthetic user prompt to inject when this action is accepted
+       */
+      prompt: string
+    }>
+    blocking?: boolean
+    tool?: {
+      messageID: string
+      callID: string
+    }
+  }
 }
 
 export type EventSuggestionAccepted = {
@@ -514,7 +501,20 @@ export type EventSuggestionAccepted = {
     sessionID: string
     requestID: string
     index: number
-    action: SuggestionAction
+    action: {
+      /**
+       * Button or option label (1-5 words)
+       */
+      label: string
+      /**
+       * Brief explanation of what this action does
+       */
+      description?: string
+      /**
+       * Synthetic user prompt to inject when this action is accepted
+       */
+      prompt: string
+    }
   }
 }
 
@@ -1828,7 +1828,8 @@ export type Config = {
      */
     prompt?: string
   }
-  /* Thresholds for truncating tool output. When output exceeds either limit, the full text is written to the truncation directory and a preview is returned.
+  /**
+   * Thresholds for truncating tool output. When output exceeds either limit, the full text is written to the truncation directory and a preview is returned.
    */
   tool_output?: {
     /**
@@ -2420,6 +2421,42 @@ export type FormatterStatus = {
   name: string
   extensions: Array<string>
   enabled: boolean
+}
+
+export type SuggestionAction = {
+  /**
+   * Button or option label (1-5 words)
+   */
+  label: string
+  /**
+   * Brief explanation of what this action does
+   */
+  description?: string
+  /**
+   * Synthetic user prompt to inject when this action is accepted
+   */
+  prompt: string
+}
+
+export type SuggestionRequest = {
+  id: string
+  sessionID: string
+  /**
+   * Suggestion text shown to the user
+   */
+  text: string
+  /**
+   * Available actions the user can take
+   */
+  actions: Array<SuggestionAction>
+  /**
+   * Whether this suggestion blocks prompt input. When unset, the TUI treats the suggestion as blocking for backwards compatibility; the built-in suggest tool always sets this to false.
+   */
+  blocking?: boolean
+  tool?: {
+    messageID: string
+    callID: string
+  }
 }
 
 export type GlobalHealthData = {

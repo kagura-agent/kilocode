@@ -32,11 +32,11 @@ For in-process tests (no socket, fastest loop) see `packages/opencode/test/kiloc
 
 ## 2. `kilo serve` vs `bun dev serve` — important
 
-| Command | What it runs |
-|---|---|
-| `kilo serve` | The npm-installed production CLI on `$PATH`. **Not the code in this repo.** |
-| `bun dev serve …` (repo root) | The local main-branch backend from this worktree. **This is what you want.** |
-| `bun run --cwd packages/opencode --conditions=browser src/index.ts serve …` | Same as `bun dev serve`, fully expanded. |
+| Command                                                                     | What it runs                                                                 |
+| --------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `kilo serve`                                                                | The npm-installed production CLI on `$PATH`. **Not the code in this repo.**  |
+| `bun dev serve …` (repo root)                                               | The local main-branch backend from this worktree. **This is what you want.** |
+| `bun run --cwd packages/opencode --conditions=browser src/index.ts serve …` | Same as `bun dev serve`, fully expanded.                                     |
 
 Root `package.json` defines `"dev"` as the full `bun run --cwd packages/opencode --conditions=browser src/index.ts` invocation, so `bun dev <args>` forwards `<args>` to the local CLI entry point (`packages/opencode/src/index.ts`) without touching the installed binary.
 
@@ -82,13 +82,13 @@ BASE="http://127.0.0.1:$PORT"
 
 ### Flags (`packages/opencode/src/cli/network.ts`)
 
-| Flag | Default | Notes |
-|---|---|---|
-| `--port` | `0` (OS-assigned) | Must be passed literally when overriding `opencode.json`'s `server.port`. |
-| `--hostname` | `127.0.0.1` | Becomes `0.0.0.0` when `--mdns` is set without an override. |
-| `--mdns` | `false` | Publishes an mDNS SRV record. |
-| `--mdns-domain` | `kilo.local` | |
-| `--cors` | `[]` | Extra allowed origins. |
+| Flag            | Default           | Notes                                                                     |
+| --------------- | ----------------- | ------------------------------------------------------------------------- |
+| `--port`        | `0` (OS-assigned) | Must be passed literally when overriding `opencode.json`'s `server.port`. |
+| `--hostname`    | `127.0.0.1`       | Becomes `0.0.0.0` when `--mdns` is set without an override.               |
+| `--mdns`        | `false`           | Publishes an mDNS SRV record.                                             |
+| `--mdns-domain` | `kilo.local`      |                                                                           |
+| `--cors`        | `[]`              | Extra allowed origins.                                                    |
 
 ## 4. The two mandatory request knobs
 
@@ -190,14 +190,14 @@ rm -f /tmp/kilo-serve.pid /tmp/kilo-serve.log
 
 ## 7. Useful environment variables
 
-| Var | Why you'd set it |
-|---|---|
-| `KILO_SERVER_PASSWORD` | Enable Basic auth. Omit for auth-bypassed local testing. |
-| `KILO_DB=":memory:"` | Skip on-disk SQLite — hermetic runs. |
-| `KILO_DISABLE_DEFAULT_PLUGINS=true` | Don't auto-load bundled plugins. |
-| `KILO_WORKSPACE_ID=<id>` | Single-workspace mode; disables control-plane routes. |
-| `KILO_TELEMETRY_LEVEL=off` | Disable PostHog during tests. |
-| `KILO_CONFIG_CONTENT='{…}'` | Inline JSON config without writing a file. |
+| Var                                 | Why you'd set it                                         |
+| ----------------------------------- | -------------------------------------------------------- |
+| `KILO_SERVER_PASSWORD`              | Enable Basic auth. Omit for auth-bypassed local testing. |
+| `KILO_DB=":memory:"`                | Skip on-disk SQLite — hermetic runs.                     |
+| `KILO_DISABLE_DEFAULT_PLUGINS=true` | Don't auto-load bundled plugins.                         |
+| `KILO_WORKSPACE_ID=<id>`            | Single-workspace mode; disables control-plane routes.    |
+| `KILO_TELEMETRY_LEVEL=off`          | Disable PostHog during tests.                            |
+| `KILO_CONFIG_CONTENT='{…}'`         | Inline JSON config without writing a file.               |
 
 ## 8. Last resort: typed SDK via a throwaway script
 
@@ -209,9 +209,7 @@ import { createKiloClient } from "@kilocode/sdk/v2"
 
 const port = process.env.PORT!
 const pass = process.env.KILO_SERVER_PASSWORD
-const headers = pass
-  ? { Authorization: "Basic " + Buffer.from("kilo:" + pass).toString("base64") }
-  : undefined
+const headers = pass ? { Authorization: "Basic " + Buffer.from("kilo:" + pass).toString("base64") } : undefined
 
 const client = createKiloClient({
   baseUrl: `http://127.0.0.1:${port}`,

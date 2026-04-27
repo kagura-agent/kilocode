@@ -56,7 +56,8 @@ export const Parameters = Schema.Struct({
   workdir: Schema.optional(Schema.String).annotate({
     description: `The working directory to run the command in. Defaults to the current directory. Use this instead of 'cd' commands.`,
   }),
-  description: Schema.optional(Schema.String).annotate({ // kilocode_change
+  description: Schema.optional(Schema.String).annotate({
+    // kilocode_change
     // kilocode_change start
     description:
       "Recommended: a clear, concise description of what this command does in 5-10 words. Examples:\nInput: ls\nOutput: Lists files in current directory\n\nInput: git status\nOutput: Shows working tree status\n\nInput: npm install\nOutput: Installs package dependencies\n\nInput: mkdir foo\nOutput: Creates directory 'foo'",

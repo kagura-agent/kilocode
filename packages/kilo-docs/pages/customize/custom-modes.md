@@ -472,12 +472,12 @@ Default legacy mode slugs (`code`, `build`, `architect`, `ask`, `debug`, `orches
 
 The CLI reads legacy mode files from the following locations (in load order). When the same slug appears in multiple sources, the **last loaded source wins**:
 
-| Load Order | Path | Format | Scope |
-|------------|------|--------|-------|
-| 1 | VSCode extension global storage `/settings/custom_modes.yaml` | YAML | Global |
-| 2 | `~/.kilocode/cli/global/settings/custom_modes.yaml` | YAML | Global |
-| 3 | `~/.kilocodemodes` | YAML | Global |
-| 4 | `<project>/.kilocodemodes` | YAML | Project (wins on conflict) |
+| Load Order | Path                                                          | Format | Scope                      |
+| ---------- | ------------------------------------------------------------- | ------ | -------------------------- |
+| 1          | VSCode extension global storage `/settings/custom_modes.yaml` | YAML   | Global                     |
+| 2          | `~/.kilocode/cli/global/settings/custom_modes.yaml`           | YAML   | Global                     |
+| 3          | `~/.kilocodemodes`                                            | YAML   | Global                     |
+| 4          | `<project>/.kilocodemodes`                                    | YAML   | Project (wins on conflict) |
 
 {% callout type="info" %}
 `~/.config/kilo/` is the XDG config directory for the new agent format — legacy `custom_modes.yaml` placed there will **not** be loaded. Use `~/.config/kilo/agent/*.md` or `~/.config/kilo/kilo.jsonc` for new agent definitions instead.

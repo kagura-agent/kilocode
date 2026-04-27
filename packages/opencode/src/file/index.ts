@@ -652,7 +652,27 @@ export const layer = Layer.effect(
 
       const searchLimit = kind === "directory" && !preferHidden ? limit * 20 : limit
       const sorted = fuzzysort.go(query, items, { limit: searchLimit }).map((item) => item.target)
-      const output = kind === "directory" ? sortHiddenLast(sorted, preferHidden).slice(0, limit) : sorted
+      let output = kind === "directory" ? sortHiddenLast(sorted, preferHidden).slice(0, limit) : sorted
+
+      // kilocode_change start — search gitignored files so @mentions can reference e.g. .log files (#9532)
+      if (output.length < limit && kind !== "directory") {
+        const ctx = yield* InstanceState.context
+        const ignoredFiles = yield* rg
+          .files({ cwd: ctx.directory, noIgnoreVcs: true, glob: [`*${query}*`] })
+          .pipe(
+            Stream.runCollect,
+            Effect.map((chunk) => [...chunk].slice(0, limit - output.length)),
+            Effect.catchCause(() => Effect.succeed([] as string[])),
+          )
+        const seen = new Set(output)
+        for (const file of ignoredFiles) {
+          if (!seen.has(file)) {
+            output.push(file)
+            seen.add(file)
+          }
+        }
+      }
+      // kilocode_change end
 
       log.info("search", { query, kind, results: output.length })
       return output

@@ -115,6 +115,7 @@ export interface FilesInput {
   hidden?: boolean
   follow?: boolean
   maxDepth?: number
+  noIgnoreVcs?: boolean // kilocode_change — allow searching gitignored files
   signal?: AbortSignal
 }
 
@@ -203,6 +204,9 @@ function filesArgs(input: FilesInput) {
   if (input.hidden !== false) args.push("--hidden")
   if (input.hidden === false) args.push("--glob=!.*")
   if (input.maxDepth !== undefined) args.push(`--max-depth=${input.maxDepth}`)
+  // kilocode_change start — skip VCS ignore rules so gitignored files appear in search
+  if (input.noIgnoreVcs) args.push("--no-ignore-vcs")
+  // kilocode_change end
   if (input.glob) {
     for (const glob of input.glob) args.push(`--glob=${glob}`)
   }

@@ -12,21 +12,26 @@ await fs.mkdir(dir, { recursive: true })
 afterAll(async () => {
   const { Database } = await import("../src/storage")
   Database.close()
-  const busy = (error: unknown) =>
-    typeof error === "object" && error !== null && "code" in error && error.code === "EBUSY"
+  // kilocode_change start - retry Windows lock-style cleanup failures
+  const locked = (error: unknown) =>
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    ["EBUSY", "EACCES", "EPERM"].includes(String(error.code))
   const rm = async (left: number): Promise<void> => {
     Bun.gc(true)
-    await sleep(100)
-    return fs.rm(dir, { recursive: true, force: true }).catch((error) => {
-      if (!busy(error)) throw error
+    await sleep(250)
+    return fs.rm(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }).catch((error) => {
+      if (!locked(error)) throw error
       if (left <= 1) throw error
       return rm(left - 1)
     })
   }
 
   // Windows can keep SQLite WAL handles alive until GC finalizers run, so we
-  // force GC and retry teardown to avoid flaky EBUSY in test cleanup.
-  await rm(30)
+  // force GC and retry teardown to avoid flaky lock errors in test cleanup.
+  await rm(60)
+  // kilocode_change end
 })
 
 process.env["XDG_DATA_HOME"] = path.join(dir, "share")

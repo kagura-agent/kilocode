@@ -23,14 +23,38 @@ function exists(dir: string) {
     .catch(() => false)
 }
 
-function clean(dir: string) {
-  return fs.rm(dir, {
-    recursive: true,
-    force: true,
-    maxRetries: 5,
-    retryDelay: 100,
-  })
+// kilocode_change start - retry Windows lock-style cleanup failures
+function locked(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    ["EBUSY", "EACCES", "EPERM"].includes(String(error.code))
+  )
 }
+
+function clean(dir: string) {
+  const retries = process.platform === "win32" ? 60 : 5
+  const delay = process.platform === "win32" ? 500 : 100
+  const rm = async (left: number): Promise<void> => {
+    if (process.platform === "win32") Bun.gc(true)
+    return fs
+      .rm(dir, {
+        recursive: true,
+        force: true,
+        maxRetries: 5,
+        retryDelay: 100,
+      })
+      .catch(async (error) => {
+        if (!locked(error)) throw error
+        if (left <= 1) throw error
+        await Bun.sleep(delay)
+        return rm(left - 1)
+      })
+  }
+  return rm(retries)
+}
+// kilocode_change end
 
 async function stop(dir: string) {
   if (!(await exists(dir))) return

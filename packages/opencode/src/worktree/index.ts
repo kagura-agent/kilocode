@@ -353,18 +353,71 @@ export const layer: Layer.Layer<
       )
     }
 
+    // kilocode_change start - retry transient Windows worktree lock failures
+    function locked(error: unknown) {
+      return (
+        typeof error === "object" &&
+        error !== null &&
+        "code" in error &&
+        ["EBUSY", "EACCES", "EPERM"].includes(String(error.code))
+      )
+    }
+
     function cleanDirectory(target: string) {
-      const retries = process.platform === "win32" ? 30 : 5 // kilocode_change - Windows may release git worktree handles slowly
-      const delay = process.platform === "win32" ? 250 : 100 // kilocode_change
-      return Effect.promise(() =>
-        import("fs/promises")
-          .then((fsp) => fsp.rm(target, { recursive: true, force: true, maxRetries: retries, retryDelay: delay })) // kilocode_change
-          .catch((error) => {
+      const retries = process.platform === "win32" ? 60 : 5
+      const delay = process.platform === "win32" ? 500 : 100
+      return Effect.promise(async () => {
+        const fsp = await import("fs/promises")
+        const rm = async (left: number): Promise<void> =>
+          fsp
+            .rm(target, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 })
+            .catch(async (error) => {
+              if (!locked(error)) throw error
+              if (left <= 1) throw error
+              if (process.platform === "win32") Bun.gc(true)
+              await Bun.sleep(delay)
+              return rm(left - 1)
+            })
+        return rm(retries)
+      }).pipe(
+        Effect.catch((error) =>
+          Effect.sync(() => {
             const message = errorMessage(error)
             throw new RemoveFailedError({ message: message || "Failed to remove git worktree directory" })
           }),
+        ),
       )
     }
+
+    function transient(result: GitResult) {
+      const text = `${result.stderr}\n${result.text}`.toLowerCase()
+      return [
+        "ebusy",
+        "eacces",
+        "eperm",
+        "directory not empty",
+        "resource busy",
+        "permission denied",
+        "access is denied",
+        "process cannot access",
+      ].some((item) => text.includes(item))
+    }
+
+    const removeWorktree = Effect.fnUntraced(function* (root: string, target: string) {
+      const retries = process.platform === "win32" ? 60 : 5
+      const delay = process.platform === "win32" ? 500 : 100
+      for (const attempt of Array.from({ length: retries }, (_, i) => i)) {
+        yield* stopFsmonitor(target)
+        const result = yield* git(["worktree", "remove", "--force", target], { cwd: root })
+        if (result.code === 0) return result
+        if (!transient(result)) return result
+        if (attempt === retries - 1) return result
+        if (process.platform === "win32") yield* Effect.sync(() => Bun.gc(true))
+        yield* Effect.sleep(`${delay} millis`)
+      }
+      return { code: 1, text: "", stderr: "Failed to remove git worktree" } satisfies GitResult
+    })
+    // kilocode_change end
 
     const remove = Effect.fn("Worktree.remove")(function* (input: RemoveInput) {
       const ctx = yield* InstanceState.context
@@ -391,8 +444,7 @@ export const layer: Layer.Layer<
         return true
       }
 
-      yield* stopFsmonitor(entry.path)
-      const removed = yield* git(["worktree", "remove", "--force", entry.path], { cwd: ctx.worktree })
+      const removed = yield* removeWorktree(ctx.worktree, entry.path) // kilocode_change
       if (removed.code !== 0) {
         const next = yield* git(["worktree", "list", "--porcelain"], { cwd: ctx.worktree })
         if (next.code !== 0) {

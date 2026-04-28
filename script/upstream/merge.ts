@@ -80,23 +80,19 @@ function abortMissingMergiraf(): never {
 
 /**
  * Attempt syntax-aware resolution of conflicted files via mergiraf.
- * Re-materializes each file with diff3 markers first so mergiraf can
- * reconstruct the base revision (needed for its structural heuristics).
- * Only stages files mergiraf resolves completely (no conflict markers
- * remain). Partial resolutions are left unstaged so the remaining markers
- * show up for manual review — we never auto-commit a partially-resolved
- * file. Per-file failures are logged at debug level and skipped so the
- * overall merge continues to the next transform pass.
+ * Assumes `git merge` was invoked with `merge.conflictStyle=zdiff3`, so the
+ * working tree already contains base-aware markers that mergiraf can feed
+ * into its structural heuristics. Only stages files mergiraf resolves
+ * completely (no conflict markers remain). Partial resolutions are left
+ * unstaged so the remaining markers show up for manual review — we never
+ * auto-commit a partially-resolved file. Per-file failures are logged at
+ * debug level and skipped so the overall merge continues to the next
+ * transform pass.
  */
 async function runMergiraf(files: string[]): Promise<{ solved: number; partial: number }> {
   let solved = 0
   let partial = 0
   for (const file of files) {
-    const co = await $`git checkout --conflict=diff3 -- ${file}`.quiet().nothrow()
-    if (co.exitCode !== 0) {
-      logger.debug(`skipping ${file}: checkout --conflict=diff3 failed (exit ${co.exitCode})`)
-      continue
-    }
     const mg = await $`mergiraf solve --keep-backup=false ${file}`.quiet().nothrow()
     const content = await Bun.file(file)
       .text()

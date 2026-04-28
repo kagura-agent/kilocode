@@ -63,7 +63,7 @@ Downloads all build artifacts and publishes to every distribution channel:
 
 - Publishes platform-specific binary packages to **npm** (e.g. `@kilocode/cli-linux-x64`, `@kilocode/cli-darwin-arm64`, etc.).
 - Publishes the main `@kilocode/cli` package to **npm** with optional dependencies on the binary packages.
-- Builds and pushes a multi-arch **Docker image** (`ghcr.io/kilo-org/kilo`) to GitHub Container Registry (linux/amd64 + linux/arm64).
+- Builds and pushes a multi-arch **Docker image** (`ghcr.io/kilo-org/kilocode`) to GitHub Container Registry (linux/amd64 + linux/arm64).
 
 #### SDK (`@kilocode/sdk`)
 
@@ -116,3 +116,12 @@ The following secrets must be configured in the repository:
 ### Concurrency
 
 The workflow uses concurrency control (`workflow-ref-bump/version`) to prevent parallel releases from conflicting.
+
+## One-Time Follow-Up After Renaming the Docker Image
+
+The CLI Docker image was renamed from `ghcr.io/kilo-org/kilo` to `ghcr.io/kilo-org/kilocode`. The first release after the rename will create a brand-new GHCR package; after that publish succeeds, do the following once:
+
+1. Open `https://github.com/orgs/Kilo-Org/packages/container/kilocode/package-settings`.
+2. **Make the package public** — "Danger Zone" → "Change visibility" → Public. Without this, `docker pull` will return 401 for everyone.
+3. **Connect it to the `kilocode` repo** — "Manage Actions access" / "Repository" → select `Kilo-Org/kilocode`. This makes the package appear under the repo's Packages sidebar and fixes the source repo shown in the GHCR UI.
+4. (Optional) Deprecate the old `ghcr.io/kilo-org/kilo` package at `https://github.com/orgs/Kilo-Org/packages/container/kilo/package-settings` so users stop pulling from the archived-repo-linked package.

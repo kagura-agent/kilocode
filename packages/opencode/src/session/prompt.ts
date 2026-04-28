@@ -1376,6 +1376,7 @@ NOTE: At any point in time through this workflow you should feel free to ask the
 
           let msgs = yield* MessageV2.filterCompactedEffect(sessionID)
           msgs = KiloSessionPromptQueue.scope(sessionID, msgs) // kilocode_change - hide later queued prompts
+          msgs = KiloSessionPrompt.trimBeforeLastSummary(msgs) // kilocode_change - trim on any completed summary (e.g. manual /compact against a text user)
 
           let lastUser: MessageV2.User | undefined
           let lastAssistant: MessageV2.Assistant | undefined
@@ -1560,8 +1561,12 @@ NOTE: At any point in time through this workflow you should feel free to ask the
 
             yield* plugin.trigger("experimental.chat.messages.transform", {}, { messages: msgs })
 
-            // kilocode_change — ephemerally inject dynamic editor context into last user message
+            // kilocode_change start — ephemeral context injection + post-summary
+            // media strip (keeps outgoing body under the gateway body-size limit
+            // even when filterCompacted couldn't trim the pre-summary history).
             KiloSessionPrompt.injectEditorContext({ msgs, lastUser, sessionID, cache: envCache })
+            msgs = KiloSessionPrompt.maybeStripHistoricalMedia(msgs)
+            // kilocode_change end
 
             const [skills, env, instructions, modelMsgs] = yield* Effect.all([
               sys.skills(agent),

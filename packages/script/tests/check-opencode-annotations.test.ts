@@ -1,7 +1,8 @@
 import { describe, expect, test } from "bun:test"
 import path from "node:path"
 
-const SOURCE_EXTS = new Set([".ts", ".tsx", ".js", ".jsx", ".yml", ".yaml", ".toml"])
+const SOURCE_EXTS = new Set([".ts", ".tsx", ".js", ".jsx", ".yml", ".yaml", ".toml", ".sh", ".bash", ".zsh"])
+const FILES = new Map<string, string>()
 const SCOPES = [
   "sdks/vscode",
   "packages/opencode",
@@ -36,7 +37,10 @@ function isExempt(file: string) {
 }
 
 function isSource(file: string) {
-  return SOURCE_EXTS.has(path.extname(file))
+  const ext = path.extname(file)
+  if (SOURCE_EXTS.has(ext)) return true
+  if (ext) return false
+  return FILES.get(file)?.startsWith("#!") ?? false
 }
 
 const MARKER_PREFIX = /(?:\/\/|\{?\s*\/\*|#)\s*kilocode_change\b/
@@ -113,11 +117,12 @@ describe("hasMarker", () => {
     ["/* kilocode_change start */", true],
     ["/* kilocode_change end */", true],
 
-    // YAML/TOML-style inline
+    // YAML/TOML/shell-style inline
     ["# kilocode_change", true],
     ["  # kilocode_change", true],
     ["name: test # kilocode_change", true],
     ['name = "zed" # kilocode_change', true],
+    ['export FOO="bar" # kilocode_change', true],
     ["# kilocode_change start", true],
     ["# kilocode_change end", true],
 
@@ -178,6 +183,8 @@ describe("isExempt", () => {
     ["packages/desktop-electron/src/main/index.ts", false],
     ["sdks/vscode/src/extension.ts", false],
     ["packages/extensions/zed/extension.toml", false],
+    ["github/script/release", false],
+    ["github/script/publish", false],
     ["script/changelog.ts", false],
     // kilocode_change is not the same as kilocode
     ["packages/opencode/src/check-opencode-annotations.ts", false],
@@ -203,6 +210,8 @@ describe("isChecked", () => {
     ["script/check-opencode-annotations.ts", true],
     [".github/workflows/test.yml", true],
     ["github/action.yml", true],
+    ["github/script/release", true],
+    ["github/script/publish", true],
     ["packages/kilo-ui/src/components/icon.tsx", false],
     ["packages/kilo-vscode/src/extension.ts", false],
     ["packages/sdk/js/src/index.ts", false],
@@ -227,15 +236,23 @@ describe("isSource", () => {
     ["workflow.yml", true],
     ["workflow.yaml", true],
     ["extension.toml", true],
+    ["script.sh", true],
+    ["script.bash", true],
+    ["script.zsh", true],
     [".md", false],
     [".txt", false],
     ["Makefile", false],
+    ["github/script/release", true],
+    ["github/script/plain", false],
     ["foo.go", false],
     ["foo.rs", false],
   ]
 
   test.each(cases)("%j → isSource=%j", (file, expected) => {
+    FILES.set("github/script/release", "#!/usr/bin/env bash\n")
+    FILES.set("github/script/plain", "set -euo pipefail\n")
     expect(isSource(file)).toBe(expected)
+    FILES.clear()
   })
 })
 
@@ -274,6 +291,11 @@ describe("coveredLines", () => {
 
   test("whole-file TOML annotation", () => {
     const covered = coveredLines('# kilocode_change - new file\nid = "opencode"\nname = "OpenCode"')
+    expect(covered).toEqual(new Set([1, 2, 3]))
+  })
+
+  test("whole-file shell annotation after shebang", () => {
+    const covered = coveredLines('#!/usr/bin/env bash\n# kilocode_change - new file\nset -euo pipefail')
     expect(covered).toEqual(new Set([1, 2, 3]))
   })
 
@@ -329,6 +351,12 @@ describe("coveredLines", () => {
 
   test("TOML block markers", () => {
     const text = ['# kilocode_change start', 'id = "opencode"', '# kilocode_change end'].join("\n")
+    const covered = coveredLines(text)
+    expect(covered).toEqual(new Set([1, 2, 3]))
+  })
+
+  test("shell block markers", () => {
+    const text = ["# kilocode_change start", "set -euo pipefail", "# kilocode_change end"].join("\n")
     const covered = coveredLines(text)
     expect(covered).toEqual(new Set([1, 2, 3]))
   })

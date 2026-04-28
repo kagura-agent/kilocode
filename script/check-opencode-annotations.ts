@@ -16,7 +16,8 @@
  *   - is empty / whitespace-only                          (skipped)
  *   - is itself a marker line                             (auto-covered)
  *
- * JS (//), JSX ({/ * ... * /}), YAML (#), and TOML (#) comment styles are recognized.
+ * JS (//), JSX ({/ * ... * /}), YAML (#), TOML (#), and shell (#) comment styles are recognized.
+ * Extensionless files with shebangs are treated as source files.
  *
  * Exempt paths (no markers needed — entirely Kilo-specific):
  *   - packages/opencode/src/kilocode/**
@@ -32,7 +33,7 @@ import { readFileSync } from "node:fs"
 import path from "node:path"
 
 const ROOT = path.resolve(import.meta.dir, "..")
-const SOURCE_EXTS = new Set([".ts", ".tsx", ".js", ".jsx", ".yml", ".yaml", ".toml"])
+const SOURCE_EXTS = new Set([".ts", ".tsx", ".js", ".jsx", ".yml", ".yaml", ".toml", ".sh", ".bash", ".zsh"])
 const SCOPES = [
   "sdks/vscode",
   "packages/opencode",
@@ -96,7 +97,10 @@ function isChecked(file: string) {
 }
 
 function isSource(file: string) {
-  return SOURCE_EXTS.has(path.extname(file))
+  const ext = path.extname(file)
+  if (SOURCE_EXTS.has(ext)) return true
+  if (ext) return false
+  return readFileSync(path.join(ROOT, file), "utf8").startsWith("#!")
 }
 
 function addedLines(file: string): Set<number> {
@@ -112,7 +116,7 @@ function addedLines(file: string): Set<number> {
   return out
 }
 
-// Matches the start of a kilocode_change marker in JS, JSX, YAML, and TOML comments.
+// Matches the start of a kilocode_change marker in JS, JSX, YAML, TOML, and shell comments.
 const MARKER_PREFIX = /(?:\/\/|\{?\s*\/\*|#)\s*kilocode_change\b/
 
 function hasMarker(line: string) {
@@ -221,7 +225,7 @@ console.error(
     "  ...",
     "  {/* kilocode_change end */}",
     "",
-    "YAML:",
+    "YAML/TOML/shell:",
     "  # kilocode_change",
     "  # kilocode_change start",
     "  ...",

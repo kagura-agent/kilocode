@@ -62,7 +62,9 @@ function ctx(opts: {
     getWorkspaceDirectory: () => opts.workspace ?? "/workspace",
     recordPermissionDirectory: (id, dir) => permDirs.set(id, dir),
     getPermissionDirectory: (id) => permDirs.get(id),
-    clearPermissionDirectory: (id) => { permDirs.delete(id) },
+    clearPermissionDirectory: (id) => {
+      permDirs.delete(id)
+    },
     prunePermissionDirectories: (active) => {
       for (const key of permDirs.keys()) {
         if (!active.has(key)) permDirs.delete(key)
@@ -184,7 +186,9 @@ describe("fetchAndSendPendingPermissions", () => {
       getWorkspaceDirectory: () => "/workspace",
       recordPermissionDirectory: (id, dir) => permDirs.set(id, dir),
       getPermissionDirectory: (id) => permDirs.get(id),
-      clearPermissionDirectory: (id) => { permDirs.delete(id) },
+      clearPermissionDirectory: (id) => {
+        permDirs.delete(id)
+      },
       prunePermissionDirectories: (active) => {
         for (const key of permDirs.keys()) {
           if (!active.has(key)) permDirs.delete(key)

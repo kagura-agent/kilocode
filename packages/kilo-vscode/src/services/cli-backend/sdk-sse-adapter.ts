@@ -236,7 +236,7 @@ export class SdkSSEAdapter {
 
   // ── Notify helpers ─────────────────────────────────────────────────
 
-  private notifyEvent(event: Event, directory: string | undefined): void {
+  private notifyEvent(event: Event, directory?: string): void {
     for (const handler of this.handlers) {
       try {
         handler(event, directory)

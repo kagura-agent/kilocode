@@ -82,26 +82,51 @@ function abortMissingMergiraf(): never {
  * Attempt syntax-aware resolution of conflicted files via mergiraf.
  * Assumes `git merge` was invoked with `merge.conflictStyle=zdiff3`, so the
  * working tree already contains base-aware markers that mergiraf can feed
- * into its structural heuristics. Only stages files mergiraf resolves
- * completely (no conflict markers remain). Partial resolutions are left
- * unstaged so the remaining markers show up for manual review — we never
- * auto-commit a partially-resolved file. Per-file failures are logged at
- * debug level and skipped so the overall merge continues to the next
- * transform pass.
+ * into its structural heuristics.
+ *
+ * Only runs on files whose working-tree content actually contains text
+ * conflict markers. Delete/modify (UD/DU) and similar non-textual conflicts
+ * have no markers — running `mergiraf solve` + `git add` on them would
+ * silently stage the file with our side of the conflict, losing the signal
+ * that upstream deleted (or that we deleted what upstream modified). Those
+ * are left untouched for manual review.
+ *
+ * Only stages files mergiraf resolves completely (no conflict markers
+ * remain). Partial resolutions are left unstaged so the remaining markers
+ * show up for manual review — we never auto-commit a partially-resolved
+ * file. Per-file failures are logged at debug level and skipped so the
+ * overall merge continues to the next transform pass.
  */
-async function runMergiraf(files: string[]): Promise<{ solved: number; partial: number }> {
+async function runMergiraf(files: string[]): Promise<{ solved: number; partial: number; skipped: number }> {
   let solved = 0
   let partial = 0
+  let skipped = 0
   for (const file of files) {
-    const mg = await $`mergiraf solve --keep-backup=false ${file}`.quiet().nothrow()
-    const content = await Bun.file(file)
+    const before = await Bun.file(file)
       .text()
       .catch(() => "")
-    if (!content) {
+    if (!before) {
+      logger.debug(`skipping ${file}: file missing from working tree (likely delete/modify conflict)`)
+      skipped++
+      continue
+    }
+    if (!before.includes("<<<<<<< ")) {
+      // No text conflict markers — this is a non-textual conflict (UD/DU,
+      // add/add with identical content, submodule, binary, etc.). Running
+      // mergiraf + git add here would silently stage our side as resolved.
+      logger.debug(`skipping ${file}: no conflict markers (non-textual conflict, needs manual review)`)
+      skipped++
+      continue
+    }
+    const mg = await $`mergiraf solve --keep-backup=false ${file}`.quiet().nothrow()
+    const after = await Bun.file(file)
+      .text()
+      .catch(() => "")
+    if (!after) {
       logger.debug(`skipping ${file}: empty after mergiraf (exit ${mg.exitCode})`)
       continue
     }
-    if (content.includes("<<<<<<< ")) {
+    if (after.includes("<<<<<<< ")) {
       // exit 2 = mergiraf reduced but didn't fully resolve; exit 1 = no change.
       // Either way the working tree still has markers, so leave it unstaged
       // for manual review rather than silently staging a half-resolved file.
@@ -116,7 +141,7 @@ async function runMergiraf(files: string[]): Promise<{ solved: number; partial: 
     }
     solved++
   }
-  return { solved, partial }
+  return { solved, partial, skipped }
 }
 
 function parseArgs(): MergeOptions {
@@ -529,6 +554,11 @@ async function main() {
       if (mgResult.partial > 0) {
         logger.info(
           `mergiraf partially resolved ${mgResult.partial} file(s) — remaining markers left unstaged for manual review`,
+        )
+      }
+      if (mgResult.skipped > 0) {
+        logger.info(
+          `mergiraf skipped ${mgResult.skipped} file(s) with non-textual conflicts (delete/modify, binary, etc.) — left for manual review`,
         )
       }
 

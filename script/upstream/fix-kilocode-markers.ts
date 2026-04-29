@@ -225,7 +225,6 @@ function clean(file: string, text: string): Clean {
   const marks: Marks = { inline: new Map(), starts: new Map(), ends: new Map(), blocks: [] }
   const lines: string[] = []
   const opens: { before: string; start?: number }[] = []
-  const pending: string[] = []
 
   for (const line of parsed.lines) {
     if (standalone.some((item) => item.test(line))) {
@@ -244,7 +243,6 @@ function clean(file: string, text: string): Clean {
         if (!open && last >= 0) marks.ends.set(last, line)
         continue
       }
-      pending.push(line)
       continue
     }
 
@@ -259,10 +257,6 @@ function clean(file: string, text: string): Clean {
       open.start = index
       marks.starts.set(index, open.before)
     }
-
-    const marker = pending.at(-1)
-    if (marker) marks.starts.set(index, marker)
-    pending.length = 0
 
     if (next.mark) marks.inline.set(index, next.mark)
   }

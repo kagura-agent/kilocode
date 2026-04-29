@@ -96,12 +96,12 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: kilo-cli
+          # kilocode_change start - exclude sourcemaps + skip zstd to keep the artifact under the v4 download flaky threshold
           path: |
             packages/opencode/dist
             !packages/opencode/dist/**/*.map
-          # Binaries don't compress meaningfully; skip the ~60s zstd pass and
-          # reduce the chance of partial-extract bugs on the download side.
           compression-level: 0
+          # kilocode_change end
 
     outputs:
       version: ${{ needs.version.outputs.version }}

@@ -4,6 +4,7 @@
  */
 
 import { $ } from "bun"
+import { defaultConfig } from "./config"
 import { matches } from "./match"
 
 export interface ConflictReport {
@@ -151,7 +152,7 @@ export function getRecommendation(
   }
 
   // Kilo directories should always keep ours
-  if (path.includes("kilocode") || path.includes("kilo-gateway") || path.includes("kilo-telemetry")) {
+  if (matches(path, defaultConfig.kiloDirectories.map((dir) => `${dir}/**`))) {
     return {
       recommendation: "keep-ours",
       reason: "File is in a Kilo-specific directory",

@@ -136,7 +136,12 @@ export namespace Encoding {
 
   /** Write text, ensuring parent directory exists, using the given encoding. */
   export async function write(path: string, text: string, encoding: string = DEFAULT): Promise<void> {
-    await mkdir(dirname(path), { recursive: true })
+    try {
+      await mkdir(dirname(path), { recursive: true })
+    } catch (err: unknown) {
+      // On Windows, mkdir with recursive:true can throw EEXIST for junction/reparse points.
+      if (!(err instanceof Error && "code" in err && (err as NodeJS.ErrnoException).code === "EEXIST")) throw err
+    }
     await writeFile(path, encode(text, encoding))
   }
 }

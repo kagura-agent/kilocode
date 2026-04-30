@@ -209,6 +209,17 @@ describe("Encoding.read / Encoding.readSync / Encoding.write", () => {
     })
   })
 
+  test("write succeeds when parent directory already exists", async () => {
+    await tmp(async (dir) => {
+      const subdir = path.join(dir, "existing")
+      await fs.mkdir(subdir, { recursive: true })
+      const filepath = path.join(subdir, "file.txt")
+      await Encoding.write(filepath, "hello", "utf-8")
+      const bytes = await fs.readFile(filepath)
+      expect(bytes.equals(Buffer.from("hello", "utf-8"))).toBe(true)
+    })
+  })
+
   test("write defaults to utf-8 when encoding is omitted", async () => {
     await tmp(async (dir) => {
       const filepath = path.join(dir, "default.txt")

@@ -83,9 +83,16 @@ export namespace AppFileSystem {
         if (mode) yield* fs.chmod(path, mode)
       })
 
+      // kilocode_change start - handle EEXIST on Windows for junction/reparse points
       const ensureDir = Effect.fn("FileSystem.ensureDir")(function* (path: string) {
-        yield* fs.makeDirectory(path, { recursive: true })
+        yield* fs.makeDirectory(path, { recursive: true }).pipe(
+          Effect.catchIf(
+            (e) => e.reason._tag === "AlreadyExists",
+            () => Effect.void,
+          ),
+        )
       })
+      // kilocode_change end
 
       const writeWithDirs = Effect.fn("FileSystem.writeWithDirs")(function* (
         path: string,
@@ -99,7 +106,11 @@ export namespace AppFileSystem {
             (e) => e.reason._tag === "NotFound",
             () =>
               Effect.gen(function* () {
-                yield* fs.makeDirectory(dirname(path), { recursive: true })
+                // kilocode_change start - handle EEXIST on Windows for junction/reparse points
+                yield* fs.makeDirectory(dirname(path), { recursive: true }).pipe(
+                  Effect.catchIf((e) => e.reason._tag === "AlreadyExists", () => Effect.void),
+                )
+                // kilocode_change end
                 yield* write
               }),
           ),

@@ -85,6 +85,23 @@ describe("tool.write", () => {
       ),
     )
 
+    // kilocode_change start - regression test for EEXIST on Windows
+    it.live("writes file in already-existing directory without EEXIST", () =>
+      provideTmpdirInstance((dir) =>
+        Effect.gen(function* () {
+          const subdir = path.join(dir, "existing-dir")
+          yield* Effect.promise(() => fs.mkdir(subdir, { recursive: true }))
+          const filepath = path.join(subdir, "file.txt")
+          const result = yield* run({ filePath: filepath, content: "content in existing dir" })
+
+          expect(result.output).toContain("Wrote file successfully")
+          const content = yield* Effect.promise(() => fs.readFile(filepath, "utf-8"))
+          expect(content).toBe("content in existing dir")
+        }),
+      ),
+    )
+    // kilocode_change end
+
     it.live("handles relative paths by resolving to instance directory", () =>
       provideTmpdirInstance((dir) =>
         Effect.gen(function* () {
